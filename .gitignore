@@ -1,0 +1,15 @@
+/node_modules
+/npm-debug.log
+/public/bundles
+/data
+/coverage
+/.nyc_output
+/.nuxt/
+/plugins/*
+/public/pages/interoperate
+/public/pages/user-guide
+/doc-dist
+.cache-require-paths.json
+/dist/
+/nuxt-dist
+/config/local-*
