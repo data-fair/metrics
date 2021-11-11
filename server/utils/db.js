@@ -22,7 +22,7 @@ exports.connect = async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     // workers generate a lot of opened sockets if we do not change this setting
-    poolSize: config.mode === 'task' ? 1 : 5
+    maxPoolSize: config.mode === 'udp' ? 1 : 5
   }
   debug('Connecting to mongodb ' + config.mongoUrl)
   try {
