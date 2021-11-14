@@ -17,8 +17,7 @@ ADD nodemon.json .
 ADD public public
 ADD nuxt.config.js .
 ADD config config
-ADD contract contract
-RUN yarn run build
+RUN npm run build
 
 # Adding server files
 ADD server server
