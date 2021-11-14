@@ -73,6 +73,10 @@ exports.run = async () => {
   server = dgram.createSocket('udp4')
   server.on('message', (msg) => {
     const body = JSON.parse(msg.toString().replace(/.* nginx: /, ''))
+    if (typeof body.resource === 'string') body.resource = JSON.parse(body.resource)
+    if (typeof body.status === 'string') body.status = JSON.parse(body.status)
+    if (typeof body.status === 'number') body.status = { code: body.status }
+    if (typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
     if (body.referer) {
       body.refererDomain = new URL(body.referer).hostname
       delete body.referer
