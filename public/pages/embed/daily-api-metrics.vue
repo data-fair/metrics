@@ -6,7 +6,9 @@
 export default {
   layout: 'embed',
   data () {
-    return {}
+    return {
+      topic: null
+    }
   },
   created () {}
 }

@@ -45,11 +45,10 @@ exports.init = async (db) => {
       day: 1,
       'resource.type': 1,
       'resource.id': 1,
-      'operation.class': 1,
-      'operation.id': 1,
-      'status.code': 1,
+      operationTrack: 1,
+      statusClass: 1,
       refererDomain: 1
-    }, { name: 'main-keys' })
+    }, { name: 'main-keys', unique: true })
   ]
   await Promise.all(promises)
 }

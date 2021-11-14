@@ -15,6 +15,10 @@ const processBulk = async (db) => {
   timeout = setTimeout(() => processBulk(db), maxBulkDelay)
   const patches = []
   for (const line of bulk) {
+    if (!line.operation.track) {
+      console.log('ignore operation without tracking category')
+      continue
+    }
     const day = line.date.slice(0, 10)
     const patchKey = {
       'owner.type': line.owner.type,
@@ -22,9 +26,8 @@ const processBulk = async (db) => {
       day,
       'resource.type': line.resource.type,
       'resource.id': line.resource.id,
-      'operation.class': line.operation.class,
-      'operation.id': line.operation.id,
-      'status.code': line.status.code,
+      operationTrack: line.operation.track,
+      statusClass: line.status.class,
       refererDomain: line.refererDomain
     }
     const existingPatch = patches.find(p => equal(p[0], patchKey))
@@ -38,8 +41,8 @@ const processBulk = async (db) => {
           owner: line.owner,
           day,
           resource: line.resource,
-          operation: line.operation,
-          status: line.status,
+          operationTrack: line.operation.track,
+          statusClass: line.status.class,
           refererDomain: line.refererDomain
         },
         $inc: {
