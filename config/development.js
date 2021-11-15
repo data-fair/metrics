@@ -7,5 +7,6 @@ module.exports = {
     maxBulkDelay: 10000
   },
   directoryUrl: 'http://localhost:6200/simple-directory',
-  proxyNuxt: true
+  proxyNuxt: true,
+  syslogSecret: 'secretdev1'
 }

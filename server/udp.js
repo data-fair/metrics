@@ -5,14 +5,11 @@ const eventToPromise = require('event-to-promise')
 const equal = require('fast-deep-equal')
 const dbUtils = require('./utils/db')
 
-const maxBulkSize = 50
-const maxBulkDelay = 10000
-
 let bulk = []
 let timeout
 const processBulk = async (db) => {
   clearTimeout(timeout)
-  timeout = setTimeout(() => processBulk(db), maxBulkDelay)
+  timeout = setTimeout(() => processBulk(db), config.httpLogs.maxBulkDelay)
   const patches = []
   for (const line of bulk) {
     if (!line.operation.track) {
@@ -68,32 +65,43 @@ const processBulk = async (db) => {
 // Run app and return it in a promise
 let server, mongo
 exports.run = async () => {
+  if (!config.syslogSecret) throw new Error('syslog secret is missing from the configuration and required')
   mongo = await dbUtils.connect()
   await dbUtils.init(mongo.db)
   server = dgram.createSocket('udp4')
   server.on('message', (msg) => {
-    const body = JSON.parse(msg.toString().replace(/.* nginx: /, ''))
-    if (typeof body.resource === 'string') body.resource = JSON.parse(body.resource)
-    if (typeof body.status === 'string') body.status = JSON.parse(body.status)
-    if (typeof body.status === 'number') body.status = { code: body.status }
-    if (typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
-    if (body.referer) {
-      body.refererDomain = new URL(body.referer).hostname
-      delete body.referer
+    // remove syslog header
+    msg = msg.toString().replace(/.* nginx: /, '')
+    // check secret for minimal security
+    if (!msg.startsWith(config.syslogSecret)) console.error('message did not start with configured secret', msg)
+    msg = msg.replace(config.syslogSecret, '')
+
+    try {
+      const body = JSON.parse(msg)
+      if (typeof body.resource === 'string') body.resource = JSON.parse(body.resource)
+      if (typeof body.status === 'string') body.status = JSON.parse(body.status)
+      if (typeof body.status === 'number') body.status = { code: body.status }
+      if (typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
+      if (body.referer) {
+        body.refererDomain = new URL(body.referer).hostname
+        delete body.referer
+      }
+      if (body.status && !body.status.class) {
+        if (body.status.code < 200) body.status.class = 'info'
+        else if (body.status.code < 300) body.status.class = 'ok'
+        else if (body.status.code < 400) body.status.class = 'redirect'
+        else if (body.status.code < 500) body.status.class = 'clientError'
+        else body.status.class = 'serverError'
+      }
+      bulk.push(body)
+    } catch (err) {
+      console.error('failed to parse incoming log', err.message, msg)
     }
-    if (body.status && !body.status.class) {
-      if (body.status.code < 200) body.status.class = 'info'
-      else if (body.status.code < 300) body.status.class = 'ok'
-      else if (body.status.code < 400) body.status.class = 'redirect'
-      else if (body.status.code < 500) body.status.class = 'clientError'
-      else body.status.class = 'serverError'
-    }
-    bulk.push(body)
-    if (bulk.length >= maxBulkSize) processBulk(mongo.db)
+    if (bulk.length >= config.httpLogs.maxBulkSize) processBulk(mongo.db)
   })
   server.bind(config.udpPort)
   await eventToPromise(server, 'listening')
-  timeout = setTimeout(() => processBulk(mongo.db), maxBulkDelay)
+  timeout = setTimeout(() => processBulk(mongo.db), config.httpLogs.maxBulkDelay)
 }
 
 exports.stop = async () => {

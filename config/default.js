@@ -40,5 +40,6 @@ module.exports = {
     },
     cssUrl: null,
     cssText: ''
-  }
+  },
+  syslogSecret: ''
 }
