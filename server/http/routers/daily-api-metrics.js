@@ -4,8 +4,16 @@ const asyncWrap = require('../../utils/async-wrap')
 const router = module.exports = express.Router()
 
 router.get('', asyncWrap(async (req, res, next) => {
-  console.log('BIM')
-  res.send([])
+  const query = {
+    'owner.type': req.user.activeAccount.type,
+    'owner.id': req.user.activeAccount.id
+  }
+  const results = (await req.app.get('db').collection('daily-api-metrics')
+    .find(query)
+    .sort({ day: 1 })
+    .limit(10000)
+    .toArray())
+  res.send({ count: results.length, results })
 }))
 
 router.get('/_agg', asyncWrap(async (req, res, next) => {
