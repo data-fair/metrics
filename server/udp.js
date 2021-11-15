@@ -73,7 +73,7 @@ exports.run = async () => {
     // remove syslog header
     msg = msg.toString().replace(/.* nginx: /, '')
     // check secret for minimal security
-    if (!msg.startsWith(config.syslogSecret)) console.error('message did not start with configured secret', msg)
+    if (!msg.startsWith(config.syslogSecret)) return console.error('message did not start with configured secret', msg)
     msg = msg.replace(config.syslogSecret, '')
 
     try {
