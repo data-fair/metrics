@@ -5,6 +5,8 @@ const eventToPromise = require('event-to-promise')
 const equal = require('fast-deep-equal')
 const dbUtils = require('./utils/db')
 
+const debug = require('debug')('udp')
+
 let bulk = []
 let timeout
 const processBulk = async (db) => {
@@ -13,7 +15,7 @@ const processBulk = async (db) => {
   const patches = []
   for (const line of bulk) {
     if (!line.operation.track) {
-      console.log('ignore operation without tracking category')
+      debug('ignore operation without tracking category')
       continue
     }
     const day = line.date.slice(0, 10)
@@ -51,7 +53,7 @@ const processBulk = async (db) => {
       ])
     }
   }
-  console.log(`apply ${patches.length} patches based on ${bulk.length} http logs`)
+  debug(`apply ${patches.length} patches based on ${bulk.length} http logs`)
   bulk = []
   if (patches.length) {
     const bulkOp = db.collection('daily-api-metrics').initializeUnorderedBulkOp()
@@ -79,6 +81,7 @@ exports.run = async () => {
     try {
       const body = JSON.parse(msg)
       if (typeof body.resource === 'string') body.resource = JSON.parse(body.resource)
+      if (body.resource && body.resource.title) body.resource.title = decodeURIComponent(body.resource.title)
       if (typeof body.status === 'string') body.status = JSON.parse(body.status)
       if (typeof body.status === 'number') body.status = { code: body.status }
       if (typeof body.operation === 'string') body.operation = JSON.parse(body.operation)

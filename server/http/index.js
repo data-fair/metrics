@@ -35,7 +35,6 @@ exports.run = async () => {
   await dbUtils.init(db)
   app.set('db', db)
   app.set('mongoClient', client)
-  app.use(session.requiredAuth)
   const nuxt = await require('./nuxt')()
   app.set('nuxt', nuxt.instance)
   app.use(nuxt.render)

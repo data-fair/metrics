@@ -1,6 +1,6 @@
 <template>
   <v-container
-    v-if="initialized"
+    v-if="initialized && user"
     fluid
     class="home my-0"
   >

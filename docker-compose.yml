@@ -8,7 +8,7 @@ services:
       - 1025:1025
     environment:
       - ADMINS=["superadmin@test.com"]
-      - PUBLIC_URL=http://localhost:6202/simple-directory
+      - PUBLIC_URL=http://localhost:6200/simple-directory
       - MAILDEV_ACTIVE=true
       - STORAGE_TYPE=file
       - NUXT_BUILD_BLOCKING=false
@@ -34,11 +34,11 @@ services:
       - PORT=6203
       - DEBUG=files
       - MONGO_URL=mongodb://localhost:27017/data-fair
-      - OPENAPI_VIEWER_URL=http://localhost:6202/openapi-viewer/
-      - NOTIFY_URL=http://localhost:6202/notify
-      - DIRECTORY_URL=http://localhost:6202/simple-directory
-      - PUBLIC_URL=http://localhost:6202/data-fair
-      - WS_PUBLIC_URL=ws://localhost:6202/data-fair
+      - OPENAPI_VIEWER_URL=http://localhost:6200/openapi-viewer/
+      - NOTIFY_URL=http://localhost:6200/notify
+      - DIRECTORY_URL=http://localhost:6200/simple-directory
+      - PUBLIC_URL=http://localhost:6200/data-fair
+      - WS_PUBLIC_URL=ws://localhost:6200/data-fair
 
   elasticsearch:
     image: koumoul/data-fair-elasticsearch:latest

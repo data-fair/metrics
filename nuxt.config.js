@@ -22,6 +22,7 @@ module.exports = {
   loading: { color: '#1e88e5' }, // Customize the progress bar color
   plugins: [
     { src: '~plugins/session' },
+    { src: '~plugins/display-bytes' },
     { src: '~plugins/dayjs' }
   ],
   router: {

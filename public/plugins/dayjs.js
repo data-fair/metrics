@@ -7,6 +7,8 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 dayjs.extend(localizedFormat)
 dayjs.extend(relativeTime)
 
+Vue.prototype.$day = dayjs
+
 Vue.filter('date', (value, format = 'LLL') => {
   if (!value) return
   return dayjs(value).format(format)
