@@ -1,6 +1,6 @@
 <template>
   <v-app class="embed">
-    <v-main>
+    <v-main data-iframe-height>
       <nuxt />
       <layout-notifications />
     </v-main>
@@ -8,6 +8,12 @@
 </template>
 
 <script>
+import 'iframe-resizer/js/iframeResizer.contentWindow'
+
+global.iFrameResizer = {
+  heightCalculationMethod: 'taggedElement'
+}
+
 export default {}
 
 </script>
