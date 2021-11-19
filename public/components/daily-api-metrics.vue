@@ -38,7 +38,8 @@
 <script>
 import Vue from 'vue'
 import { Chart, BarController, CategoryScale, LinearScale, BarElement, Legend } from 'chart.js'
-const palette = require('google-palette')('qualitative', 10)
+console.log(require('google-palette'))
+const palette = require('google-palette')('cb-Dark2', 8)
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, Legend)
 
@@ -75,15 +76,18 @@ export default {
         type: 'bar',
         data: {
           labels: this.aggResult.days.map(day => this.$day(day).format('L')),
-          datasets: this.aggResult.series.map((serie, i) => ({
-            label: {
-              resource: (key) => decodeURIComponent(key.resource.title),
-              refererDomain: (key) => key.refererDomain,
-              operationTrack: (key) => ({ readDataAPI: 'API de données', readDataFiles: 'Téléchargement de fichiers de données' }[key.operationTrack])
-            }[this.split](serie.key),
-            data: this.aggResult.days.map(day => serie.days[day] ? serie.days[day][this.metric] : 0),
-            backgroundColor: palette[i] && ('#' + palette[i])
-          }))
+          datasets: this.aggResult.series
+            .map(s => s)
+            .sort((s1, s2) => s2[this.metric] - s2[this.metric])
+            .map((serie, i) => ({
+              label: {
+                resource: (key) => decodeURIComponent(key.resource.title),
+                refererDomain: (key) => key.refererDomain,
+                operationTrack: (key) => ({ readDataAPI: 'API de données', readDataFiles: 'Téléchargement de fichiers de données' }[key.operationTrack])
+              }[this.split](serie.key),
+              data: this.aggResult.days.map(day => serie.days[day] ? serie.days[day][this.metric] : 0),
+              backgroundColor: palette[i] && ('#' + palette[i])
+            }))
         },
         options: {
           locale: this.$i18n.locale,
