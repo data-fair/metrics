@@ -1,6 +1,6 @@
 <template>
   <v-app class="embed">
-    <v-main data-iframe-height>
+    <v-main>
       <nuxt />
       <layout-notifications />
     </v-main>

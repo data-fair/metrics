@@ -29,7 +29,10 @@
         />
       </v-col>
     </v-row>
-    <div class="chart-container">
+    <div
+      class="chart-container"
+      data-iframe-height
+    >
       <canvas id="chart" />
     </div>
   </v-container>
@@ -38,7 +41,6 @@
 <script>
 import Vue from 'vue'
 import { Chart, BarController, CategoryScale, LinearScale, BarElement, Legend } from 'chart.js'
-console.log(require('google-palette'))
 const palette = require('google-palette')('cb-Dark2', 8)
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, Legend)
