@@ -62,7 +62,7 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   const days = []
   if (items.length) {
     let current = dayjs(items[0].day)
-    while (current <= dayjs(items[items.length - 1].day).add(1, 'days')) {
+    while (current.toISOString().slice(0, 10) <= items[items.length - 1].day) {
       const day = current.toISOString().slice(0, 10)
       if (!days.includes(day)) days.push(day)
       current = current.add(1, 'days')
