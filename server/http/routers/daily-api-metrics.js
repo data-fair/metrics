@@ -1,6 +1,7 @@
 const express = require('express')
 const camelCase = require('camel-case')
 const dayjs = require('dayjs')
+dayjs.extend(require('dayjs/plugin/utc'))
 const asyncWrap = require('../../utils/async-wrap')
 const router = module.exports = express.Router()
 
@@ -26,9 +27,9 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   }
   if (req.query['start-date']) $match.date = { ...$match.date, $gte: req.query['start-date'] }
   if (req.query['end-date']) $match.date = { ...$match.date, $lte: req.query['end-date'] }
-  if (req.query.statusClass) {
-    $match.statusClass = req.query.statusClass
-  }
+  if (req.query.statusClass) $match.statusClass = req.query.statusClass
+  if (req.query.userClass) $match.userClass = req.query.userClass
+
   const $group = {
     _id: { day: '$day' },
     count: { $sum: 1 },
@@ -61,8 +62,10 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   const items = aggResult.map(r => ({ ...r._id, ...r, meanDuration: r.duration / r.nbRequests }))
   const days = []
   if (items.length) {
-    let current = dayjs(items[0].day)
-    while (current.toISOString().slice(0, 10) <= items[items.length - 1].day) {
+    const start = req.query['start-date'] || items[0].day
+    const end = req.query['end-date'] || items[items.length - 1].day
+    let current = dayjs.utc(start)
+    while (current.toISOString().slice(0, 10) <= end) {
       const day = current.toISOString().slice(0, 10)
       if (!days.includes(day)) days.push(day)
       current = current.add(1, 'days')

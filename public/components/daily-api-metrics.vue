@@ -28,6 +28,15 @@
           @change="fetch"
         />
       </v-col>
+      <v-col>
+        <v-select
+          v-model="filters.userClass"
+          :items="userClasses"
+          :return-object="false"
+          label="Type d'utilisateur"
+          @change="fetch"
+        />
+      </v-col>
     </v-row>
     <div
       class="chart-container"
@@ -55,8 +64,15 @@ export default {
         { value: 'clientError', text: 'erreur de l\'appelant' },
         { value: 'serverError', text: 'erreur du serveur' }
       ],
+      userClasses: [
+        { value: null, text: 'tous' },
+        { value: 'anonymous', text: 'anonyme' },
+        { value: 'owner', text: 'propriétaire' },
+        { value: 'external', text: 'utilisateur externe' }
+      ],
       filters: {
-        statusClass: 'ok'
+        statusClass: 'ok',
+        userClass: null
       },
       split: 'resource',
       splitItems: [

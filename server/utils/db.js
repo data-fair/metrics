@@ -17,22 +17,11 @@ exports.ensureIndex = async (db, collection, key, options = {}) => {
 }
 
 exports.connect = async () => {
-  let client
   const opts = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    // workers generate a lot of opened sockets if we do not change this setting
     maxPoolSize: config.mode === 'udp' ? 1 : 5
   }
   debug('Connecting to mongodb ' + config.mongoUrl)
-  try {
-    client = await MongoClient.connect(config.mongoUrl, opts)
-  } catch (err) {
-    // 1 retry after 1s
-    // solve the quite common case in docker-compose of the service starting at the same time as the db
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    client = await MongoClient.connect(config.mongoUrl, opts)
-  }
+  const client = await MongoClient.connect(config.mongoUrl, opts)
   const db = client.db()
   return { db, client }
 }
@@ -47,6 +36,7 @@ exports.init = async (db) => {
       'resource.id': 1,
       operationTrack: 1,
       statusClass: 1,
+      userClass: 1,
       refererDomain: 1
     }, { name: 'main-keys', unique: true })
   ]

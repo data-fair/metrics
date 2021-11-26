@@ -14,6 +14,7 @@ const processBulk = async (db) => {
   timeout = setTimeout(() => processBulk(db), config.httpLogs.maxBulkDelay)
   const patches = []
   for (const line of bulk) {
+    console.log(line)
     if (!line.operation.track) {
       debug('ignore operation without tracking category')
       continue
@@ -27,6 +28,7 @@ const processBulk = async (db) => {
       'resource.id': line.resource.id,
       operationTrack: line.operation.track,
       statusClass: line.status.class,
+      userClass: line.user.class,
       refererDomain: line.refererDomain
     }
     const existingPatch = patches.find(p => equal(p[0], patchKey))
@@ -42,6 +44,7 @@ const processBulk = async (db) => {
           resource: line.resource,
           operationTrack: line.operation.track,
           statusClass: line.status.class,
+          userClass: line.user.class,
           refererDomain: line.refererDomain
         },
         $inc: {
@@ -85,17 +88,28 @@ exports.run = async () => {
       if (typeof body.status === 'string') body.status = JSON.parse(body.status)
       if (typeof body.status === 'number') body.status = { code: body.status }
       if (typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
+      if (typeof body.owner === 'string') body.owner = JSON.parse(body.owner)
+      if (typeof body.user === 'string') body.user = JSON.parse(body.user)
+
       if (body.referer) {
         body.refererDomain = new URL(body.referer).hostname
         delete body.referer
+      } else {
+        body.refererDomain = 'none'
       }
-      if (body.status && !body.status.class) {
-        if (body.status.code < 200) body.status.class = 'info'
-        else if (body.status.code < 300) body.status.class = 'ok'
-        else if (body.status.code < 400) body.status.class = 'redirect'
-        else if (body.status.code < 500) body.status.class = 'clientError'
-        else body.status.class = 'serverError'
-      }
+
+      body.user = body.user || { id: 'anonymous' }
+      if (body.user.id === 'anonymous') body.user.class = 'anonymous'
+      else if (body.owner?.type === 'user' && body.user.id === body.owner?.id) body.user.class = 'owner'
+      else if (body.owner?.type === 'organization' && body.user.org === body.owner?.id) body.user.class = 'owner'
+      else body.user.class = 'external'
+
+      if (body.status.code < 200) body.status.class = 'info'
+      else if (body.status.code < 300) body.status.class = 'ok'
+      else if (body.status.code < 400) body.status.class = 'redirect'
+      else if (body.status.code < 500) body.status.class = 'clientError'
+      else body.status.class = 'serverError'
+
       bulk.push(body)
     } catch (err) {
       console.error('failed to parse incoming log', err.message, msg)
