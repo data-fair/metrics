@@ -2,10 +2,7 @@ const config = require('config')
 const express = require('express')
 const eventToPromise = require('event-to-promise')
 const dbUtils = require('../utils/db')
-const session = require('@koumoul/sd-express')({
-  directoryUrl: config.directoryUrl,
-  privateDirectoryUrl: config.privateDirectoryUrl || config.directoryUrl
-})
+const session = require('../utils/session')
 
 const app = express()
 
