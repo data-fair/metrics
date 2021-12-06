@@ -68,7 +68,9 @@ export default {
         { value: null, text: 'tous' },
         { value: 'anonymous', text: 'anonyme' },
         { value: 'owner', text: 'propriétaire' },
-        { value: 'external', text: 'utilisateur externe' }
+        { value: 'external', text: 'utilisateur externe' },
+        { value: 'ownerAPIKey', text: 'propriétaire (clé d\'API)' },
+        { value: 'externalAPIKey', text: 'utilisateur externe (clé d\'API)' }
       ],
       filters: {
         statusClass: 'ok',
