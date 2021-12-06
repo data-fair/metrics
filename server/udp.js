@@ -94,9 +94,16 @@ exports.run = async () => {
       } else {
         body.refererDomain = 'none'
       }
-
-      if (body.id_token) body.user = await session.verifyToken(body.id_token)
+      if (body.id_token && body.id_token.lengt > 1) body.user = await session.verifyToken(body.id_token)
       if (body.id_token_org) body.user.organization = body.user.organization = body.user.organizations.find(o => o.id === body.id_token_org)
+      if (!body.user && body.apiKey) {
+        const decoded = Buffer.from(body.apiKey, 'base64url').toString()
+        const parts = decoded.split(':')
+        if (parts.length === 3) {
+          if (parts[0] === 'u') body.user = { id: parts[1], name: 'API key' }
+          if (parts[0] === 'o') body.user = { id: parts[2], name: 'API key', organization: { id: parts[1] } }
+        }
+      }
       if (!body.user) body.userClass = 'anonymous'
       else if (body.owner?.type === 'user' && body.user.id === body.owner?.id) body.userClass = 'owner'
       else if (body.owner?.type === 'organization' && body.user.organization?.id === body.owner?.id) body.userClass = 'owner'
