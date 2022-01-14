@@ -94,7 +94,7 @@ exports.run = async () => {
       } else {
         body.refererDomain = 'none'
       }
-      if (body.id_token && body.id_token.lengt > 1) body.user = await session.verifyToken(body.id_token)
+      if (body.id_token && body.id_token.length > 1) body.user = await session.verifyToken(body.id_token)
       if (body.id_token_org) body.user.organization = body.user.organization = body.user.organizations.find(o => o.id === body.id_token_org)
       if (!body.user && body.apiKey) {
         const decoded = Buffer.from(body.apiKey, 'base64url').toString()
