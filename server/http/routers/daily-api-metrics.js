@@ -25,8 +25,8 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
     'owner.type': req.user.activeAccount.type,
     'owner.id': req.user.activeAccount.id
   }
-  if (req.query['start-date']) $match.date = { ...$match.date, $gte: req.query['start-date'] }
-  if (req.query['end-date']) $match.date = { ...$match.date, $lte: req.query['end-date'] }
+  if (req.query.start) $match.day = { ...$match.day, $gte: req.query.start }
+  if (req.query.end) $match.day = { ...$match.day, $lte: req.query.end }
   if (req.query.statusClass) $match.statusClass = req.query.statusClass
   if (req.query.userClass) $match.userClass = req.query.userClass
 
