@@ -39,7 +39,7 @@ export default {
         {
           text: '7 derniers jours',
           value: {
-            start: this.$day().subtract(7, 'days').format('YYYY-MM-DD'),
+            start: this.$day().subtract(6, 'days').format('YYYY-MM-DD'),
             end: this.$day().format('YYYY-MM-DD')
           }
         },
@@ -47,13 +47,13 @@ export default {
           text: 'Dernière semaine (du lundi au dimanche)',
           value: {
             start: this.$day().startOf('week').subtract(7, 'days').format('YYYY-MM-DD'),
-            end: this.$day().startOf('week').format('YYYY-MM-DD')
+            end: this.$day().startOf('week').subtract(1, 'days').format('YYYY-MM-DD')
           }
         },
         {
           text: '30 derniers jours',
           value: {
-            start: this.$day().subtract(30, 'days').format('YYYY-MM-DD'),
+            start: this.$day().subtract(29, 'days').format('YYYY-MM-DD'),
             end: this.$day().format('YYYY-MM-DD')
           }
         },
@@ -67,7 +67,7 @@ export default {
         {
           text: '360 derniers jours',
           value: {
-            start: this.$day().subtract(360, 'days').format('YYYY-MM-DD'),
+            start: this.$day().subtract(359, 'days').format('YYYY-MM-DD'),
             end: this.$day().format('YYYY-MM-DD')
           }
         }
