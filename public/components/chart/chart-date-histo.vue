@@ -1,23 +1,18 @@
 <template>
-  <v-card flat>
-    <v-card-title class="text-overline primary--text text--darken-2 justify-center pa-0">
-      {{ title }}
-    </v-card-title>
-    <v-card-text>
-      <v-progress-linear
-        :indeterminate="loading"
-        background-opacity="0"
-      />
-      <v-responsive
-        v-if="!chartConfig"
-        :aspect-ratio="aspectRatio"
-      />
-      <canvas
-        v-else
-        :id="id + '-canvas'"
-      />
-    </v-card-text>
-  </v-card>
+  <layout-resizable-card :title="title">
+    <v-progress-linear
+      :indeterminate="loading"
+      background-opacity="0"
+    />
+    <v-responsive
+      v-if="!chartConfig"
+      :aspect-ratio="aspectRatio"
+    />
+    <canvas
+      v-else
+      :id="id + '-canvas'"
+    />
+  </layout-resizable-card>
 </template>
 
 <script>

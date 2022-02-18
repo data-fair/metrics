@@ -74,26 +74,18 @@
       </v-row>
 
       <v-row>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <chart-date-histo
-            title="Historique des téléchargements de fichiers"
-            :filter="{...baseFilter, operationTrack: 'readDataFiles'}"
-            :periods="periods"
-          />
-        </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <chart-date-histo
-            title="Historique des appels aux apis"
-            :filter="{...baseFilter, operationTrack: 'readDataAPI'}"
-            :periods="periods"
-          />
-        </v-col>
+        <chart-date-histo
+          title="Historique des téléchargements de fichiers"
+          :filter="{...baseFilter, operationTrack: 'readDataFiles'}"
+          :periods="periods"
+        />
+
+        <chart-date-histo
+          title="Historique des appels aux apis"
+          :filter="{...baseFilter, operationTrack: 'readDataAPI'}"
+          :periods="periods"
+        />
+
         <v-col
           cols="12"
           md="6"
