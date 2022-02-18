@@ -76,9 +76,13 @@ export default {
   },
   watch: {
     period () {
+      const duration = this.$day(this.period.end).diff(this.period.start, 'day')
       this.$emit('input', {
-        current: { ...this.period },
-        previous: null
+        previous: {
+          start: this.$day(this.period.start).subtract(duration + 1, 'days').format('YYYY-MM-DD'),
+          end: this.$day(this.period.start).subtract(1, 'days').format('YYYY-MM-DD')
+        },
+        current: { ...this.period }
       })
     }
   },

@@ -23,7 +23,7 @@
 <script>
 import Vue from 'vue'
 
-const limit = 2
+const limit = 10
 
 const getLabel = (serie, category) => {
   if (serie.label) return serie.label
@@ -42,6 +42,7 @@ export default {
   data () {
     return {
       aggResult: null,
+      aggResultPrevious: null,
       loading: false
     }
   },
@@ -58,8 +59,12 @@ export default {
         .map(s => ({
           label: getLabel(s, this.category),
           value: s.nbRequests,
-          tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.bytes, this.$i18n.locale)}`
+          previousValue: s.previousNbRequests,
+          tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.bytes, this.$i18n.locale)}`,
+          previousTooltip: `${s.previousNbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.previousBytes, this.$i18n.locale)} sur période précédente`,
+          key: JSON.stringify(s.key)
         }))
+      console.log(this.aggResultPrevious)
       return {
         type: 'bar',
         data: {
@@ -68,6 +73,11 @@ export default {
             label: 'Période en cours',
             data: categories.map(c => c.value),
             backgroundColor: this.$vuetify.theme.themes.light.primary,
+            borderRadius: 4
+          }, {
+            label: 'Période précédente',
+            data: categories.map(c => c.previousValue),
+            backgroundColor: '#9E9E9E',
             borderRadius: 4
           }]
         },
@@ -90,7 +100,7 @@ export default {
             tooltip: {
               callbacks: {
                 label: (tooltipItem) => {
-                  return categories[tooltipItem.dataIndex].tooltip
+                  return tooltipItem.datasetIndex === 1 ? categories[tooltipItem.dataIndex].previousTooltip : categories[tooltipItem.dataIndex].tooltip
                 }
               }
             }
@@ -124,18 +134,20 @@ export default {
     },
     async fetch () {
       this.loading = true
-      const aggResult = await this.$axios.$get('api/v1/daily-api-metrics/_agg', {
-        params: {
-          split: this.category,
-          ...this.filter,
-          start: this.periods.current.start,
-          end: this.periods.current.end
+      const [aggResult, aggResultPrevious] = await Promise.all([
+        this.fetchPeriod(this.periods.current),
+        this.fetchPeriod(this.periods.previous)
+      ])
+      aggResult.series.forEach(serie => {
+        const matchingPreviousSerie = aggResultPrevious.series.find(ps => JSON.stringify(ps.key) === JSON.stringify(serie.key))
+        if (!matchingPreviousSerie) {
+          serie.previousNbRequests = 0
+          serie.previousBytes = 0
+        } else {
+          serie.previousNbRequests = matchingPreviousSerie.nbRequests
+          serie.previousBytes = matchingPreviousSerie.bytes
         }
       })
-      this.loading = false
-
-      this.$emit('input', { ...aggResult })
-
       const series = [...aggResult.series]
       // splice removes the forst items and returns them
       aggResult.series = series.splice(0, limit)
@@ -144,11 +156,27 @@ export default {
           key: 'others',
           label: `${series.length} autre(s)`,
           nbRequests: series.reduce((nbRequests, s) => nbRequests + s.nbRequests, 0),
-          bytes: series.reduce((bytes, s) => bytes + s.bytes, 0)
+          bytes: series.reduce((bytes, s) => bytes + s.bytes, 0),
+          previousNbRequests: series.reduce((previousNbRequests, s) => previousNbRequests + s.previousNbRequests, 0),
+          previousBytes: series.reduce((previousBytes, s) => previousBytes + s.previousBytes, 0)
         })
       }
 
       this.aggResult = aggResult
+      this.loading = false
+    },
+    async fetchPeriod (period) {
+      const aggResult = await this.$axios.$get('api/v1/daily-api-metrics/_agg', {
+        params: {
+          split: this.category,
+          ...this.filter,
+          start: period.start,
+          end: period.end
+        }
+      })
+
+      this.$emit('input', { ...aggResult })
+      return aggResult
     }
   }
 }
