@@ -99,6 +99,6 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
       serie.days[item.day] = { nbRequests: item.nbRequests, bytes: item.bytes, meanDuration: item.meanDuration }
     }
   }
-  result.series.sort((s1, s2) => s2.nbRequest - s1.nbRequest)
+  result.series.sort((s1, s2) => s2.nbRequests - s1.nbRequests)
   res.send(result)
 }))
