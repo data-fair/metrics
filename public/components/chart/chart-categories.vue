@@ -61,8 +61,7 @@ export default {
           value: s.nbRequests,
           previousValue: s.previousNbRequests,
           tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.bytes, this.$i18n.locale)}`,
-          previousTooltip: `${s.previousNbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.previousBytes, this.$i18n.locale)} sur période précédente`,
-          key: JSON.stringify(s.key)
+          previousTooltip: `${s.previousNbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.previousBytes, this.$i18n.locale)} sur période précédente`
         }))
       return {
         type: 'bar',
@@ -142,7 +141,10 @@ export default {
         previous: JSON.parse(JSON.stringify(aggResultPrevious))
       })
       aggResult.series.forEach(serie => {
-        const matchingPreviousSerie = aggResultPrevious.series.find(ps => JSON.stringify(ps.key) === JSON.stringify(serie.key))
+        const matchingPreviousSerie = aggResultPrevious.series.find(ps => {
+          if (this.category === 'resource') return ps.key.resource.id === serie.key.resource.id
+          else return ps.key[this.category] === serie.key[this.category]
+        })
         if (!matchingPreviousSerie) {
           serie.previousNbRequests = 0
           serie.previousBytes = 0
