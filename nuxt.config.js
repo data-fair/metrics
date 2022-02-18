@@ -23,7 +23,8 @@ module.exports = {
   plugins: [
     { src: '~plugins/session' },
     { src: '~plugins/display-bytes' },
-    { src: '~plugins/dayjs' }
+    { src: '~plugins/dayjs' },
+    { src: '~plugins/chartjs' }
   ],
   router: {
     base: config.basePath

@@ -29,9 +29,12 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   if (req.query.end) $match.day = { ...$match.day, $lte: req.query.end }
   if (req.query.statusClass) $match.statusClass = req.query.statusClass
   if (req.query.userClass) $match.userClass = req.query.userClass
+  if (req.query.operationTrack) $match.operationTrack = req.query.operationTrack
+  if (req.query.resourceType) $match['resource.type'] = req.query.resourceType
+  if (req.query.resourceId) $match['resource.id'] = req.query.resourceId
 
   const $group = {
-    _id: { day: '$day' },
+    _id: {},
     count: { $sum: 1 },
     nbRequests: { $sum: '$nbRequests' },
     bytes: { $sum: '$bytes' },
@@ -39,17 +42,15 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   }
 
   const seriesKey = []
-  if (req.query.split) {
-    const parts = req.query.split.split(',')
-    for (const part of parts) {
-      if (part === 'resource') {
-        $group._id[camelCase('resource.type')] = '$resource.type'
-        $group._id[camelCase('resource.id')] = '$resource.id'
-        $group.resource = { $last: '$resource' }
-      } else {
-        seriesKey.push(camelCase(part))
-        $group._id[camelCase(part)] = '$' + part
-      }
+  const split = req.query.split ? req.query.split.split(',') : ['day']
+  for (const part of split) {
+    if (part === 'resource') {
+      $group._id.resourceType = '$resource.type'
+      $group._id.resourceId = '$resource.id'
+      $group.resource = { $last: '$resource' }
+    } else {
+      if (part !== 'day') seriesKey.push(camelCase(part))
+      $group._id[camelCase(part)] = '$' + part
     }
   }
 
@@ -60,37 +61,40 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   ]
   const aggResult = await req.app.get('db').collection('daily-api-metrics').aggregate(pipeline).toArray()
   const items = aggResult.map(r => ({ ...r._id, ...r, meanDuration: r.duration / r.nbRequests }))
-  const days = []
-  if (items.length) {
-    const start = req.query['start-date'] || items[0].day
-    const end = req.query['end-date'] || items[items.length - 1].day
-    let current = dayjs.utc(start)
-    while (current.toISOString().slice(0, 10) <= end) {
-      const day = current.toISOString().slice(0, 10)
-      if (!days.includes(day)) days.push(day)
-      current = current.add(1, 'days')
+  const result = {}
+  if (split[0] === 'day') {
+    result.days = []
+    if (items.length) {
+      const start = req.query.start || items[0].day
+      const end = req.query.end || items[items.length - 1].day
+      let current = dayjs.utc(start)
+      while (current.toISOString().slice(0, 10) <= end) {
+        const day = current.toISOString().slice(0, 10)
+        if (!result.days.includes(day)) result.days.push(day)
+        current = current.add(1, 'days')
+      }
     }
   }
-  const series = []
+  result.series = []
   for (const item of items) {
     const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {})
     if (item.resource) key.resource = item.resource
-    let serie = series.find(s => JSON.stringify(s.key) === JSON.stringify(key))
+    let serie = result.series.find(s => JSON.stringify(s.key) === JSON.stringify(key))
     if (!serie) {
       serie = {
         key,
         nbRequests: 0,
-        bytes: 0,
-        days: {}
+        bytes: 0
       }
-      series.push(serie)
+      result.series.push(serie)
     }
     serie.nbRequests += item.nbRequests
     serie.bytes += item.bytes
-    serie.days[item.day] = { nbRequests: item.nbRequests, bytes: item.bytes, meanDuration: item.meanDuration }
+    if (split[0] === 'day') {
+      serie.days = serie.days || {}
+      serie.days[item.day] = { nbRequests: item.nbRequests, bytes: item.bytes, meanDuration: item.meanDuration }
+    }
   }
-  res.send({
-    days,
-    series
-  })
+  result.series.sort((s1, s2) => s2.nbRequest - s1.nbRequest)
+  res.send(result)
 }))
