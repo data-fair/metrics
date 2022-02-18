@@ -79,13 +79,13 @@
         />
 
         <chart-categories
-          title="Requêtes par site d'origine"
+          title="Requêtes / site d'origine"
           category="refererDomain"
           :filter="baseFilter"
           :periods="periods"
         />
         <chart-categories
-          title="Requêtes par catégorie d'utilisateur"
+          title="Requêtes / catégorie d'utilisateur"
           category="userClass"
           :filter="baseFilter"
           :periods="periods"
