@@ -136,7 +136,7 @@ export default {
     datasetItems () {
       if (!this.aggResultDataAPI) return []
       return this.aggResultDataAPI.current.series
-        .map(s => ({ text: `${safeDecodeUriComponent(s.key.resource.title)} (${s.nbRequests.toLocaleString()})`, value: s.key.resource.id, serie: s }))
+        .map(s => ({ text: safeDecodeUriComponent(s.key.resource.title), value: s.key.resource.id, serie: s }))
     },
     baseFilter () {
       const filter = { statusClass: 'ok' }
