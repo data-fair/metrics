@@ -4,7 +4,18 @@
       {{ title }}
     </v-card-title>
     <v-card-text>
-      <canvas :id="id + '-canvas'" />
+      <v-progress-linear
+        :indeterminate="loading"
+        background-opacity="0"
+      />
+      <v-responsive
+        v-if="!chartConfig"
+        :aspect-ratio="aspectRatio"
+      />
+      <canvas
+        v-else
+        :id="id + '-canvas'"
+      />
     </v-card-text>
   </v-card>
 </template>
@@ -13,6 +24,13 @@
 import Vue from 'vue'
 
 const limit = 2
+
+const getLabel = (serie, category) => {
+  if (serie.label) return serie.label
+  if (category === 'resource') return decodeURIComponent(serie.key.resource.title)
+  if (serie.key[category] === 'none') return 'inconnu'
+  return serie.key[category]
+}
 
 export default {
   props: {
@@ -23,18 +41,22 @@ export default {
   },
   data () {
     return {
-      aggResult: null
+      aggResult: null,
+      loading: false
     }
   },
   computed: {
     id () {
       return `chart-categories-${this.category}-${JSON.stringify(this.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
     },
+    aspectRatio () {
+      return this.$vuetify.breakpoint.smAndDown ? 1 : 2
+    },
     chartConfig () {
       if (!this.aggResult) return
       const categories = this.aggResult.series
         .map(s => ({
-          label: s.label || decodeURIComponent(this.category === 'resource' ? s.key.resource.title : s.key.resource),
+          label: getLabel(s, this.category),
           value: s.nbRequests,
           tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.bytes, this.$i18n.locale)}`
         }))
@@ -52,7 +74,7 @@ export default {
         options: {
           indexAxis: 'y',
           locale: this.$i18n.locale,
-          aspectRatio: this.$vuetify.breakpoint.smAndDown ? 1 : 2,
+          aspectRatio: this.aspectRatio,
           scales: {
             x: {
               beginAtZero: true,
@@ -101,6 +123,7 @@ export default {
       this.chart.update()
     },
     async fetch () {
+      this.loading = true
       const aggResult = await this.$axios.$get('api/v1/daily-api-metrics/_agg', {
         params: {
           split: this.category,
@@ -109,6 +132,7 @@ export default {
           end: this.periods.current.end
         }
       })
+      this.loading = false
 
       this.$emit('input', { ...aggResult })
 

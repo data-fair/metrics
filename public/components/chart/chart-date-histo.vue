@@ -4,7 +4,18 @@
       {{ title }}
     </v-card-title>
     <v-card-text>
-      <canvas :id="id + '-canvas'" />
+      <v-progress-linear
+        :indeterminate="loading"
+        background-opacity="0"
+      />
+      <v-responsive
+        v-if="!chartConfig"
+        :aspect-ratio="aspectRatio"
+      />
+      <canvas
+        v-else
+        :id="id + '-canvas'"
+      />
     </v-card-text>
   </v-card>
 </template>
@@ -20,12 +31,16 @@ export default {
   },
   data () {
     return {
-      aggResult: null
+      aggResult: null,
+      loading: false
     }
   },
   computed: {
     id () {
       return `chart-date-histo-${JSON.stringify(this.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
+    },
+    aspectRatio () {
+      return this.$vuetify.breakpoint.smAndDown ? 1 : 2
     },
     chartConfig () {
       if (!this.aggResult) return
@@ -50,7 +65,7 @@ export default {
         },
         options: {
           locale: this.$i18n.locale,
-          aspectRatio: this.$vuetify.breakpoint.smAndDown ? 1 : 2,
+          aspectRatio: this.aspectRatio,
           scales: {},
           plugins: {
             legend: {
@@ -94,9 +109,11 @@ export default {
       this.chart.update()
     },
     async fetch () {
+      this.loading = true
       this.aggResult = await this.$axios.$get('api/v1/daily-api-metrics/_agg', {
         params: { split: 'day', ...this.filter, start: this.periods.current.start, end: this.periods.current.end }
       })
+      this.loading = false
     }
   }
 }

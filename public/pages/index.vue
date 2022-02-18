@@ -51,7 +51,8 @@
           outlined
           hide-details
           dense
-          label="restreindre à un jeu de données"
+          clearable
+          label="ciblez un jeu de données"
           style="max-width: 500px;"
         />
       </v-app-bar>
@@ -74,6 +75,28 @@
           <chart-date-histo
             title="Historique des appels aux apis"
             :filter="{...baseFilter, operationTrack: 'readDataAPI'}"
+            :periods="periods"
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          md="6"
+        >
+          <chart-categories
+            title="Appels par site d'origine"
+            category="refererDomain"
+            :filter="baseFilter"
+            :periods="periods"
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          md="6"
+        >
+          <chart-categories
+            title="Appels par catégorie d'utilisateur"
+            category="userClass"
+            :filter="baseFilter"
             :periods="periods"
           />
         </v-col>
@@ -101,7 +124,7 @@ export default {
     datasetItems () {
       if (!this.datasetsAggResult) return []
       return this.datasetsAggResult.series
-        .map(s => ({ text: `${s.key.resource.title} (${s.nbRequests.toLocaleString()})`, value: s.key.resource.id }))
+        .map(s => ({ text: `${decodeURIComponent(s.key.resource.title)} (${s.nbRequests.toLocaleString()})`, value: s.key.resource.id }))
     },
     baseFilter () {
       const filter = { statusClass: 'ok' }
