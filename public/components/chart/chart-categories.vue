@@ -64,7 +64,6 @@ export default {
           previousTooltip: `${s.previousNbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.previousBytes, this.$i18n.locale)} sur période précédente`,
           key: JSON.stringify(s.key)
         }))
-      console.log(this.aggResultPrevious)
       return {
         type: 'bar',
         data: {
@@ -138,6 +137,10 @@ export default {
         this.fetchPeriod(this.periods.current),
         this.fetchPeriod(this.periods.previous)
       ])
+      this.$emit('input-agg', {
+        current: JSON.parse(JSON.stringify(aggResult)),
+        previous: JSON.parse(JSON.stringify(aggResultPrevious))
+      })
       aggResult.series.forEach(serie => {
         const matchingPreviousSerie = aggResultPrevious.series.find(ps => JSON.stringify(ps.key) === JSON.stringify(serie.key))
         if (!matchingPreviousSerie) {
@@ -174,8 +177,6 @@ export default {
           end: period.end
         }
       })
-
-      this.$emit('input', { ...aggResult })
       return aggResult
     }
   }

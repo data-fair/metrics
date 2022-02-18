@@ -76,6 +76,8 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
     }
   }
   result.series = []
+  result.nbRequests = 0
+  result.bytes = 0
   for (const item of items) {
     const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {})
     if (item.resource) key.resource = item.resource
@@ -90,6 +92,8 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
     }
     serie.nbRequests += item.nbRequests
     serie.bytes += item.bytes
+    result.nbRequests += item.nbRequests
+    result.bytes += item.bytes
     if (split[0] === 'day') {
       serie.days = serie.days || {}
       serie.days[item.day] = { nbRequests: item.nbRequests, bytes: item.bytes, meanDuration: item.meanDuration }

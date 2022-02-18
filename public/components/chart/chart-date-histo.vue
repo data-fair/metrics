@@ -85,7 +85,6 @@ export default {
   },
   watch: {
     async periods () {
-      console.log('periods change')
       this.update()
     },
     filter (oldValue, newValue) {
