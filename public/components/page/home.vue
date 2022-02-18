@@ -14,30 +14,20 @@
     </v-app-bar>
     <template v-if="periods">
       <v-row>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <chart-categories
-            title="Téléchargement de fichiers par jeu de données"
-            category="resource"
-            :filter="{statusClass: 'ok', operationTrack: 'readDataFiles'}"
-            :periods="periods"
-            @input-agg="v => aggResultDataFiles = v"
-          />
-        </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <chart-categories
-            title="Appels aux apis par jeu de données"
-            category="resource"
-            :filter="{statusClass: 'ok', operationTrack: 'readDataAPI'}"
-            :periods="periods"
-            @input-agg="v => aggResultDataAPI = v"
-          />
-        </v-col>
+        <chart-categories
+          title="Téléchargements / jeu de données"
+          category="resource"
+          :filter="{statusClass: 'ok', operationTrack: 'readDataFiles'}"
+          :periods="periods"
+          @input-agg="v => aggResultDataFiles = v"
+        />
+        <chart-categories
+          title="Appels API / jeu de données"
+          category="resource"
+          :filter="{statusClass: 'ok', operationTrack: 'readDataAPI'}"
+          :periods="periods"
+          @input-agg="v => aggResultDataAPI = v"
+        />
       </v-row>
 
       <v-app-bar
@@ -67,6 +57,7 @@
           sm="4"
         >
           <chart-simple-metric
+            :value="metric.value"
             :title="metric.title"
             :subtitle="metric.subtitle"
             :loading="metric.loading"
@@ -76,39 +67,29 @@
 
       <v-row>
         <chart-date-histo
-          title="Historique des téléchargements de fichiers"
+          title="Historique téléchargements"
           :filter="{...baseFilter, operationTrack: 'readDataFiles'}"
           :periods="periods"
         />
 
         <chart-date-histo
-          title="Historique des appels aux apis"
+          title="Historique appels API"
           :filter="{...baseFilter, operationTrack: 'readDataAPI'}"
           :periods="periods"
         />
 
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <chart-categories
-            title="Appels par site d'origine"
-            category="refererDomain"
-            :filter="baseFilter"
-            :periods="periods"
-          />
-        </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <chart-categories
-            title="Appels par catégorie d'utilisateur"
-            category="userClass"
-            :filter="baseFilter"
-            :periods="periods"
-          />
-        </v-col>
+        <chart-categories
+          title="Requêtes par site d'origine"
+          category="refererDomain"
+          :filter="baseFilter"
+          :periods="periods"
+        />
+        <chart-categories
+          title="Requêtes par catégorie d'utilisateur"
+          category="userClass"
+          :filter="baseFilter"
+          :periods="periods"
+        />
       </v-row>
     </template>
   </v-container>
@@ -165,23 +146,20 @@ export default {
           if (this.simpleMetricsSeries[operationType]) {
             const current = this.simpleMetricsSeries[operationType].current
             if (!current) continue
-            let title = ''
-            if (metricType === 'nbRequests' && operationType === 'dataAPI') {
-              title = current.nbRequests.toLocaleString() + ' appel(s) d\'API'
-            }
-            if (metricType === 'nbRequests' && operationType === 'dataFiles') {
-              title = current.nbRequests.toLocaleString() + ' fichier(s)'
-            }
-            if (metricType === 'bytes' && operationType === 'dataFiles') {
-              title = Vue.filter('displayBytes')(current.bytes, this.$i18n.locale) + ' fichiers'
-            }
-            let subtitle = 'rien sur la période précédente'
+            const simpleMetric = { loading: false }
+            if (metricType === 'nbRequests') simpleMetric.value = current.nbRequests.toLocaleString()
+            else simpleMetric.value = Vue.filter('displayBytes')(current.bytes, this.$i18n.locale)
+
+            if (operationType === 'dataAPI') simpleMetric.title = `appel${current.nbRequests > 1 ? 's' : ''} d'API`
+            else simpleMetric.title = 'fichiers téléchargés'
+
+            simpleMetric.subtitle = '0 sur période précédente'
             const previous = this.simpleMetricsSeries[operationType].previous
             if (previous) {
-              subtitle = metricType === 'nbRequests' ? previous.nbRequests.toLocaleString() : Vue.filter('displayBytes')(previous.bytes, this.$i18n.locale)
-              subtitle += ' sur la période précédente'
+              simpleMetric.subtitle = metricType === 'nbRequests' ? previous.nbRequests.toLocaleString() : Vue.filter('displayBytes')(previous.bytes, this.$i18n.locale)
+              simpleMetric.subtitle += ' sur période précédente'
             }
-            simpleMetrics.push({ title, subtitle, loading: false })
+            simpleMetrics.push(simpleMetric)
           } else {
             simpleMetrics.push({ loading: true })
           }

@@ -1,23 +1,21 @@
 <template>
-  <v-card flat>
-    <v-card-title class="text-overline primary--text text--darken-2 justify-center pa-0">
-      {{ title }}
-    </v-card-title>
-    <v-card-text>
-      <v-progress-linear
-        :indeterminate="loading"
-        background-opacity="0"
-      />
-      <v-responsive
-        v-if="!chartConfig"
-        :aspect-ratio="aspectRatio"
-      />
-      <canvas
-        v-else
-        :id="id + '-canvas'"
-      />
-    </v-card-text>
-  </v-card>
+  <layout-resizable-card
+    v-model="large"
+    :title="title"
+  >
+    <v-progress-linear
+      :indeterminate="loading"
+      background-opacity="0"
+    />
+    <v-responsive
+      v-if="!chartConfig"
+      :aspect-ratio="aspectRatio"
+    />
+    <canvas
+      v-else
+      :id="id + '-canvas'"
+    />
+  </layout-resizable-card>
 </template>
 
 <script>
@@ -25,11 +23,18 @@ import Vue from 'vue'
 import safeDecodeUriComponent from '~/assets/safe-decode-uri-component.js'
 const truncateMiddle = require('truncate-middle')
 
-const limit = 10
+const userClasses = {
+  anonymous: 'anonyme',
+  owner: 'propriétaire',
+  external: 'utilisateur externe',
+  ownerAPIKey: 'propriétaire (clé d\'API)',
+  externalAPIKey: 'utilisateur externe (clé d\'API)'
+}
 
 const getLabel = (serie, category) => {
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
+  if (category === 'userClass') return userClasses[serie.key.userClass] || serie.key.userClass
   if (serie.key[category] === 'none') return 'inconnu'
   return serie.key[category]
 }
@@ -45,7 +50,8 @@ export default {
     return {
       aggResult: null,
       aggResultPrevious: null,
-      loading: false
+      loading: false,
+      large: false
     }
   },
   computed: {
@@ -57,7 +63,22 @@ export default {
     },
     chartConfig () {
       if (!this.aggResult) return
-      const categories = this.aggResult.series
+
+      const series = [...this.aggResult.series]
+      // splice removes the forst items and returns them
+      const limitedSeries = series.splice(0, this.large ? 19 : 9)
+      if (series.length) {
+        limitedSeries.push({
+          key: 'others',
+          label: `${series.length} autre(s)`,
+          nbRequests: series.reduce((nbRequests, s) => nbRequests + s.nbRequests, 0),
+          bytes: series.reduce((bytes, s) => bytes + s.bytes, 0),
+          previousNbRequests: series.reduce((previousNbRequests, s) => previousNbRequests + s.previousNbRequests, 0),
+          previousBytes: series.reduce((previousBytes, s) => previousBytes + s.previousBytes, 0)
+        })
+      }
+
+      const categories = limitedSeries
         .map(s => ({
           label: truncateMiddle(getLabel(s, this.category), 25, 10, '...'),
           value: s.nbRequests,
@@ -72,7 +93,7 @@ export default {
           datasets: [{
             label: 'Période en cours',
             data: categories.map(c => c.value),
-            backgroundColor: this.$vuetify.theme.themes.light.primary,
+            backgroundColor: this.$vuetify.theme.themes.light.accent,
             borderRadius: 4
           }, {
             label: 'Période précédente',
@@ -111,11 +132,18 @@ export default {
   },
   watch: {
     async periods () {
-      this.update()
+      this.fetch()
     },
     async filter (oldValue, newValue) {
       if (JSON.stringify(oldValue) === JSON.stringify(newValue)) return
       this.update()
+    },
+    chartConfig () {
+      if (this.chart) {
+        this.chart.options = this.chartConfig.options
+        this.chart.data = this.chartConfig.data
+        this.chart.update()
+      }
     }
   },
   destroyed () {
@@ -126,12 +154,6 @@ export default {
     this.chart = new this.$Chart(document.getElementById(this.id + '-canvas'), this.chartConfig)
   },
   methods: {
-    async update () {
-      await this.fetch()
-      this.chart.options = this.chartConfig.options
-      this.chart.data = this.chartConfig.data
-      this.chart.update()
-    },
     async fetch () {
       this.loading = true
       const [aggResult, aggResultPrevious] = await Promise.all([
@@ -155,20 +177,6 @@ export default {
           serie.previousBytes = matchingPreviousSerie.bytes
         }
       })
-      const series = [...aggResult.series]
-      // splice removes the forst items and returns them
-      aggResult.series = series.splice(0, limit)
-      if (series.length) {
-        aggResult.series.push({
-          key: 'others',
-          label: `${series.length} autre(s)`,
-          nbRequests: series.reduce((nbRequests, s) => nbRequests + s.nbRequests, 0),
-          bytes: series.reduce((bytes, s) => bytes + s.bytes, 0),
-          previousNbRequests: series.reduce((previousNbRequests, s) => previousNbRequests + s.previousNbRequests, 0),
-          previousBytes: series.reduce((previousBytes, s) => previousBytes + s.previousBytes, 0)
-        })
-      }
-
       this.aggResult = aggResult
       this.loading = false
     },

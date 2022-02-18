@@ -54,7 +54,7 @@ export default {
           datasets: [{
             label: 'Période en cours',
             data: days.map(c => c.value),
-            backgroundColor: this.$vuetify.theme.themes.light.primary,
+            backgroundColor: this.$vuetify.theme.themes.light.accent,
             borderRadius: 4
           }]
         },

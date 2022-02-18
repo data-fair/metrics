@@ -4,13 +4,13 @@
     :md="large ? 12 : 6"
   >
     <v-card flat>
-      <v-card-title class="text-overline primary--text text--darken-2 justify-center pa-0">
+      <v-card-title class="text-overline primary--text text--darken-2 justify-center text-center py-0 px-8">
         {{ title }}
       </v-card-title>
       <v-btn
         icon
         style="position: absolute; right:0; top: 0;"
-        @click="large=!large"
+        @click="toggle"
       >
         <v-icon>mdi-image-size-select-small</v-icon>
       </v-btn>
@@ -28,6 +28,12 @@ export default {
   },
   data () {
     return { large: false }
+  },
+  methods: {
+    toggle () {
+      this.large = !this.large
+      this.$emit('input', this.large)
+    }
   }
 }
 </script>
