@@ -22,12 +22,14 @@
 
 <script>
 import Vue from 'vue'
+import safeDecodeUriComponent from '~/assets/safe-decode-uri-component.js'
+const truncateMiddle = require('truncate-middle')
 
 const limit = 10
 
 const getLabel = (serie, category) => {
   if (serie.label) return serie.label
-  if (category === 'resource') return decodeURIComponent(serie.key.resource.title)
+  if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (serie.key[category] === 'none') return 'inconnu'
   return serie.key[category]
 }
@@ -57,7 +59,7 @@ export default {
       if (!this.aggResult) return
       const categories = this.aggResult.series
         .map(s => ({
-          label: getLabel(s, this.category),
+          label: truncateMiddle(getLabel(s, this.category), 25, 10, '...'),
           value: s.nbRequests,
           previousValue: s.previousNbRequests,
           tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.bytes, this.$i18n.locale)}`,

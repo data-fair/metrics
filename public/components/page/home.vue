@@ -119,7 +119,8 @@
 
 <script>
 import Vue from 'vue'
-const { mapState, mapActions, mapGetters } = require('vuex')
+import { mapState, mapActions, mapGetters } from 'vuex'
+import safeDecodeUriComponent from '~/assets/safe-decode-uri-component.js'
 
 export default {
   components: {},
@@ -135,7 +136,7 @@ export default {
     datasetItems () {
       if (!this.aggResultDataAPI) return []
       return this.aggResultDataAPI.current.series
-        .map(s => ({ text: `${decodeURIComponent(s.key.resource.title)} (${s.nbRequests.toLocaleString()})`, value: s.key.resource.id, serie: s }))
+        .map(s => ({ text: `${safeDecodeUriComponent(s.key.resource.title)} (${s.nbRequests.toLocaleString()})`, value: s.key.resource.id, serie: s }))
     },
     baseFilter () {
       const filter = { statusClass: 'ok' }

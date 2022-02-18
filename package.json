@@ -63,6 +63,7 @@
     "mongodb": "^4.2.0",
     "nodemon": "^2.0.15",
     "nuxt": "^2.15.8",
+    "truncate-middle": "^1.0.6",
     "vuetify": "^2.5.14"
   }
 }
