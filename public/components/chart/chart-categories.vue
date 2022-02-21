@@ -136,7 +136,7 @@ export default {
     },
     async filter (oldValue, newValue) {
       if (JSON.stringify(oldValue) === JSON.stringify(newValue)) return
-      this.update()
+      this.fetch()
     },
     chartConfig () {
       if (this.chart) {
