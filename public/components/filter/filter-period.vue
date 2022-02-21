@@ -1,7 +1,7 @@
 <template>
   <v-row class="ma-0">
     <v-select
-      :value="selectItems.find(si => si.value.start === period.start && si.value.end === period.end)"
+      :value="selectItems.find(si => !si.value || (si.value.start === period.start && si.value.end === period.end))"
       :items="selectItems"
       label="période"
       style="max-width: 360px;"
@@ -9,7 +9,7 @@
       outlined
       dense
       class="mr-4"
-      @input="v => {period = {...v}; input()}"
+      @input="setPeriod"
       @change="input"
     />
     <filter-date-picker
@@ -47,7 +47,7 @@ export default {
           }
         },
         {
-          text: 'Dernière semaine (du lundi au dimanche)',
+          text: 'dernière semaine (du lundi au dimanche)',
           value: {
             start: this.$day().startOf('week').subtract(7, 'days').format('YYYY-MM-DD'),
             end: this.$day().startOf('week').subtract(1, 'days').format('YYYY-MM-DD')
@@ -61,7 +61,7 @@ export default {
           }
         },
         {
-          text: 'Dernier mois écoulé',
+          text: 'dernier mois écoulé',
           value: {
             start: this.$day().startOf('month').subtract(1, 'days').startOf('month').format('YYYY-MM-DD'),
             end: this.$day().startOf('month').subtract(1, 'days').format('YYYY-MM-DD')
@@ -73,6 +73,10 @@ export default {
             start: this.$day().subtract(359, 'days').format('YYYY-MM-DD'),
             end: this.$day().format('YYYY-MM-DD')
           }
+        },
+        {
+          text: 'période personnalisée',
+          value: null
         }
       ]
     }
@@ -82,6 +86,12 @@ export default {
     this.input()
   },
   methods: {
+    setPeriod (value) {
+      if (value) {
+        this.period = { ...value }
+        this.input()
+      }
+    },
     input () {
       const duration = this.$day(this.period.end).diff(this.period.start, 'day')
       this.$emit('input', {
