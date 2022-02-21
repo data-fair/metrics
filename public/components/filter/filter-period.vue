@@ -9,15 +9,18 @@
       outlined
       dense
       class="mr-4"
-      @input="v => period = {...v}"
+      @input="v => {period = {...v}; input()}"
+      @change="input"
     />
     <filter-date-picker
       v-model="period.start"
       label="début"
+      @input="input"
     />
     <filter-date-picker
       v-model="period.end"
       label="fin"
+      @input="input"
     />
   </v-row>
 </template>
@@ -74,8 +77,12 @@ export default {
       ]
     }
   },
-  watch: {
-    period () {
+  mounted () {
+    this.period = { ...this.selectItems[0].value }
+    this.input()
+  },
+  methods: {
+    input () {
       const duration = this.$day(this.period.end).diff(this.period.start, 'day')
       this.$emit('input', {
         previous: {
@@ -85,9 +92,6 @@ export default {
         current: { ...this.period }
       })
     }
-  },
-  mounted () {
-    this.period = { ...this.selectItems[0].value }
   }
 }
 </script>
