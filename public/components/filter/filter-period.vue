@@ -1,5 +1,5 @@
 <template>
-  <v-row class="ma-0">
+  <v-row class="ma-0 mb-2">
     <v-select
       :value="selectItems.find(si => !si.value || (si.value.start === period.start && si.value.end === period.end))"
       :items="selectItems"
@@ -8,9 +8,8 @@
       hide-details
       outlined
       dense
-      class="mr-4"
+      class="mr-4 mt-2"
       @input="setPeriod"
-      @change="input"
     />
     <filter-date-picker
       v-model="period.start"
@@ -22,6 +21,7 @@
       label="fin"
       @input="input"
     />
+    <chart-legend />
   </v-row>
 </template>
 

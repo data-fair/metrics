@@ -8,6 +8,7 @@
         {{ title }}
       </v-card-title>
       <v-btn
+        v-if="$vuetify.breakpoint.mdAndUp"
         icon
         style="position: absolute; right:0; top: 0;"
         @click="toggle"

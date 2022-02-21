@@ -17,7 +17,7 @@
         hide-details
         outlined
         dense
-        class="mr-4"
+        class="mr-4 mt-2"
         v-on="on"
       />
     </template>

@@ -10,6 +10,7 @@
       flat
       outlined
       :class="`mb-4 section-bar-${$vuetify.theme.dark ? 'dark' : 'light'}`"
+      height="auto"
     >
       <v-icon
         x-large
