@@ -9,7 +9,7 @@
       v-if="!$vuetify.breakpoint.mobile"
       class="text-h5"
     >
-      @data-fair/social
+      @data-fair/metrics
     </v-list-item-title>
   </v-list-item>
 </template>

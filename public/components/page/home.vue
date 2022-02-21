@@ -5,11 +5,19 @@
     data-iframe-height
   >
     <v-app-bar
-      dark
-      color="primary"
+      :color="$vuetify.theme.dark ? 'transparent' : 'grey lighten-4'"
       rounded
-      class="mb-4"
+      flat
+      outlined
+      :class="`mb-4 section-bar-${$vuetify.theme.dark ? 'dark' : 'light'}`"
     >
+      <v-icon
+        x-large
+        color="primary"
+        class="mr-4"
+      >
+        mdi-calendar-range
+      </v-icon>
       <filter-period @input="v => periods = v" />
     </v-app-bar>
     <template v-if="periods">
@@ -31,11 +39,19 @@
       </v-row>
 
       <v-app-bar
-        dark
-        color="primary"
+        :color="$vuetify.theme.dark ? 'transparent' : 'grey lighten-4'"
         rounded
-        class="mb-4"
+        flat
+        outlined
+        :class="`my-4 section-bar-${$vuetify.theme.dark ? 'dark' : 'light'}`"
       >
+        <v-icon
+          x-large
+          color="primary"
+          class="mr-4"
+        >
+          mdi-database
+        </v-icon>
         <v-autocomplete
           v-model="dataset"
           :loading="!aggResultDataAPI"
@@ -173,3 +189,9 @@ export default {
   }
 }
 </script>
+
+<style lang="css">
+.section-bar-light{
+  background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(245,245,245,1) 30%);
+}
+</style>

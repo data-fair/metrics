@@ -39,6 +39,10 @@ module.exports = {
     cssUrl: 'THEME_CSS_URL',
     cssText: 'THEME_CSS_TEXT'
   },
+  darkModeSwitch: {
+    __name: 'DARK_MODE_SWITCH',
+    __format: 'json'
+  },
   i18n: {
     locales: 'I18N_LOCALES',
     defaultLocale: 'I18N_DEFAULT_LOCALE'

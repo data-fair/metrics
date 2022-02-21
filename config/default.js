@@ -41,5 +41,6 @@ module.exports = {
     cssUrl: null,
     cssText: ''
   },
+  darkModeSwitch: true,
   syslogSecret: ''
 }

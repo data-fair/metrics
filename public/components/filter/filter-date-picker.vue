@@ -11,7 +11,6 @@
       <v-text-field
         :value="value && $day(value).format('L')"
         :label="label"
-        prepend-icon="mdi-calendar"
         readonly
         v-bind="attrs"
         style="max-width: 150px;"

@@ -73,6 +73,7 @@ module.exports = {
     analytics: config.analytics,
     notifyUrl: config.notifyUrl,
     theme: config.theme,
+    darkModeSwitch: config.darkModeSwitch,
     i18n: config.i18n
   },
   head: {
