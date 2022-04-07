@@ -16,7 +16,7 @@ module.exports = {
   srcDir: 'public/',
   buildDir: 'nuxt-dist',
   build: {
-    publicPath: config.basePath + '_nuxt/',
+    publicPath: config.publicUrl + '/_nuxt/',
     transpile: [/@koumoul/]
   },
   loading: { color: '#1e88e5' }, // Customize the progress bar color
