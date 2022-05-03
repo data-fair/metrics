@@ -89,9 +89,9 @@ exports.run = async () => {
       if (typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
       if (typeof body.owner === 'string') body.owner = JSON.parse(body.owner)
       if (body.referer) {
-        try{
+        try {
           body.refererDomain = new URL(body.referer).hostname
-        } catch(err){
+        } catch (err) {
           body.refererDomain = body.referer
         }
         delete body.referer
