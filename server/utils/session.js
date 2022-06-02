@@ -1,6 +1,6 @@
 const config = require('config')
 
-module.exports = require('@koumoul/sd-express')({
+module.exports = require('@data-fair/sd-express')({
   directoryUrl: config.directoryUrl,
   privateDirectoryUrl: config.privateDirectoryUrl || config.directoryUrl
 })
