@@ -31,6 +31,9 @@ const processBulk = async (db) => {
       userClass: line.userClass,
       refererDomain: line.refererDomain
     }
+    if (line.owner.department) {
+      patchKey['owner.department'] = line.owner.department
+    }
     const existingPatch = patches.find(p => equal(p[0], patchKey))
     if (existingPatch) {
       existingPatch[1].$inc.nbRequests += 1

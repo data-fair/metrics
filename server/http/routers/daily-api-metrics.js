@@ -11,6 +11,9 @@ router.get('', asyncWrap(async (req, res, next) => {
     'owner.type': req.user.activeAccount.type,
     'owner.id': req.user.activeAccount.id
   }
+  if (req.user.activeAccount.department) {
+    query['owner.id.department'] = req.user.activeAccount.department
+  }
   const results = (await req.app.get('db').collection('daily-api-metrics')
     .find(query)
     .sort({ day: 1 })

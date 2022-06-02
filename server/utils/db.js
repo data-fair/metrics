@@ -31,6 +31,7 @@ exports.init = async (db) => {
     exports.ensureIndex(db, 'daily-api-metrics', {
       'owner.type': 1,
       'owner.id': 1,
+      'owner.department': 1,
       day: 1,
       'resource.type': 1,
       'resource.id': 1,
