@@ -2,7 +2,7 @@
 const config = require('config')
 const udp = require('./udp')
 const http = require('./http')
-const prometheus = require('./prometheus')
+const prometheus = require('./utils/prometheus')
 
 async function main () {
   if (config.mode.includes('http')) {
@@ -13,9 +13,8 @@ async function main () {
     await udp.run()
     console.log('UDP server listening on localhost:%s', config.udpPort)
   }
-  if (config.mode.includes('prom')) {
-    await prometheus.run()
-    console.log('Prometheus server listening on localhost:%s', config.promPort)
+  await prometheus.start()
+  console.log('Prometheus server listening on localhost:%s', config.promPort)
   }
 }
 

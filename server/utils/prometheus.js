@@ -9,6 +9,7 @@ const express = require('express')
 const client = require('prom-client')
 const eventToPromise = require('event-to-promise')
 const asyncWrap = require('./async-wrap')
+const dbUtils = require('./db')
 
 const localRegister = new client.Registry()
 const globalRegister = new client.Registry()
@@ -46,7 +47,11 @@ exports.requestsBytes = new client.Histogram({
   registers: [localRegister]
 })
 
-exports.start = async (db) => {
+let mongoClient
+exports.start = async () => {
+  const { db, client } = await dbUtils.connect()
+  mongoClient = client
+
   // global metrics based on db connection
 
   new client.Gauge({
@@ -66,4 +71,5 @@ exports.start = async (db) => {
 exports.stop = async () => {
   server.close()
   await eventToPromise(server, 'close')
+  await mongoClient.close()
 }
