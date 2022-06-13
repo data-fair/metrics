@@ -132,7 +132,7 @@ exports.run = async () => {
       else if (body.status.code < 500) body.status.class = 'clientError'
       else body.status.class = 'serverError'
 
-      const promLabels = {cacheStatus: body.cacheStatus, operationId: body.operation.id, statusClass: body.status.class}
+      const promLabels = { cacheStatus: body.cacheStatus, operationId: body.operation.id, statusClass: body.status.class }
       prometheus.requests.labels(promLabels).observe(body.duration)
       prometheus.requestsBytes.labels(promLabels).inc(body.bytes)
 
