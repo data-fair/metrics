@@ -15,7 +15,6 @@ async function main () {
   }
   await prometheus.start()
   console.log('Prometheus server listening on localhost:%s', config.promPort)
-  }
 }
 
 main().catch(err => {
