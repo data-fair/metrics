@@ -1,6 +1,8 @@
 module.exports = {
+  mode: 'http_udp',
   port: 8080,
   udpPort: 514,
+  promPort: 9090,
   publicUrl: 'http://localhost:8080',
   mongoUrl: 'mongodb://localhost:27017/metrics-' + (process.env.NODE_ENV || 'development'),
   directoryUrl: 'http://localhost:8080',
@@ -42,5 +44,9 @@ module.exports = {
     cssText: ''
   },
   darkModeSwitch: true,
-  syslogSecret: ''
+  syslogSecret: '',
+  prometheus: {
+    active: true,
+    port: 9090
+  }
 }

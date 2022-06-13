@@ -8,5 +8,8 @@ module.exports = {
   },
   directoryUrl: 'http://localhost:6200/simple-directory',
   proxyNuxt: true,
-  syslogSecret: 'secretdev1'
+  syslogSecret: 'secretdev1',
+  prometheus: {
+    dataFairMongo: 'mongodb://localhost:27017/data-fair'
+  }
 }

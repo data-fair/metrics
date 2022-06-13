@@ -2,24 +2,31 @@
 const config = require('config')
 const udp = require('./udp')
 const http = require('./http')
+const prometheus = require('./prometheus')
 
-http.run().then(app => {
-  console.log('HTTP server listening on http://localhost:%s', config.port)
-}, err => {
-  console.error('failure starting HTTP server', err)
-  process.exit(-1)
-})
+async function main () {
+  if (config.mode.includes('http')) {
+    await http.run()
+    console.log('HTTP server listening on http://localhost:%s', config.port)
+  }
+  if (config.mode.includes('udp')) {
+    await udp.run()
+    console.log('UDP server listening on localhost:%s', config.udpPort)
+  }
+  if (config.mode.includes('prom')) {
+    await prometheus.run()
+    console.log('Prometheus server listening on localhost:%s', config.promPort)
+  }
+}
 
-udp.run().then(app => {
-  console.log('UDP server listening on localhost:%s', config.udpPort)
-}, err => {
-  console.error('failure starting UDP server', err)
+main().catch(err => {
+  console.error('failure starting metrics servers', err)
   process.exit(-1)
 })
 
 process.on('SIGTERM', function onSigterm () {
   console.info('Received SIGTERM signal, shutdown gracefully...')
-  Promise.all([udp.stop(), http.stop()]).then(() => {
+  Promise.all([udp.stop(), http.stop(), prometheus.stop()]).then(() => {
     console.log('shutting down now')
     process.exit()
   }, err => {
