@@ -6,13 +6,13 @@
 
 const config = require('config')
 const express = require('express')
-const client = require('prom-client')
+const promClient = require('prom-client')
 const eventToPromise = require('event-to-promise')
 const asyncWrap = require('./async-wrap')
 const dbUtils = require('./db')
 
-const localRegister = new client.Registry()
-const globalRegister = new client.Registry()
+const localRegister = new promClient.Registry()
+const globalRegister = new promClient.Registry()
 
 // metrics server
 const app = express()
@@ -27,20 +27,20 @@ app.get('/global-metrics', asyncWrap(async (req, res) => {
 }))
 
 // local metrics incremented throughout the code
-exports.internalError = new client.Counter({
+exports.internalError = new promClient.Counter({
   name: 'df_internal_error',
   help: 'Errors in some worker process, socket handler, etc.',
   labelNames: ['errorCode'],
   registers: [localRegister]
 })
-exports.requests = new client.Histogram({
+exports.requests = new promClient.Histogram({
   name: 'df_metrics_requests',
   help: 'Number and duration in seconds of HTTP requests',
   buckets: [0.05, 0.5, 2, 10, 60],
   labelNames: ['cacheStatus', 'operationId', 'statusClass'],
   registers: [localRegister]
 })
-exports.requestsBytes = new client.Histogram({
+exports.requestsBytes = new promClient.Histogram({
   name: 'df_metrics_requests_bytes',
   help: 'Total descending kilo-bytes of HTTP requests',
   labelNames: ['cacheStatus', 'operationId', 'statusClass'],
@@ -54,7 +54,7 @@ exports.start = async () => {
 
   // global metrics based on db connection
 
-  new client.Gauge({
+  new promClient.Gauge({
     name: 'df_metrics_daily-api-metrics_total',
     help: 'Total number of daily api metrics',
     registers: [globalRegister],
