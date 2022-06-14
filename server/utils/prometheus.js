@@ -55,7 +55,7 @@ exports.start = async () => {
   // global metrics based on db connection
 
   new promClient.Gauge({
-    name: 'df_metrics_daily-api-metrics_total',
+    name: 'df_metrics_daily_api_metrics_total',
     help: 'Total number of daily api metrics',
     registers: [globalRegister],
     async collect () {
