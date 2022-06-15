@@ -86,6 +86,7 @@ exports.run = async () => {
 
     try {
       const body = JSON.parse(msg)
+      debug('received log', msg)
       if (typeof body.resource === 'string') body.resource = JSON.parse(body.resource)
       if (body.resource && body.resource.title) body.resource.title = decodeURIComponent(body.resource.title)
       if (typeof body.status === 'string') body.status = JSON.parse(body.status)
