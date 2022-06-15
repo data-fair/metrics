@@ -37,13 +37,13 @@ exports.requests = new promClient.Histogram({
   name: 'df_metrics_requests',
   help: 'Number and duration in seconds of HTTP requests',
   buckets: [0.05, 0.5, 2, 10, 60],
-  labelNames: ['cacheStatus', 'operationId', 'statusClass'],
+  labelNames: ['cacheStatus', 'operationId', 'statusClass', 'host', 'refererDomain'],
   registers: [localRegister]
 })
 exports.requestsBytes = new promClient.Histogram({
   name: 'df_metrics_requests_bytes',
   help: 'Total descending kilo-bytes of HTTP requests',
-  labelNames: ['cacheStatus', 'operationId', 'statusClass'],
+  labelNames: ['cacheStatus', 'operationId', 'statusClass', 'host', 'refererDomain'],
   registers: [localRegister]
 })
 
