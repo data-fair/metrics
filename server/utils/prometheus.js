@@ -40,7 +40,7 @@ exports.requests = new promClient.Histogram({
   labelNames: ['cacheStatus', 'operationId', 'statusClass', 'host'],
   registers: [localRegister]
 })
-exports.requestsBytes = new promClient.Histogram({
+exports.requestsBytes = new promClient.Counter({
   name: 'df_metrics_requests_bytes',
   help: 'Total descending kilo-bytes of HTTP requests',
   labelNames: ['cacheStatus', 'operationId', 'statusClass', 'host'],
