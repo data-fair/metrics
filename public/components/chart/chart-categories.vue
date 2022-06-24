@@ -82,12 +82,13 @@ export default {
 
       const categories = limitedSeries
         .map(s => ({
-          label: truncateMiddle(getLabel(s, this.category, this.labels), this.$vuetify.breakpoint.mdAndUp ? 25 : 10, 10, '...'),
+          label: getLabel(s, this.category, this.labels),
           value: s.nbRequests,
           previousValue: s.previousNbRequests,
           tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.bytes, this.$i18n.locale)}`,
           previousTooltip: `${s.previousNbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.previousBytes, this.$i18n.locale)} sur période précédente`
         }))
+      const vuetify = this.$vuetify
       return {
         type: 'bar',
         data: {
@@ -113,6 +114,14 @@ export default {
               beginAtZero: true,
               ticks: {
                 precision: 0
+              }
+            },
+            y: {
+              ticks: {
+                precision: 0,
+                callback (value, index) {
+                  return truncateMiddle(categories[index].label, vuetify.breakpoint.mdAndUp ? 20 : 10, 10, '...')
+                }
               }
             }
           },
