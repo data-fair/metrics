@@ -31,11 +31,12 @@ const userClasses = {
   externalAPIKey: 'utilisateur externe (clé d\'API)'
 }
 
-const getLabel = (serie, category) => {
+const getLabel = (serie, category, labels) => {
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (category === 'userClass') return userClasses[serie.key.userClass] || serie.key.userClass
   if (serie.key[category] === 'none') return 'inconnu'
+  if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
   return serie.key[category]
 }
 
@@ -44,7 +45,8 @@ export default {
     title: { type: String, required: true },
     category: { type: String, default: 'resource' },
     filter: { type: Object, required: true },
-    periods: { type: Object, required: true }
+    periods: { type: Object, required: true },
+    labels: { type: Object, required: false, default: null }
   },
   data () {
     return {
@@ -80,7 +82,7 @@ export default {
 
       const categories = limitedSeries
         .map(s => ({
-          label: truncateMiddle(getLabel(s, this.category), this.$vuetify.breakpoint.mdAndUp ? 25 : 10, 10, '...'),
+          label: truncateMiddle(getLabel(s, this.category, this.labels), this.$vuetify.breakpoint.mdAndUp ? 25 : 10, 10, '...'),
           value: s.nbRequests,
           previousValue: s.previousNbRequests,
           tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.bytes, this.$i18n.locale)}`,

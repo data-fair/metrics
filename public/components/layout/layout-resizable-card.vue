@@ -1,7 +1,8 @@
 <template>
   <v-col
     cols="12"
-    :md="large ? 12 : 6"
+    :md="large ? 12 : mdCols"
+    :lg="large ? 12 : lgCols"
   >
     <v-card flat>
       <v-card-title class="text-overline primary--text text--darken-2 justify-center text-center py-0 px-8">
@@ -25,7 +26,9 @@
 <script>
 export default {
   props: {
-    title: { type: String, required: true }
+    title: { type: String, required: true },
+    mdCols: { type: Number, default: 6 },
+    lgCols: { type: Number, default: 4 }
   },
   data () {
     return { large: false }

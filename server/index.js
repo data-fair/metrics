@@ -14,7 +14,6 @@ async function main () {
     console.log('UDP server listening on localhost:%s', config.udpPort)
   }
   await prometheus.start()
-  console.log('Prometheus server listening on localhost:%s', config.promPort)
 }
 
 main().catch(err => {

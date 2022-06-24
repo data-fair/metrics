@@ -2,6 +2,7 @@
   <v-container
     v-if="initialized && user"
     class="home my-0"
+    :fluid="$vuetify.breakpoint.lgAndDown"
     data-iframe-height
   >
     <v-app-bar
@@ -36,6 +37,13 @@
           :filter="{statusClass: 'ok', operationTrack: 'readDataAPI'}"
           :periods="periods"
           @input-agg="v => aggResultDataAPI = v"
+        />
+        <chart-categories
+          title="Ouvertures d'applications"
+          category="resource"
+          :filter="{statusClass: 'ok', operationTrack: 'openApplication'}"
+          :periods="periods"
+          @input-agg="v => aggResultOpenApp = v"
         />
       </v-row>
 
@@ -88,13 +96,13 @@
           :filter="{...baseFilter, operationTrack: 'readDataFiles'}"
           :periods="periods"
         />
-
         <chart-date-histo
           title="Historique appels API"
           :filter="{...baseFilter, operationTrack: 'readDataAPI'}"
           :periods="periods"
         />
-
+      </v-row>
+      <v-row>
         <chart-categories
           title="Requêtes / site d'origine"
           category="refererDomain"
@@ -106,6 +114,13 @@
           category="userClass"
           :filter="baseFilter"
           :periods="periods"
+        />
+        <chart-categories
+          title="Requêtes / application"
+          category="refererApp"
+          :filter="baseFilter"
+          :periods="periods"
+          :labels="appLabels"
         />
       </v-row>
     </template>
@@ -126,6 +141,7 @@ export default {
     periods: null,
     aggResultDataFiles: null,
     aggResultDataAPI: null,
+    aggResultOpenApp: null,
     dataset: null
   }),
   computed: {
@@ -160,7 +176,7 @@ export default {
       for (const operationType of ['dataFiles', 'dataAPI']) {
         for (const metricType of ['nbRequests', 'bytes']) {
           if (operationType === 'dataAPI' && metricType === 'bytes') continue
-          if (this.simpleMetricsSeries[operationType]) {
+          if (operationType in this.simpleMetricsSeries) {
             const current = this.simpleMetricsSeries[operationType].current
             if (!current) continue
             const simpleMetric = { loading: false }
@@ -183,6 +199,17 @@ export default {
         }
       }
       return simpleMetrics
+    },
+    appLabels () {
+      if (!this.aggResultOpenApp) return
+      const labels = {}
+      this.aggResultOpenApp.previous.series.filter(item => item.key.resource).forEach(item => {
+        labels[item.key.resource.id] = item.key.resource.title
+      })
+      this.aggResultOpenApp.current.series.filter(item => item.key.resource).forEach(item => {
+        labels[item.key.resource.id] = item.key.resource.title
+      })
+      return labels
     }
   },
   methods: {

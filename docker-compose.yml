@@ -14,6 +14,7 @@ services:
       - NUXT_BUILD_BLOCKING=false
       - NO_UI=${NO_UI}
       - ROLES_DEFAULTS=["admin", "contrib", "user"]
+      - PROMETHEUS_ACTIVE=false
     volumes:
       - ./test/resources/users.json:/webapp/data/users.json
       - ./test/resources/organizations.json:/webapp/data/organizations.json
@@ -39,6 +40,7 @@ services:
       - DIRECTORY_URL=http://localhost:6200/simple-directory
       - PUBLIC_URL=http://localhost:6200/data-fair
       - WS_PUBLIC_URL=ws://localhost:6200/data-fair
+      - PROMETHEUS_ACTIVE=false
 
   elasticsearch:
     image: koumoul/data-fair-elasticsearch:latest

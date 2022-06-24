@@ -1,5 +1,8 @@
 <template>
-  <layout-resizable-card :title="title">
+  <layout-resizable-card
+    :title="title"
+    :lg-cols="6"
+  >
     <v-progress-linear
       :indeterminate="loading"
       background-opacity="0"

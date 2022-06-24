@@ -103,7 +103,11 @@ export default {
               label: {
                 resource: (key) => decodeURIComponent(key.resource.title),
                 refererDomain: (key) => key.refererDomain,
-                operationTrack: (key) => ({ readDataAPI: 'API de données', readDataFiles: 'Téléchargement de fichiers de données' }[key.operationTrack])
+                operationTrack: (key) => ({
+                  readDataAPI: 'API de données',
+                  readDataFiles: 'Téléchargement de fichiers de données',
+                  openApplication: 'Ouverture d\'une application'
+                }[key.operationTrack])
               }[this.split](serie.key),
               data: this.aggResult.days.map(day => serie.days[day] ? serie.days[day][this.metric] : 0),
               backgroundColor: palette[i] && ('#' + palette[i])
