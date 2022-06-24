@@ -36,6 +36,7 @@ const getLabel = (serie, category, labels) => {
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (category === 'userClass') return userClasses[serie.key.userClass] || serie.key.userClass
   if (serie.key[category] === 'none') return 'inconnu'
+  if (serie.key[category] === null) return 'aucune'
   if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
   return serie.key[category]
 }
