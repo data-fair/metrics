@@ -39,7 +39,7 @@
           @input-agg="v => aggResultDataAPI = v"
         />
         <chart-categories
-          title="Ouvertures d'applications"
+          title="Ouvertures de visualisations"
           category="resource"
           :filter="{statusClass: 'ok', operationTrack: 'openApplication'}"
           :periods="periods"
@@ -116,7 +116,7 @@
           :periods="periods"
         />
         <chart-categories
-          title="Requêtes / application"
+          title="Requêtes / visualisation"
           category="refererApp"
           :filter="baseFilter"
           :periods="periods"

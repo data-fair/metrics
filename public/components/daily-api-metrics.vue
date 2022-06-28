@@ -106,7 +106,7 @@ export default {
                 operationTrack: (key) => ({
                   readDataAPI: 'API de données',
                   readDataFiles: 'Téléchargement de fichiers de données',
-                  openApplication: 'Ouverture d\'une application'
+                  openApplication: 'Ouverture d\'une visualisation'
                 }[key.operationTrack])
               }[this.split](serie.key),
               data: this.aggResult.days.map(day => serie.days[day] ? serie.days[day][this.metric] : 0),
