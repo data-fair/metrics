@@ -39,6 +39,9 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   if (req.query.resourceType) $match['resource.type'] = req.query.resourceType
   if (req.query.resourceId) $match['resource.id'] = req.query.resourceId
 
+  // TODO: always require the split property ?
+  if (req.query.split === 'refererApp') $match.refererApp = { $ne: null }
+
   const $group = {
     _id: {},
     count: { $sum: 1 },
