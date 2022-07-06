@@ -35,6 +35,7 @@ const userClasses = {
 const getLabel = (serie, category, labels) => {
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
+  if (category === 'processing') return safeDecodeUriComponent(serie.key.processing.title)
   if (category === 'userClass') return userClasses[serie.key.userClass] || serie.key.userClass
   if (serie.key[category] === 'none') return 'inconnu'
   if (serie.key[category] === null || serie.key[category] === undefined) return 'aucune'

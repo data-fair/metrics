@@ -38,6 +38,7 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   if (req.query.operationTrack) $match.operationTrack = req.query.operationTrack
   if (req.query.resourceType) $match['resource.type'] = req.query.resourceType
   if (req.query.resourceId) $match['resource.id'] = req.query.resourceId
+  if (req.query.processingId) $match['processing._id'] = req.query.resourceId
 
   const $group = {
     _id: {},
@@ -95,6 +96,7 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   for (const item of items) {
     const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {})
     if (item.resource) key.resource = item.resource
+    if (item.processing) key.processing = item.processing
     let serie = result.series.find(s => JSON.stringify(s.key) === JSON.stringify(key))
     if (!serie) {
       serie = {
