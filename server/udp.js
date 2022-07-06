@@ -136,7 +136,7 @@ exports.run = async () => {
         } else {
           body.user = { id: body.processing._id, name: 'Processing', processing: true, organization: { id: body.account.id } }
         }
-        body.processing.title += `(${body.account.name})`
+        body.processing.title += ` (${body.account.name})`
       }
       if (!body.user) body.userClass = 'anonymous'
       else if (body.owner?.type === 'user' && body.user.id === body.owner?.id) body.userClass = 'owner'
