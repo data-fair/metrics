@@ -23,7 +23,7 @@
       <filter-period @input="v => periods = v" />
     </v-app-bar>
     <template v-if="periods">
-      <v-row>
+      <v-row dense>
         <chart-categories
           title="Téléchargements / jeu de données"
           category="resource"
@@ -90,7 +90,7 @@
         </v-col>
       </v-row>
 
-      <v-row>
+      <v-row dense>
         <chart-date-histo
           title="Historique téléchargements"
           :filter="{...baseFilter, operationTrack: 'readDataFiles'}"
@@ -101,21 +101,17 @@
           :filter="{...baseFilter, operationTrack: 'readDataAPI'}"
           :periods="periods"
         />
-      </v-row>
-      <v-row>
         <chart-categories
           title="Requêtes / site d'origine"
           category="refererDomain"
           :filter="baseFilter"
           :periods="periods"
-          :lg-cols="6"
         />
         <chart-categories
           title="Requêtes / catégorie d'utilisateur"
           category="userClass"
           :filter="baseFilter"
           :periods="periods"
-          :lg-cols="6"
         />
         <chart-categories
           title="Requêtes / visualisation"
@@ -123,14 +119,12 @@
           :filter="baseFilter"
           :periods="periods"
           :labels="appLabels"
-          :lg-cols="6"
         />
         <chart-categories
           title="Requêtes / traitement"
           category="processing"
           :filter="baseFilter"
           :periods="periods"
-          :lg-cols="6"
         />
       </v-row>
     </template>
