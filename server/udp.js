@@ -36,6 +36,9 @@ const processBulk = async (db) => {
     if (line.owner.department) {
       patchKey['owner.department'] = line.owner.department
     }
+    if (line.processing) {
+      patchKey['processing._id'] = line.processing._id
+    }
     const existingPatch = patches.find(p => equal(p[0], patchKey))
     if (existingPatch) {
       existingPatch[1].$inc.nbRequests += 1
@@ -51,7 +54,8 @@ const processBulk = async (db) => {
           statusClass: line.status.class,
           userClass: line.userClass,
           refererDomain: line.refererDomain,
-          refererApp: line.refererApp
+          refererApp: line.refererApp,
+          processing: line.processing
         },
         $inc: {
           nbRequests: 1,
@@ -95,6 +99,8 @@ exports.run = async () => {
       if (typeof body.status === 'number') body.status = { code: body.status }
       if (typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
       if (typeof body.owner === 'string') body.owner = JSON.parse(body.owner)
+      if (typeof body.account === 'string') body.account = JSON.parse(body.account)
+      if (typeof body.processing === 'string') body.processing = JSON.parse(body.processing)
       if (body.referer) {
         try {
           const url = new URL(body.referer)
@@ -124,12 +130,21 @@ exports.run = async () => {
           }
         }
       }
+      if (body.processing && body.account) {
+        if (body.account.type === 'user') {
+          body.user = { id: body.account.id, name: 'Processing', processing: true }
+        } else {
+          body.user = { id: body.processing._id, name: 'Processing', processing: true, organization: { id: body.account.id } }
+        }
+        body.processing.title += `(${body.account.name})`
+      }
       if (!body.user) body.userClass = 'anonymous'
       else if (body.owner?.type === 'user' && body.user.id === body.owner?.id) body.userClass = 'owner'
       else if (body.owner?.type === 'organization' && body.user.organization?.id === body.owner?.id) body.userClass = 'owner'
       else body.userClass = 'external'
 
       if (body.user && body.user.apiKey) body.userClass += 'APIKey'
+      if (body.user && body.user.processing) body.userClass += 'Processing'
 
       if (body.status.code < 200) body.status.class = 'info'
       else if (body.status.code < 300) body.status.class = 'ok'

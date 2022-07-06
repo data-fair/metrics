@@ -41,6 +41,7 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
 
   // TODO: always require the split property ?
   if (req.query.split === 'refererApp') $match.refererApp = { $ne: null }
+  if (req.query.split === 'processing._id') $match['processing._id'] = { $ne: null }
 
   const $group = {
     _id: {},

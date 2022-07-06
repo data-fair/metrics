@@ -108,12 +108,14 @@
           category="refererDomain"
           :filter="baseFilter"
           :periods="periods"
+          :lg-cols="6"
         />
         <chart-categories
           title="Requêtes / catégorie d'utilisateur"
           category="userClass"
           :filter="baseFilter"
           :periods="periods"
+          :lg-cols="6"
         />
         <chart-categories
           title="Requêtes / visualisation"
@@ -121,6 +123,14 @@
           :filter="baseFilter"
           :periods="periods"
           :labels="appLabels"
+          :lg-cols="6"
+        />
+        <chart-categories
+          title="Requêtes / traitement"
+          category="processing._id"
+          :filter="baseFilter"
+          :periods="periods"
+          :lg-cols="6"
         />
       </v-row>
     </template>

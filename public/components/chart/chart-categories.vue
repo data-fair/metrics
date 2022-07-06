@@ -2,6 +2,7 @@
   <layout-resizable-card
     v-model="large"
     :title="title"
+    :lg-cols="lgCols"
   >
     <v-progress-linear
       :indeterminate="loading"
@@ -36,7 +37,7 @@ const getLabel = (serie, category, labels) => {
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (category === 'userClass') return userClasses[serie.key.userClass] || serie.key.userClass
   if (serie.key[category] === 'none') return 'inconnu'
-  if (serie.key[category] === null) return 'aucune'
+  if (serie.key[category] === null || serie.key[category] === undefined) return 'aucune'
   if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
   return serie.key[category]
 }
@@ -47,7 +48,8 @@ export default {
     category: { type: String, default: 'resource' },
     filter: { type: Object, required: true },
     periods: { type: Object, required: true },
-    labels: { type: Object, required: false, default: null }
+    labels: { type: Object, required: false, default: null },
+    lgCols: { type: Number, default: 4 }
   },
   data () {
     return {

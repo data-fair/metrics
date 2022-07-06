@@ -39,7 +39,8 @@ exports.init = async (db) => {
       statusClass: 1,
       userClass: 1,
       refererDomain: 1,
-      refererApp: 1
+      refererApp: 1,
+      'processing._id': 1
     }, { name: 'main-keys', unique: true })
   ]
   await Promise.all(promises)

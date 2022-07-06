@@ -70,7 +70,9 @@ export default {
         { value: 'owner', text: 'propriétaire' },
         { value: 'external', text: 'utilisateur externe' },
         { value: 'ownerAPIKey', text: 'propriétaire (clé d\'API)' },
-        { value: 'externalAPIKey', text: 'utilisateur externe (clé d\'API)' }
+        { value: 'externalAPIKey', text: 'utilisateur externe (clé d\'API)' },
+        { value: 'ownerProcessing', text: 'propriétaire (traitement)' },
+        { value: 'externalProcessing', text: 'utilisateur externe (traitement)' }
       ],
       filters: {
         statusClass: 'ok',
