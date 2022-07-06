@@ -39,10 +39,6 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   if (req.query.resourceType) $match['resource.type'] = req.query.resourceType
   if (req.query.resourceId) $match['resource.id'] = req.query.resourceId
 
-  // TODO: always require the split property ?
-  if (req.query.split === 'refererApp') $match.refererApp = { $ne: null }
-  if (req.query.split === 'processing._id') $match['processing._id'] = { $ne: null }
-
   const $group = {
     _id: {},
     count: { $sum: 1 },
@@ -54,7 +50,15 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
   const seriesKey = []
   const split = req.query.split ? req.query.split.split(',') : ['day']
   for (const part of split) {
-    if (part === 'resource') {
+    // TODO: always require the split property ?
+    if (part === 'refererApp') {
+      $match.refererApp = { $ne: null }
+    }
+    if (part === 'processing') {
+      $match['processing._id'] = { $ne: null }
+      $group._id.processingId = '$processing._id'
+      $group.processing = { $last: '$processing' }
+    } else if (part === 'resource') {
       $group._id.resourceType = '$resource.type'
       $group._id.resourceId = '$resource.id'
       $group.resource = { $last: '$resource' }

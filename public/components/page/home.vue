@@ -127,7 +127,7 @@
         />
         <chart-categories
           title="Requêtes / traitement"
-          category="processing._id"
+          category="processing"
           :filter="baseFilter"
           :periods="periods"
           :lg-cols="6"
