@@ -29,7 +29,9 @@ const userClasses = {
   owner: 'propriétaire',
   external: 'utilisateur externe',
   ownerAPIKey: 'propriétaire (clé d\'API)',
-  externalAPIKey: 'utilisateur externe (clé d\'API)'
+  externalAPIKey: 'utilisateur externe (clé d\'API)',
+  ownerProcessing: 'propriétaire (traitement)',
+  externalProcessing: 'utilisateur externe (traitement)'
 }
 
 const getLabel = (serie, category, labels) => {
