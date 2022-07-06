@@ -101,6 +101,7 @@ exports.run = async () => {
       if (typeof body.owner === 'string') body.owner = JSON.parse(body.owner)
       if (typeof body.account === 'string') body.account = JSON.parse(body.account)
       if (typeof body.processing === 'string') body.processing = JSON.parse(body.processing)
+      if (body.processing && body.processing.title) body.processing.title = decodeURIComponent(body.processing.title)
       if (body.referer) {
         try {
           const url = new URL(body.referer)
