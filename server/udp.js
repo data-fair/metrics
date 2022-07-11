@@ -122,12 +122,16 @@ exports.run = async () => {
       if (!body.user && body.apiKey) {
         const decoded = Buffer.from(body.apiKey, 'base64url').toString()
         const parts = decoded.split(':')
-        if (parts.length === 3) {
+        if (parts.length >= 3) {
           if (parts[0] === 'u') {
             body.user = { id: parts[1], name: 'API key', apiKey: true }
           }
           if (parts[0] === 'o') {
-            body.user = { id: parts[2], name: 'API key', apiKey: true, organization: { id: parts[1] } }
+            if (parts.lenghth === 4) {
+              body.user = { id: parts[3], name: 'API key', apiKey: true, organization: { id: parts[1], department: parts[2] } }
+            } else {
+              body.user = { id: parts[2], name: 'API key', apiKey: true, organization: { id: parts[1] } }
+            }
           }
         }
       }
