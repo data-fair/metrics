@@ -93,14 +93,14 @@ exports.run = async () => {
     try {
       const body = JSON.parse(msg)
       debug('received log', msg)
-      if (typeof body.resource === 'string') body.resource = JSON.parse(body.resource)
+      if (body.resource && typeof body.resource === 'string') body.resource = JSON.parse(body.resource)
       if (body.resource && body.resource.title) body.resource.title = decodeURIComponent(body.resource.title)
-      if (typeof body.status === 'string') body.status = JSON.parse(body.status)
+      if (body.status && typeof body.status === 'string') body.status = JSON.parse(body.status)
       if (typeof body.status === 'number') body.status = { code: body.status }
-      if (typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
-      if (typeof body.owner === 'string') body.owner = JSON.parse(body.owner)
-      if (typeof body.account === 'string') body.account = JSON.parse(body.account)
-      if (typeof body.processing === 'string') body.processing = JSON.parse(body.processing)
+      if (body.operation && typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
+      if (body.owner && typeof body.owner === 'string') body.owner = JSON.parse(body.owner)
+      if (body.account && typeof body.account === 'string') body.account = JSON.parse(body.account)
+      if (body.processing && typeof body.processing === 'string') body.processing = JSON.parse(body.processing)
       if (body.processing && body.processing.title) body.processing.title = decodeURIComponent(body.processing.title)
       if (body.referer) {
         try {
