@@ -20,6 +20,10 @@ const processBulk = async (db) => {
       debug('ignore operation without tracking category')
       continue
     }
+    if (line.refererDomain === 'http-req-exporter') {
+      debug('ignore request triggered by promtheus exporter')
+      continue
+    }
     const day = line.date.slice(0, 10)
     const patchKey = {
       'owner.type': line.owner.type,
