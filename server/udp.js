@@ -35,7 +35,8 @@ const processBulk = async (db) => {
       statusClass: line.status.class,
       userClass: line.userClass,
       refererDomain: line.refererDomain,
-      refererApp: line.refererApp
+      refererApp: line.refererApp,
+      refererTrack: line.refererTrack
     }
     if (line.owner.department) {
       patchKey['owner.department'] = line.owner.department
@@ -59,6 +60,7 @@ const processBulk = async (db) => {
           userClass: line.userClass,
           refererDomain: line.refererDomain,
           refererApp: line.refererApp,
+          refererTrack: line.refererTrack,
           processing: line.processing
         },
         $inc: {
@@ -111,6 +113,7 @@ exports.run = async () => {
           const url = new URL(body.referer)
           body.refererDomain = url.hostname
           if (url.pathname.startsWith('/data-fair/app/')) body.refererApp = url.pathname.replace('/data-fair/app/', '').split('/').shift()
+          if (url.searchParams.get('track')) body.refererTrack = url.searchParams.get('track')
           delete body.referer
         } catch (err) {
           body.refererDomain = body.referer

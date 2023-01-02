@@ -126,6 +126,12 @@
           :filter="baseFilter"
           :periods="periods"
         />
+        <chart-categories
+          title="Requêtes / intégration"
+          category="refererTrack"
+          :filter="baseFilter"
+          :periods="periods"
+        />
       </v-row>
     </template>
   </v-container>
