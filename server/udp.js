@@ -35,8 +35,7 @@ const processBulk = async (db) => {
       statusClass: line.status.class,
       userClass: line.userClass,
       refererDomain: line.refererDomain,
-      refererApp: line.refererApp,
-      refererTrack: line.refererTrack
+      refererApp: line.refererApp
     }
     if (line.owner.department) {
       patchKey['owner.department'] = line.owner.department
@@ -60,7 +59,6 @@ const processBulk = async (db) => {
           userClass: line.userClass,
           refererDomain: line.refererDomain,
           refererApp: line.refererApp,
-          refererTrack: line.refererTrack,
           processing: line.processing
         },
         $inc: {
@@ -112,8 +110,10 @@ exports.run = async () => {
         try {
           const url = new URL(body.referer)
           body.refererDomain = url.hostname
+          // referer given in query params is used to track original referer in the case of embedded pages
+          // data-fair automatically adds this param to embed views and apps
+          if (url.searchParams.get('referer')) body.refererDomain = url.searchParams.get('referer')
           if (url.pathname.startsWith('/data-fair/app/')) body.refererApp = url.pathname.replace('/data-fair/app/', '').split('/').shift()
-          if (url.searchParams.get('track')) body.refererTrack = url.searchParams.get('track')
           delete body.referer
         } catch (err) {
           body.refererDomain = body.referer

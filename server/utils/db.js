@@ -40,7 +40,6 @@ exports.init = async (db) => {
       userClass: 1,
       refererDomain: 1,
       refererApp: 1,
-      refererTrack: 1,
       'processing._id': 1
     }, { name: 'main-keys', unique: true })
   ]
