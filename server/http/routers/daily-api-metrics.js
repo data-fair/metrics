@@ -55,9 +55,6 @@ router.get('/_agg', asyncWrap(async (req, res, next) => {
     if (part === 'refererApp') {
       $match.refererApp = { $ne: null }
     }
-    if (part === 'refererTrack') {
-      $match.refererTrack = { $ne: null }
-    }
     if (part === 'processing') {
       $match['processing._id'] = { $ne: null }
       $group._id.processingId = '$processing._id'
