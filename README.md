@@ -4,7 +4,16 @@
 
 ## NEXT
 
-Je propose d'utiliser ce service comme bac à sable pour la modernisation de notre stack. Plus tard on pourra adopter bout par bout les meilleurs éléments de recette dans les services plus importants. Plusieurs raison pour le choix de ce service:
+Je propose d'utiliser ce service comme bac à sable pour la modernisation de notre stack. Plus tard on pourra adopter bout par bout les meilleurs éléments de recette dans les services plus importants.
+
+La motivation:
+  - il faut moderniser à interval régulier, pas le choix
+  - progresser sur la sécurité
+  - progresser sur la performance
+  - progresser sur l'élasticité de l'infra
+  - tirer les leçons des dernières années d'expérience, prendre du recul sur les éléments les moins satisfaisants de nos recettes
+
+Plusieurs raisons pour le choix de ce service en particulier:
 
   - petite api
   - petite ui
