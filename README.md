@@ -41,9 +41,9 @@ Les grandes lignes de ce que je veux essayer:
   - en dev on lance un docker-compose avec un nginx qui sert de frontal (data-fair fonctionne déjà comme ça en partie)
     - remplace avantageusement l'utilisation de proxies de dev dans le code de l'api
     - permet de tester des comportements réalistes de l'api derrière un reverse proxy (cache, buffering, compression, etc)
-    - le docker-compose de dev pourrait peut-être inclure le nodemon de l'api et l'appel de "nuxt run" de cette manière on reviendrait à une commande unique pour lancer tout l'environnement de dev
+    - le docker-compose de dev pourrait inclure le nodemon de l'api et l'appel de "nuxt run" de cette manière on reviendrait à une commande unique pour lancer tout l'environnement de dev. En allant un plus loin on pourrait recommander de lancer les commandes de dev comme "npm install", "cargo build" et autres directement dans les conteneurs de dev, on réduit les pré-requis pour les contributeurs, on supprime les problèmes de version node, etc. Tout ça parait pas mal, il faut juste vérifier qu'on a bien la même fluidité dans le dev au quotidien, ça reste la priorité.
 
   - structure plus légère à la racine grâce au découpage des livrables
-    - manifeste package.json principal contenant la version et les commandes racines de test, dev, build, etc
+    - manifeste package.json principal contenant la version et peut-être les commandes racines de test, dev, build (sauf si toutes ces commandes deviennent des commandes docker-compose à la place)
     - README, licence, etc
     - répertoires ui, api au minimum et selon les services worker, doc, contract, etc
