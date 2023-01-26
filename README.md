@@ -23,6 +23,7 @@ Les grandes lignes de ce que je veux essayer:
     - plus faciles à optimiser
     - plus faciles à sécuriser
     - plus rapides à builder
+    - meilleure utilisation des ressources dans infra élastique (par exemple on peut scale l'api de manière plus importante que l'ui, nuxt est lourd en mémoire et avec le SSR désactivé il n'a pas forcément besoin de scale car il bénéficie énormément du cache sur le reverse proxy, avec le SSR activé comme pour portals c'est probablement tout l'inverse)
     - plus maintenables (moins de code spaguetti, meilleure lisibilité des dépendances, moins de code un peu "hacké" autour de l'intégration de nuxt dans le serveur)
     - possibilité d'adopter une stack complètement différente (à commencer par Rust pour la partie réception des logs)
     - on garde un seul repo et un seul cycle de vie
