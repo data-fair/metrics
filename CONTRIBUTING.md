@@ -28,6 +28,12 @@ You should run most commands through docker. Also note that js dependencies are 
 dcr api pnpm add my-dependency
 ```
 
+## Build types from contracts
+
+```
+dcr api jtd-codegen /app/config/config.jtd.json --typescript-out /app/types
+```
+
 ## Run development servers
 
 First run all related services (reverse proxy, database, data-fair, etc.):

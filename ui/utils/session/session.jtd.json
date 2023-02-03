@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "email": {"type": "string"}
+  },
+  "optionalProperties": {
+    "isAdmin": {"type": "uint8"},
+    "ipa": {"type": "uint8"},
+    "pd": {"type": "uint8"}
+  },
+  "additionalProperties": true
+}

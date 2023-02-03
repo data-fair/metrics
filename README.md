@@ -40,6 +40,7 @@ Les grandes lignes de ce que je veux essayer:
   - adoption d'images distroless
     - plus léger
     - plus sécurisé
+    - tester de compléter ça avec docker-slim (probablement inutile pour les livrables nuxt et rust, mais pourrait remplacer avantageusement clean-modules pour le livrable nodejs)
   
   - possibilité de produire des variantes d'image "debug" pour éviter de compromettre les images de prod sans sacrifier notre capacité à diagnostiquer les problèmes sur environnement réel, par exemple:
     - API nodejs lancée par nodemon directement sur le code source typescript + shell, VI et curl
@@ -58,18 +59,23 @@ Les grandes lignes de ce que je veux essayer:
     - le docker-compose de dev pourrait inclure le nodemon de l'api et l'appel de "nuxt run" de cette manière on reviendrait à une commande unique pour lancer tout l'environnement de dev. En allant un plus loin on pourrait recommander de lancer les commandes de dev comme "npm install", "cargo build" et autres directement dans les conteneurs de dev, on réduit les pré-requis pour les contributeurs, on supprime les problèmes de version node, etc. Tout ça parait pas mal, il faut juste vérifier qu'on a bien la même fluidité dans le dev au quotidien, ça reste la priorité.
 
   - simplification du routage HTTP
-    - initialement j'étais convaincu qu'il valait mieux qu'un conteneur serve sur / et que le préfixe soit uniquement l'affaire du reverse proxy, je reviens sur cette opinion ça a été source de beaucoup de complexité. Si on inclut le basePath dans la config du conteneur et que celui-ci l'applique en préfixe de toutes ses routes :
-    - on évite de nombreuses instructions d'url rewriting
-    - on reconstruit plus facilement l'URL (avec header.host + req.originalUrl)
-    - on colle beaucoup mieux au paramètre baseUrl de nuxt
-    - le simple fait que ce soit le comportement normal de nginx et qu'une configuration peu lisible d'url rewriting est nécessaire pour notre approche actuelle doit suffir à mettre la puce à l'oreille
+    - trouver une solution qui n'implique pas d'url rewriting systématique par nginx ni de match sur regexp
+    - de la même manière pas de bricolage bizarre du basePath dans nuxt
+   
+  - ne plus utiliser le module originalUrl pour le multi-domaine, il utilise trop de headers différents et nous expose à de la manipulation
+    - à la place utiliser explicitement le header host et c'est tout
 
   - séparation plus claire entre tests d'intégration et tests unitaires
-    - tests unitaires optionnels dans le répertoire de chaque livrable (qui peuvent continué à être exécutés comme une étape du build docker pour alléger les pré-requis dans l'environnement de build)
-    - tests d'intégration basés sur les images docker buildés (on test le vrai livrable) et eux même exécutés dans un conteneur du docker-compose de dev
-    - on peut continuer à écrire les tests d'intégration en nodejs
+    - tests unitaires optionnels dans le répertoire de chaque livrable (qui peuvent continuer à être exécutés comme une étape du build docker pour alléger les pré-requis dans l'environnement de build)
+    - tests d'intégration obligatoires basés sur les images docker buildées (on test le vrai livrable)
+    - on peut continuer à écrire les tests d'intégration en nodejs quelque soit la nature du livrable
 
   - structure plus légère à la racine grâce au découpage des livrables
     - manifeste package.json principal contenant la version et peut-être les commandes racines de test, dev, build (sauf si toutes ces commandes deviennent des commandes docker-compose à la place)
     - README, licence, etc
     - répertoires ui, api au minimum et selon les services worker, doc, contract, etc
+
+  - meilleure consommation des logs nginx
+    - socker unix sur chaque noeud au lieu de port UDP ouvert à l'exétieur
+    - daemonset écrit en rust pour une faible conso de resources
+    - en rust on devra manipuler du JSON et soit on le fait de manière très générique (https://docs.rs/json/latest/json/) soit c'est l'occasion de tester la génération de code JTD (https://github.com/jsontypedef/json-typedef-codegen)

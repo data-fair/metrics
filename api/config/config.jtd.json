@@ -1,0 +1,11 @@
+{
+  "properties": {
+    "port": { "type": "uint32"},
+    "publicUrl": { "type": "string" }
+  },
+  "optionalProperties": {
+    "util": {},
+    "get": {},
+    "has": {}
+  }
+}

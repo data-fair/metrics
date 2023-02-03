@@ -9,14 +9,14 @@ services:
     image: nginx:1.23.1-alpine
     network_mode: host
     volumes:
-      - ./dev-resources/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./dev/resources/nginx.conf:/etc/nginx/conf.d/default.conf:ro
 
   #####
   # dev services mapped to local directory
   #####
 
   api:
-    build: ./docker/dev-node
+    build: ./dev/docker/node
     profiles:
       - dev
     volumes:
@@ -25,7 +25,7 @@ services:
     network_mode: host
 
   ui:
-    build: ./docker/dev-node
+    build: ./dev/docker/node
     profiles:
       - dev
     volumes:
@@ -56,8 +56,8 @@ services:
       - ROLES_DEFAULTS=["admin", "contrib", "user"]
       - PROMETHEUS_ACTIVE=false
     volumes:
-      - ./dev-resources/users.json:/webapp/data/users.json
-      - ./dev-resources/organizations.json:/webapp/data/organizations.json
+      - ./dev/resources/users.json:/webapp/data/users.json
+      - ./dev/resources/organizations.json:/webapp/data/organizations.json
 
   data-fair:
     image: ghcr.io/data-fair/data-fair:3
@@ -66,6 +66,7 @@ services:
     depends_on:
       - mongo
       - elasticsearch
+    restart: on-failure:10
     environment:
       - DEBUG=files
       - MONGO_URL=mongodb://mongo:27017/data-fair
