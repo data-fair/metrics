@@ -37,10 +37,13 @@ Les grandes lignes de ce que je veux essayer:
     - possibilité d'adopter une stack complètement différente (à commencer par Rust pour la partie réception des logs)
     - on garde un seul repo et un seul cycle de vie
   
-  - adoption d'images distroless
-    - plus léger
-    - plus sécurisé
-    - tester de compléter ça avec docker-slim (probablement inutile pour les livrables nuxt et rust, mais pourrait remplacer avantageusement clean-modules pour le livrable nodejs)
+  - révision du build docker
+    - après multiples hésitations je pense continuer sur les images alpine
+      - distroless peut amener beaucoup de complexité au build
+      - une image debian aurait pas mal d'avantages et le poid important ne serait pas un énorme souci si on réutilise bien les images de base, mais concrètement justement je ne veux pas qu'on se sente contraint de tout le temps upgraade tous les services quand on upgrade l'image de base d'un service, avoir une couche de base légère est intéressant quand il y a un peu d'hétérogénéité dans les dockerfile
+      - il y a plein d'arguments dans tous les sens, dans le doute on va conserver l'approche existante et ne pas se compliquer la vie
+    - pour la réduction du node_modules on peut comparer clean-modules, ncc et docker-slim
+      - en fonction de ce choix l'adoption de pnpm devient peut-être inutile et on pourrait revenir au standard npm (dans les sous-projets le champ version de package.json ne change pas donc le découpage de pnpm fetch / install n'est pas utile)
   
   - possibilité de produire des variantes d'image "debug" pour éviter de compromettre les images de prod sans sacrifier notre capacité à diagnostiquer les problèmes sur environnement réel, par exemple:
     - API nodejs lancée par nodemon directement sur le code source typescript + shell, VI et curl

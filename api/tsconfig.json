@@ -4,5 +4,5 @@
     "outDir": "dist"
   },
   "include": ["src", "config"],
-  "exclude": ["node_modules", ".pnpm-store", "dist"]
+  "exclude": ["node_modules", "dist"]
 }

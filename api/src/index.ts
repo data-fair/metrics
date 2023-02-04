@@ -8,7 +8,7 @@ app.use((req, res, next) => {
 })
 
 app.get('/v1/hello', function (req, res) {
-  res.send('Hello World')
+  res.send('Hello World !')
 })
 
 app.listen(6219)

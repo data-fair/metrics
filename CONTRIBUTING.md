@@ -15,17 +15,16 @@ alias dcr="docker compose run --rm"
 ## Install dependencies
 
 ```bash
-dc build
 dc pull
-dcr ui pnpm install
-drc api pnpm install
+dcr ui npm install
+drc api npm install
 dcr log-proc cargo build
 ```
 
-You should run most commands through docker. Also note that js dependencies are managed using pnpm. Sor for example adding a dependency to the API looks like this:
+You can run most commands through docker. For example adding a dependency to the API looks like this:
 
 ```bash
-dcr api pnpm add my-dependency
+dcr api npm install my-dependency
 ```
 
 ## Build types from contracts
@@ -55,3 +54,13 @@ dcr ui
 ```
 
 Then open http://localhost:6218
+
+## Work on docker images
+
+Build images:
+
+```
+dc build api-built
+dc build ui-built
+```
+

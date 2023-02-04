@@ -1,14 +1,14 @@
 import { ref } from 'vue'
 import { useCookies } from '@vueuse/integrations/useCookies'
-import { useFetch } from '@vueuse/core'
-import jwtDecode from 'jwt-decode'
+// import { useFetch } from '@vueuse/core'
+// import jwtDecode from 'jwt-decode'
 
 interface User {
   name: string,
   id: string
 }
 
-function jwtDecodeAlive (jwt: string) {
+/* function jwtDecodeAlive (jwt: string) {
   if (!jwt) return null
   const decoded = jwtDecode<any>(jwt)
   if (!decoded) { return null }
@@ -23,7 +23,7 @@ function jwtDecodeAlive (jwt: string) {
     // return null
   }
   return decoded
-}
+} */
 
 function goTo (url: string) {
   try {
@@ -39,9 +39,9 @@ export const useSession = (directoryUrl: string) => {
   cookies.addChangeListener(() => {
     console.log('update cookie', cookies.get('id_token'))
   })
-  const user = ref<User>({ name: 'haha' })
+  const user = ref<User>({ id: 'id', name: 'Alban' })
   setTimeout(() => {
-    user.value = { name: 'test' }
+    user.value = { id: 'id', name: 'test' }
   }, 1000)
 
   const loginUrl = directoryUrl + '/login'

@@ -21,7 +21,7 @@ services:
       - dev
     volumes:
       - ./api/:/app/
-    command: pnpm dev
+    command: npm run dev
     network_mode: host
 
   ui:
@@ -30,11 +30,29 @@ services:
       - dev
     volumes:
       - ./ui/:/app/
-    command: pnpm dev
+    command: npm run dev
     network_mode: host
     environment:
-      NUXT_HOST: 0.0.0.0
-      NUXT_PORT: 6220
+      PORT: 6220
+
+  #####
+  # same services but with build instructions also used distribution
+  #####
+  api-built:
+    build: ./api
+    profiles:
+      - build
+    network_mode: host
+    environment:
+      PUBLIC_URL: http://localhost:6218/metrics/
+
+  ui-built:
+    build: ./ui
+    profiles:
+      - build
+    network_mode: host
+    environment:
+      PORT: 6220
 
   #####
   # related services from the data-fair stack
