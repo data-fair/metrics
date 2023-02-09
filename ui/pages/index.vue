@@ -1,9 +1,11 @@
 <template>
-  <div>Hello ! {{ session }}</div>
+  <div>
+    Hello ! {{ $session }}
+    <personal-menu />
+  </div>
 </template>
 
 <script setup lang="ts">
-const session = useSession('test', useCookie)
 </script>
 
 <style>

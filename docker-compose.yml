@@ -67,6 +67,7 @@ services:
     depends_on:
       - mongo
     environment:
+      - DEBUG=session
       - ADMINS=["superadmin@test.com"]
       - PUBLIC_URL=http://localhost:6218/simple-directory
       - MAILDEV_ACTIVE=true

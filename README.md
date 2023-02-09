@@ -28,7 +28,7 @@ Les grandes lignes de ce que je veux essayer:
   - typescript côté UI et API
     - je ne suis pas encore certain d'être convaincu, mais l'idée d'apporter un peu de fiabilité à notre code me plait
   
-  - séparation des livrables docker UI / API / Worker
+  - séparation des livrables docker UI / API / Worker / lib
     - plus faciles à optimiser
     - plus faciles à sécuriser
     - plus rapides à builder
@@ -36,6 +36,12 @@ Les grandes lignes de ce que je veux essayer:
     - plus maintenables (moins de code spaguetti, meilleure lisibilité des dépendances, moins de code un peu "hacké" autour de l'intégration de nuxt dans le serveur)
     - possibilité d'adopter une stack complètement différente (à commencer par Rust pour la partie réception des logs)
     - on garde un seul repo et un seul cycle de vie
+    - je propose dans les projets qui le justifient d'inclure aussi dans le repo des "outils" publiés et utilisés séparément par d'autres projets mais fortément liés à un projet en particulier (par exemple publier les contrats et les types typescript, rust, etc, inclure sd-express, sd-vue dans le repository de simple-directory, peut-être aussi le dev-server dans data-fair, etc)
+    - il faudrait qu'on formalise les compatibilités de version entre services, et entre outils et services
+      - pour les librairies npmn peut-être utiliser les [dist-tags](https://docs.npmjs.com/adding-dist-tags-to-packages) ? par exemple si un dev-server est adapté à un data-fair 3.3.* on ajoute le dist-tag data-fair-3.3
+      - même logique pour les images docker. Si une image de capture est adaptée à l'écosystème data-fair dans sa version 3 et dans sa version 4 alors on lui ajoute les tags data-fair-3 et data-fair-4.
+      - en gros on aboutirait à un numéro d'écosystème en plus du numéro de version indépendant : numéro d'écosysème lié à la version du service central "data-fair" et qui bougerait simplement en ajoutant des tags à des livrables existants sans avoir besoin de les republier. ça pourrait rendre la gestion d'environnements cohérents plus simple, les docker-compose dans les docs d'install seraient plus clairs, etc.
+      - mais pour que ce numérotage fonctionne bien ça implique aussi de devoir ajouter des tags à plein de livrables quand on publie une nouvelle version importante de data-fair, on arrive à un couplage des builds, il faut voir si on trouve une solution qui ne nuit pas à la maintenabilité. Tout ça est séduisant, mais à voir si ça en vaut le cout.
   
   - révision du build docker
     - après multiples hésitations je pense continuer sur les images alpine
@@ -55,6 +61,7 @@ Les grandes lignes de ce que je veux essayer:
     - après test on gagne environ 10% par rapport à npm sur les dépendances de prod de data-fair
     - encore un petit peu plus efficace que yarn
     - je préfère la structure non plate : plus facile à explorer et impossible de charger un module qui n'est pas explicitement dans les dépendances
+    - CONCLUSION: pour l'instant retour en arrière là dessus la séparation des package.json rend inutile la séparation du fetch et du install proposé par pnpm et l'utilisateur de ncc supprime le besoin d'optimisation du répertoire node_modules, pour la simplicité autant rester sur le package manager par défaut
 
   - en dev on lance un docker-compose avec un nginx qui sert de frontal (data-fair fonctionne déjà comme ça en partie)
     - remplace avantageusement l'utilisation de proxies de dev dans le code de l'api
@@ -82,3 +89,8 @@ Les grandes lignes de ce que je veux essayer:
     - socker unix sur chaque noeud au lieu de port UDP ouvert à l'exétieur
     - daemonset écrit en rust pour une faible conso de resources
     - en rust on devra manipuler du JSON et soit on le fait de manière très générique (https://docs.rs/json/latest/json/) soit c'est l'occasion de tester la génération de code JTD (https://github.com/jsontypedef/json-typedef-codegen)
+
+  - c'est secondaire, mais je testerai bien aussi l'écriture d'un petit service web en rust
+    - je n'envisage pas l'écriture de gros services métiers comme data-fair (en tout cas pas avant un très long moment)
+    - mais réduire l'empreinte sur les ressources de services assez techniques avec un périmètre fonctionnel assez petit et stable ou amenés à brasser un gros traffic (metrics ? notify ? maps ? taxman-proxy ?) pourrait être intéressant.
+    - à priori la stack : [axum](https://docs.rs/axum/latest/axum/), [aliri](https://lib.rs/crates/aliri_tower) ?

@@ -1,5 +1,5 @@
 ###
-# build nuxt application in first step of a multi-stage build
+# build server in first step of a multi-stage build
 FROM node:18.14-alpine3.17 AS build
 
 WORKDIR /app
