@@ -1,9 +1,6 @@
 import { createVuetify } from 'vuetify'
 
 export default defineNuxtPlugin((nuxtApp) => {
-  const vuetify = createVuetify({
-    // your config will come here
-  })
-
+  const vuetify = createVuetify({ ssr: false })
   nuxtApp.vueApp.use(vuetify)
 })

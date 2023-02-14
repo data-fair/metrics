@@ -4,33 +4,10 @@ import { useRoute } from 'vue-router'
 import { ofetch } from 'ofetch'
 import jwtDecode from 'jwt-decode'
 import * as Debug from 'debug'
+import { SessionUser, OrganizationMembership } from '../../contract/typescript/session-user'
 
 const debug = Debug('session')
 debug.log = console.log.bind(console)
-
-interface OrganizationMembership {
-  id: string,
-  name: string,
-  role: string,
-  department?: string,
-  departmentName?: string,
-  default?: boolean
-}
-
-interface User {
-  id: string,
-  name: string,
-  email: string,
-  organizations: OrganizationMembership[],
-  isAdmin?: boolean
-  adminMode?: boolean,
-  asAdmin?: {
-    id: string,
-    name: string
-  },
-  plannedDeletion?: string,
-  ignorePersonalAccount?: string
-}
 
 interface Account {
   type: string,
@@ -41,11 +18,12 @@ interface Account {
 }
 
 export interface SessionOptions {
-  directoryUrl?: string
+  directoryUrl?: string,
+  logoutRedirectUrl?: string
 }
 
 interface SessionState {
-  user?: User,
+  user?: SessionUser,
   organization?: OrganizationMembership,
   account?: Account,
   accountRole?: string,
@@ -57,8 +35,14 @@ export interface Session {
   state: SessionState,
   loginUrl: (redirect?: string, extraParams?: { [key: string]: string;}, immediateRedirect?: true) => string,
   login: (redirect?: string, extraParams?: { [key: string]: string;}, immediateRedirect?: true) => void,
-  switchOrganization: (org: string | null, dep: string | undefined) => void,
+  logout: (redirect?: string) => Promise<void>,
+  switchOrganization: (org: string | null, dep?: string) => void,
   setAdminMode: (adminMode: boolean, redirect?: string) => Promise<void>,
+  asAdmin: (user: any | null) => Promise<void>,
+  cancelDeletion: () => Promise<void>,
+  keepalive: () => Promise<void>,
+  switchDark: (value: boolean) => void,
+  switchLang: (value: string) => void,
   topLocation: Ref<Location | undefined>,
   options: SessionOptions
 }
@@ -77,16 +61,7 @@ function jwtDecodeAlive (jwt: string | null) {
     // do not return null here, this is probably a false flag due to a slightly mismatched clock
     // return null
   }
-  decoded.organizations = decoded.organizations || []
-  for (const org of decoded.organizations) {
-    if (org.dflt) org.default = true
-    delete org.dflt
-  }
-  if (decoded.pd) decoded.plannedDeletion = decoded.pd
-  delete decoded.pd
-  if (decoded.ipa) decoded.ignorePersonalAccount = true
-  delete decoded.ipa
-  return decoded as User
+  return decoded as SessionUser
 }
 
 const getTopLocation = () => {
@@ -98,12 +73,13 @@ const getTopLocation = () => {
   }
 }
 
-const goTo = (url: string) => {
+const goTo = (url: string | null) => {
   const topLocation = getTopLocation()
   if (!topLocation) {
     throw new TypeError('session.goTo was called without access to the window object or its location')
   }
-  topLocation.href = url
+  if (url) topLocation.href = url
+  else topLocation.reload()
 }
 
 export const useSession = async (initOptions?: SessionOptions) => {
@@ -186,11 +162,14 @@ export const useSession = async (initOptions?: SessionOptions) => {
   // the danger of simply using reactivity is too high, data must be re-fetched, etc.
   watch(() => state.account, (account, oldAccount) => {
     if (account?.type !== oldAccount?.type || account?.id !== oldAccount?.id || account?.department !== oldAccount?.department) {
-      topLocation.value?.reload()
+      goTo(null)
     }
   })
-  watch(() => state.lang, (lang, oldLang) => {
-    if (lang !== oldLang) topLocation.value?.reload()
+  watch(() => state.lang, () => {
+    goTo(null)
+  })
+  watch(() => state.dark, () => {
+    goTo(null)
   })
   watch(state, (state) => {
     if (typeof window !== undefined) {
@@ -212,11 +191,20 @@ export const useSession = async (initOptions?: SessionOptions) => {
   const login = (redirect?: string, extraParams: {[key: string]: string} = {}, immediateRedirect?: true) => {
     return goTo(loginUrl(redirect, extraParams, immediateRedirect))
   }
+  const logout = async (redirect?: string) => {
+    await ofetch(`${options.directoryUrl}/api/auth`, { method: 'DELETE' })
+    // sometimes server side cookie deletion is not applied immediately in browser local js context
+    // so we do it here to
+    cookies.remove('id_token')
+    cookies.remove('id_token_org')
+    cookies.remove('id_token_dep')
+    goTo(redirect || options.logoutRedirectUrl || null)
+  }
 
-  const switchOrganization = (org: string | null, dep: string | undefined) => {
-    if (org) cookies.set('id_token_org', org)
+  const switchOrganization = (org: string | null, dep?: string) => {
+    if (org) cookies.set('id_token_org', org, { path: '/' })
     else cookies.remove('id_token_org')
-    if (org) cookies.set('id_token_dep', dep)
+    if (org) cookies.set('id_token_dep', dep, { path: '/' })
     else cookies.remove('id_token_dep')
     readCookies()
   }
@@ -229,11 +217,11 @@ export const useSession = async (initOptions?: SessionOptions) => {
       goTo(url)
     } else {
       await ofetch(`${options.directoryUrl}/api/auth/adminmode`, { method: 'DELETE' })
-      readCookies()
+      goTo(redirect || null)
     }
   }
 
-  const asAdmin = async (user: any) => {
+  const asAdmin = async (user: any | null) => {
     if (user) {
       await fetch(`${options.directoryUrl}/api/auth/asadmin`, { method: 'POST', body: user })
     } else {
@@ -248,12 +236,24 @@ export const useSession = async (initOptions?: SessionOptions) => {
     readCookies()
   }
 
+  const switchDark = (value: boolean) => {
+    const maxAge = 60 * 60 * 24 * 365 // 1 year
+    cookies.set('theme_dark', '' + value, { maxAge, path: '/' })
+    readCookies()
+  }
+
+  const switchLang = (value: string) => {
+    const maxAge = 60 * 60 * 24 * 365 // 1 year
+    cookies.set('i18n_lang', value, { maxAge, path: '/' })
+    readCookies()
+  }
+
   const keepalive = async () => {
     if (!state.user) return
-    const res = await fetch(`${options.directoryUrl}/api/auth/keepalive`, { method: 'POST' })
+    await fetch(`${options.directoryUrl}/api/auth/keepalive`, { method: 'POST' })
     readCookies()
-    return res.body as unknown as User
   }
+
   // immediately performe a keepalive, but only on top windows (not iframes or popups)
   // and only if it was not done very recently (maybe from a refreshed page next to this one)
   if (typeof window !== undefined && window.top === window.self) {
@@ -267,11 +267,14 @@ export const useSession = async (initOptions?: SessionOptions) => {
     state,
     loginUrl,
     login,
+    logout,
     switchOrganization,
     setAdminMode,
     asAdmin,
     cancelDeletion,
     keepalive,
+    switchDark,
+    switchLang,
     topLocation,
     options
   }

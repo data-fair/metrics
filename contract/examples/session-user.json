@@ -1,0 +1,22 @@
+{
+  "id": "HJOaVq_Oe",
+  "email": "alban.mouton@gmail.com",
+  "name": "Alban Mouton",
+  "organizations": [
+    {
+      "id": "g1pKfMqaE",
+      "name": "Koumoul",
+      "role": "admin",
+      "dflt": true
+    },
+    {
+      "id": "MSp7KVXyY",
+      "name": "Org2",
+      "role": "admin",
+      "department": "dep",
+      "departmentName": "Department"
+    }
+  ],
+  "isAdmin": true,
+  "adminMode": true
+}

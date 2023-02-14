@@ -14,7 +14,7 @@ declare module 'vue' {
   }
 }
 
-export default defineNuxtPlugin(() => {
-  const session = useSession()
+export default defineNuxtPlugin(async () => {
+  const session = await useSession()
   return { provide: { session } }
 })

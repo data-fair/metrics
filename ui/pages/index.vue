@@ -1,7 +1,8 @@
 <template>
   <div>
-    Hello ! {{ $session }}
-    <personal-menu />
+    <NuxtLink to="/embed/home">
+      Embedded dashboard
+    </NuxtLink>
   </div>
 </template>
 

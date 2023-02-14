@@ -93,4 +93,4 @@ Les grandes lignes de ce que je veux essayer:
   - c'est secondaire, mais je testerai bien aussi l'écriture d'un petit service web en rust
     - je n'envisage pas l'écriture de gros services métiers comme data-fair (en tout cas pas avant un très long moment)
     - mais réduire l'empreinte sur les ressources de services assez techniques avec un périmètre fonctionnel assez petit et stable ou amenés à brasser un gros traffic (metrics ? notify ? maps ? taxman-proxy ?) pourrait être intéressant.
-    - à priori la stack : [axum](https://docs.rs/axum/latest/axum/), [aliri](https://lib.rs/crates/aliri_tower) ?
+    - à priori la stack : [axum](https://docs.rs/axum/latest/axum/), [jwtk](https://crates.io/crates/jwtk) ?

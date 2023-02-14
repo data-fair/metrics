@@ -4,7 +4,7 @@
 
 Your IDE should ideally be [Visual Studio Code](https://code.visualstudio.com/) with the [Volar extension](https://marketplace.visualstudio.com/items?itemName=Vue.volar).
 
-The cornerstone of the whole dev environment is [Docker](https://docs.docker.com/engine/install/) as everything else runs inside docker containers. You might want add an alias to the `docker compose` command, the rest of the document will abbreviate it as `dc`, also `docker compose run --rm` will be abbreviated as `dcr`.
+The cornerstone of the whole dev environment is [Docker](https://docs.docker.com/engine/install/). You might want add an alias to the `docker compose` command, the rest of the document will abbreviate it as `dc`, also `docker compose run --rm` will be abbreviated as `dcr`.
 
 ```bash
 # in ~/.bash_aliases
@@ -12,55 +12,60 @@ alias dc="docker compose"
 alias dcr="docker compose run --rm"
 ```
 
-## Install dependencies
+Everything else can be done inside docker if you do not want to install too much stuff locally. But for the best DX it is better to install [Node.js v18+](https://nodejs.org/) (probably through [nvm](https://github.com/nvm-sh/nvm)) and [Rust](https://www.rust-lang.org/tools/install).
+
+## Install service dependencies
 
 ```bash
 dc pull
-dcr ui npm install
-drc api npm install
-dcr log-proc cargo build
-```
-
-You can run most commands through docker. For example adding a dependency to the API looks like this:
-
-```bash
-dcr api npm install my-dependency
-```
-
-## Build types from contracts
-
-```
-dcr api jtd-codegen /app/config/config.jtd.json --typescript-out /app/types
-```
-
-## Run development servers
-
-First run all related services (reverse proxy, database, data-fair, etc.):
-
-```bash
 dc up -d
 ```
 
-Then the API development server:
+## Work on @data-fair/metrics:ui
+
+The UI is a [nuxt](https://nuxt.com/) project.
+
+Run a development server (access it here http://localhost:6218/metrics/):
 
 ```
-dcr api
+cd ui
+npm i
+npm run dev
 ```
 
-And in another shell the UI development server:
+## Work on @data-fair/metrics:api
+
+The API is a small [https://expressjs.com](Express) server.
+
+Run a development server (access it here http://localhost:6218/metrics/api/):
 
 ```
-dcr ui
+cd api
+npm i
+npm run dev
 ```
 
-Then open http://localhost:6218
+## Working on types
 
-## Work on docker images
+Some types are shared between different parts of the project. We [JSON Typedef](https://jsontypedef.com/) and related tools to do so.
+
+```
+dcr jtd jtd-codegen contract/typedefs/api-config.jtd.json --typescript-out contract/typescript/api-config/
+dcr jtd jtd-codegen contract/typedefs/session-user.jtd.json --typescript-out contract/typescript/session-user/
+```
+
+## Building docker images
 
 Build images:
 
 ```
-dc build api-built
-dc build ui-built
+dc build api
+dc build ui
 ```
 
+Run built images (access the UI here http://localhost:6218/metrics/):
+
+```
+dcr api
+dcr ui
+```

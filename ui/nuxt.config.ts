@@ -19,15 +19,7 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '@pinia/nuxt',
     // @ts-ignore
-    // this adds the vuetify vite plugin
-    // also produces type errors in the current beta release
     (_, nuxt) => nuxt.hooks.hook('vite:extendConfig', config => config.plugins.push(vuetify()))
   ],
-  css: ['vuetify/styles'],
-  vite: {
-    server: {
-      // TODO https://github.com/sapphi-red/vite-setup-catalogue/tree/main/examples/with-proxy
-      strictPort: true
-    }
-  }
+  css: ['vuetify/styles']
 })

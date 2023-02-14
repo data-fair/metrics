@@ -5,7 +5,7 @@
       v-t="'login'"
       depressed
       color="primary"
-      :href="loginUrl()"
+      :href="$session.loginUrl()"
     />
     <v-menu
       v-else
@@ -13,15 +13,15 @@
       nudge-left
       max-height="700"
     >
-      <template #activator="{on}">
+      <template #activator="{props}">
         <v-btn
           text
           class="px-0"
           :title="t('openPersonalMenu')"
-          v-on="on"
+          v-bind="props"
         >
           <avatar show-account />
-          <v-icon v-if="user.plannedDeletion" color="warning" style="position:absolute;">
+          <v-icon v-if="user.pd" color="warning" style="position:absolute;">
             mdi-alert
           </v-icon>
         </v-btn>
@@ -47,7 +47,7 @@
         </v-list-item>
 
         <!-- cancel a planned deletion ? -->
-        <template v-if="user.plannedDeletion">
+        <template v-if="user.pd">
           <v-alert
             :value="true"
             type="warning"
@@ -55,14 +55,14 @@
             :outlined="$vuetify.theme.current.dark"
             style="max-width:440px;"
           >
-            {{ t('plannedDeletion', {name: user.name, plannedDeletion: $d(new Date(user.plannedDeletion))}) }}
+            {{ t('plannedDeletion', {name: user.name, plannedDeletion: $d(new Date(user.pd))}) }}
           </v-alert>
 
           <v-row class="justify-center ma-0 mb-2">
             <v-btn
               color="warning"
               text
-              @click="cancelDeletion"
+              @click="$session.cancelDeletion"
             >
               {{ t('cancelDeletion') }}
             </v-btn>
@@ -73,13 +73,13 @@
         <template v-if="user.organizations.length > 1 || (user.organizations.length === 1 && (!user.ipa || account.type === 'user'))">
           <v-subheader v-t="'switchAccount'" style="height: 24px" />
           <v-list-item
-            v-if="account.type !== 'user' && !user.ignorePersonalAccount"
+            v-if="account.type !== 'user' && !user.ipa"
             id="toolbar-menu-switch-user"
-            @click="switchOrganization()"
+            @click="$session.switchOrganization(null)"
           >
             <v-list-item-action class=" my-0">
               <v-avatar :size="28">
-                <img :src="`${directoryUrl}/api/avatars/user/${user.id}/avatar.png`">
+                <img :src="`${$session.options.directoryUrl}/api/avatars/user/${user.id}/avatar.png`">
               </v-avatar>
             </v-list-item-action>
             <v-list-item-title v-t="'personalAccount'" />
@@ -88,12 +88,12 @@
             v-for="organization in switchableOrganizations"
             :id="'toolbar-menu-switch-orga-' + organization.id"
             :key="organization.id"
-            @click="switchOrganization(organization.id + ':' + (organization.department || ''))"
+            @click="$session.switchOrganization(organization.id + ':' + (organization.department || ''))"
           >
             <v-list-item-action class="my-0">
               <v-avatar :size="28">
-                <img v-if="organization.department" :src="`${directoryUrl}/api/avatars/organization/${organization.id}/${organization.department}/avatar.png`">
-                <img v-else :src="`${directoryUrl}/api/avatars/organization/${organization.id}/avatar.png`">
+                <img v-if="organization.department" :src="`${$session.options.directoryUrl}/api/avatars/organization/${organization.id}/${organization.department}/avatar.png`">
+                <img v-else :src="`${$session.options.directoryUrl}/api/avatars/organization/${organization.id}/avatar.png`">
               </v-avatar>
             </v-list-item-action>
             <v-list-item-content>
@@ -127,7 +127,7 @@
         </v-list-item>
 
         <!-- get back to normal admin session after impersonating a user -->
-        <v-list-item v-if="user.asAdmin" color="admin" @click="asAdmin()">
+        <v-list-item v-if="user.asAdmin" color="admin" @click="$session.asAdmin()">
           <v-list-item-action><v-icon>mdi-account-switch-outline</v-icon></v-list-item-action>
           <v-list-item-title>{{ t('backToAdmin') }}</v-list-item-title>
         </v-list-item>
@@ -203,11 +203,7 @@ export default {
   },
   methods: {
     ...mapActions('session', ['logout', 'login', 'switchOrganization', 'asAdmin', 'cancelDeletion']),
-    setDarkCookie (value) {
-      const maxAge = 60 * 60 * 24 * 100 // 100 days
-      this.$cookies.set('theme_dark', '' + value, { maxAge, path: '/' })
-      window.location.reload()
-    },
+
     setAdminMode (value) {
       const redirect = value ? null : this.redirectAdminMode
       this.$store.dispatch('session/setAdminMode', { value, redirect })
@@ -218,8 +214,8 @@ export default {
 
 <script setup lang="ts">
 withDefaults(
-  defineProps<{redirectAdminMode?: string, darkModeSwitch?: boolean}>(),
-  { redirectAdminMode: '', darkModeSwitch: false }
+  defineProps<{darkModeSwitch?: boolean}>(),
+  { darkModeSwitch: false }
 )
 const { t } = useI18n({ useScope: 'local' })
 const { $session } = useNuxtApp()
