@@ -3,7 +3,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     // project: './tsconfig.json'
-    project: require('path').resolve(__dirname, "tsconfig.json")
+    project: require('path').join(__dirname, "tsconfig.json")
   },
   extends: ['standard-with-typescript'],
   env: {

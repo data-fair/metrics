@@ -1,4 +1,5 @@
 module.exports = {
+  port: 8080,
   publicUrl: null,
-  port: 8080
+  directoryUrl: 'http://simple-directory:8080'
 }

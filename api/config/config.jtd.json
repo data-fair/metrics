@@ -1,7 +1,8 @@
 {
   "properties": {
     "port": { "type": "uint32"},
-    "publicUrl": { "type": "string" }
+    "publicUrl": { "type": "string" },
+    "directoryUrl": { "type": "string" }
   },
   "optionalProperties": {
     "util": {},

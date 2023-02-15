@@ -1,15 +1,16 @@
-import express from 'express'
-import config from './config'
-const app = express()
+import { start, stop } from './server'
 
-app.use((req, res, next) => {
-  console.log('originalUrl', req.originalUrl)
-  next()
+start().catch((err) => {
+  console.error('failure at startup', err)
+  process.exit(-1)
 })
 
-app.get('/v1/hello', function (req, res) {
-  res.send('Hello World !')
+process.on('SIGTERM', () => {
+  console.info('received SIGTERM signal, shutdown gracefully...')
+  stop().then(
+    () => process.exit(0),
+    (err) => {
+      console.error('error while shutting down', err)
+      process.exit(1)
+    })
 })
-
-app.listen(6219)
-console.log(`listening on localhost:6219, exposed on ${config.publicUrl}`)

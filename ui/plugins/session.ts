@@ -1,8 +1,8 @@
+import { useSession } from '@data-fair/lib/vue/use-session'
+import { Session } from '@data-fair/lib/vue/use-session.d'
+
 // this should not be necessary but for some reason typing of $session is broken without it
 // https://nuxt.com/docs/guide/directory-structure/plugins#typing-plugins
-// TODO: try to get rid of it
-import { Session } from '~/composables/use-session'
-
 declare module '#app' {
   interface NuxtApp {
     $session: Session
@@ -14,7 +14,7 @@ declare module 'vue' {
   }
 }
 
-export default defineNuxtPlugin(async () => {
-  const session = await useSession()
+export default defineNuxtPlugin(async (nuxtApp) => {
+  const session = await useSession({req: nuxtApp.ssrContext?.event.node.req})
   return { provide: { session } }
 })

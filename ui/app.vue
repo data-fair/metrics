@@ -10,8 +10,10 @@
 // built for being embedded all the time
 import 'iframe-resizer/js/iframeResizer.contentWindow'
 
-window.iFrameResizer = {
-  heightCalculationMethod: 'taggedElement'
+if (typeof window !== 'undefined') {
+  window.iFrameResizer = {
+    heightCalculationMethod: 'taggedElement'
+  }
 }
 
 export default {}
