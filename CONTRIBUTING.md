@@ -58,12 +58,13 @@ npm run dev-api
 
 ## Working on types
 
-Some types are managed using [JSON Typedef](https://jsontypedef.com/) and related tools.
+Some types are managed using [JSON Schemas](https://json-schema.org/), [JSON Typedef](https://jsontypedef.com/) and related tools.
 
-Update the typescript interfaces:
+Update the types based on schemas:
 
 ```
-docker compose run --rm jtd jtd-codegen api/config/config.jtd.json --typescript-out api/types/config
+docker compose run --rm jtd jtd-codegen api/src/types/config/config.jtd.json --typescript-out api/src/types/config
+npx --package @koumoul/schema-jtd@0.1.1 schema2td api/src/types/config/config.schema.json api/src/types/config/config.jtd.json
 ```
 
 ## Building docker images

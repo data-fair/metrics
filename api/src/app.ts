@@ -4,8 +4,10 @@ import config from './config'
 
 export const app = express()
 
+app.set('test', 'HELLO')
+
 const session = initSession({ directoryUrl: config.directoryUrl })
-app.use(session.requiredAuth)
+app.use(session.auth)
 
 app.use((req, res, next) => {
   next()

@@ -3,5 +3,6 @@ module.exports = {
     __name: 'PORT',
     __format: 'number'
   },
-  publicUrl: 'PUBLIC_URL'
+  publicUrl: 'PUBLIC_URL',
+  directoryUrl: 'DIRECTORY_URL'
 }

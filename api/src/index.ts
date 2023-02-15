@@ -1,4 +1,4 @@
-import { start, stop } from './server'
+import { start, stop } from '~/server'
 
 start().catch((err) => {
   console.error('failure at startup', err)

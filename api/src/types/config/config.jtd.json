@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "port": {
+      "type": "int32"
+    },
+    "publicUrl": {
+      "type": "string"
+    },
+    "directoryUrl": {
+      "type": "string"
+    },
+    "mongoUrl": {
+      "type": "string"
+    }
+  },
+  "optionalProperties": {
+    "util": {},
+    "get": {},
+    "has": {}
+  }
+}

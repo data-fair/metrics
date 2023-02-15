@@ -2,6 +2,7 @@
 
 export interface Config {
   directoryUrl: string;
+  mongoUrl: string;
   port: number;
   publicUrl: string;
   get?: any;
