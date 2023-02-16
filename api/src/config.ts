@@ -1,6 +1,6 @@
 import config from 'config'
-import * as validate from '~/validate'
+import * as types from '~/types'
 
-const typedConfig = validate.config(config)
+const typedConfig = types.config.validate(config)
 config.util.makeImmutable(config)
 export default typedConfig

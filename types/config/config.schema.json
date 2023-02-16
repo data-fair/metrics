@@ -1,5 +1,6 @@
 {
   "type": "object",
+  "title": "the configuration of the service @data-fair/metrics:api",
   "required": ["port", "publicUrl", "directoryUrl", "mongoUrl"],
   "additionalProperties": false,
   "properties": {
