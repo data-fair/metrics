@@ -6,10 +6,11 @@ import { type AggResult, aggResultSchema } from 'types/agg-result'
 
 import { list, agg } from './service'
 
-export const router = Router()
+const router = Router()
+export default router
 
 const listReq = reqBuilder<null, null, ListResponse>(null, null, listResponseSchema)
-router.get('', asyncHandler(async (req, res, next) => {
+router.get('', asyncHandler(async (req, res) => {
   if (!req.session.account) { res.status(401).send(); return }
   const { send } = listReq(req, res)
   const results = await list(req.session.account)
@@ -17,7 +18,7 @@ router.get('', asyncHandler(async (req, res, next) => {
 }))
 
 const aggReq = reqBuilder<AggQuery, null, AggResult>(aggQuerySchema, null, aggResultSchema)
-router.get('/_agg', asyncHandler(async (req, res, next) => {
+router.get('/_agg', asyncHandler(async (req, res) => {
   if (!req.session.account) { res.status(401).send(); return }
   if (typeof req.query.split === 'string') req.query.split = req.query.split.split(',')
   const { query, send } = aggReq(req, res)
