@@ -1,5 +1,13 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { type Account } from '@data-fair/lib/payload/session-state'
+import { type AggQuery, type DailyApiMetrics } from './types'
+import { type AggResult } from 'types/agg-result'
+import { camelCase } from 'camel-case'
+import dayjs from 'dayjs'
+import dayjsUtc from 'dayjs/plugin/utc'
 import { db } from '~/db'
+
+dayjs.extend(dayjsUtc)
 
 export const list = async (account: Account) => {
   const query = <any>{
@@ -14,27 +22,28 @@ export const list = async (account: Account) => {
     .sort({ day: 1 })
     .limit(10000)
     .toArray())
-  return results
+  return results as unknown as DailyApiMetrics[]
 }
 
-export const agg = async (account: Account, query: Record<string, string>) => {
-  const $match = {
-    'owner.type': req.user.activeAccount.type,
-    'owner.id': req.user.activeAccount.id
+export const agg = async (account: Account, query: AggQuery) => {
+  const $match: any = {
+    'owner.type': account.type,
+    'owner.id': account.id
   }
-  if (req.user.activeAccount.department) {
-    $match['owner.department'] = req.user.activeAccount.department
+  if (account.department) {
+    $match['owner.department'] = account.department
   }
-  if (query.start) $match.day = { ...$match.day, $gte: query.start }
+
+  if (query.start) $match.day = { $gte: query.start }
   if (query.end) $match.day = { ...$match.day, $lte: query.end }
   if (query.statusClass) $match.statusClass = query.statusClass
   if (query.userClass) $match.userClass = query.userClass
   if (query.operationTrack) $match.operationTrack = query.operationTrack
-  if (query.resourceType) $match['resource.type'] = query.resourceType
-  if (query.resourceId) $match['resource.id'] = query.resourceId
-  if (query.processingId) $match['processing._id'] = query.resourceId
+  // if (query.resourceType) $match['resource.type'] = query.resourceType
+  // if (query.resourceId) $match['resource.id'] = query.resourceId
+  // if (query.processingId) $match['processing._id'] = query.resourceId
 
-  const $group = {
+  const $group: any = {
     _id: {},
     count: { $sum: 1 },
     nbRequests: { $sum: '$nbRequests' },
@@ -43,7 +52,7 @@ export const agg = async (account: Account, query: Record<string, string>) => {
   }
 
   const seriesKey = []
-  const split = query.split ? query.split.split(',') : ['day']
+  const split = query.split ?? ['day']
   for (const part of split) {
     // TODO: always require the split property ?
     if (part === 'refererApp') {
@@ -68,9 +77,13 @@ export const agg = async (account: Account, query: Record<string, string>) => {
     { $group },
     { $sort: { '_id.day': 1 } }
   ]
-  const aggResult = await req.app.get('db').collection('daily-api-metrics').aggregate(pipeline).toArray()
+  const aggResult = await db().collection('daily-api-metrics').aggregate(pipeline).toArray()
   const items = aggResult.map(r => ({ ...r._id, ...r, meanDuration: r.duration / r.nbRequests }))
-  const result = {}
+  const result: AggResult = {
+    series: [],
+    nbRequests: 0,
+    bytes: 0
+  }
   if (split[0] === 'day') {
     result.days = []
     if (items.length) {
@@ -84,14 +97,11 @@ export const agg = async (account: Account, query: Record<string, string>) => {
       }
     }
   }
-  result.series = []
-  result.nbRequests = 0
-  result.bytes = 0
   for (const item of items) {
-    const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {})
+    const key = seriesKey.reduce<any>((a, key) => { a[key] = item[key]; return a }, {})
     if (item.resource) key.resource = item.resource
     if (item.processing) key.processing = item.processing
-    let serie = result.series.find(s => JSON.stringify(s.key) === JSON.stringify(key))
+    let serie = result.series.find((s) => JSON.stringify(s.key) === JSON.stringify(key))
     if (!serie) {
       serie = {
         key,
@@ -110,4 +120,5 @@ export const agg = async (account: Account, query: Record<string, string>) => {
     }
   }
   result.series.sort((s1, s2) => s2.nbRequests - s1.nbRequests)
+  return result
 }

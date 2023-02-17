@@ -1,8 +1,7 @@
-import Debug from 'debug'
 import config from './config'
 import { MongoClient, MongoError, type Db } from 'mongodb'
 
-const debug = Debug('db')
+// const debug = Debug('db')
 
 const ensureIndex = async (db: Db, collection: string, key: any, options: any = {}) => {
   try {
@@ -11,7 +10,7 @@ const ensureIndex = async (db: Db, collection: string, key: any, options: any = 
     if (options.name && err instanceof MongoError && (err.code === 85 || err.code === 86)) {
     // if the error is a conflict on keys or params of the index we automatically
     // delete then recreate the index
-      console.log(`Drop then recreate index ${collection}/${options.name}`)
+      console.log(`drop then recreate index ${collection}/${options.name}`)
       await db.collection(collection).dropIndex(options.name)
       await db.collection(collection).createIndex(key, options)
     } else {
@@ -27,8 +26,9 @@ let _db: Db
 
 export const connect = async () => {
   const opts = { maxPoolSize: 5 }
-  debug('Connecting to mongodb ' + config.mongoUrl)
+  console.log('connecting to mongodb...')
   const client = await MongoClient.connect(config.mongoUrl, opts)
+  console.log('...ok')
   const db = client.db()
 
   await ensureIndex(db, 'daily-api-metrics', {

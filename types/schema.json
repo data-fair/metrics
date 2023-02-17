@@ -1,0 +1,27 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "days": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "date"
+            }
+        },
+        "series": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/aggResultSeries" }
+        }
+    },
+    "definitions": {
+        "aggResultSeries": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "object"
+                }
+            }
+        }
+    }
+}

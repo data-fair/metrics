@@ -1,0 +1,63 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["series", "nbRequests", "bytes"],
+  "properties": {
+    "nbRequests": {
+      "type": "integer"
+    },
+    "bytes": {
+      "type": "integer"
+    },
+    "days": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "series": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/aggResultSeries" }
+    }
+  },
+  "definitions": {
+    "aggResultSeries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "nbRequests", "bytes"],
+      "properties": {
+        "key": {
+          "type": "object"
+        },
+        "nbRequests": {
+          "type": "integer"
+        },
+        "bytes": {
+          "type": "integer"
+        },
+        "days": {
+          "type": "object",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+              "[0-9-]+": {
+                "type": "object",
+                "required": ["nbRequests", "bytes"],
+                "properties": {
+                  "nbRequests": {
+                    "type": "integer"
+                  },
+                  "bytes": {
+                    "type": "integer"
+                  }     
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
