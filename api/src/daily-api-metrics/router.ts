@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import asyncHandler from 'express-async-handler'
-import { reqBuilder } from '~/types'
+import { reqBuilder } from '@data-fair/lib/express/req'
 import { type AggQuery, aggQuerySchema, type ListResponse, listResponseSchema } from './types'
 import { type AggResult, aggResultSchema } from 'types/agg-result'
 
