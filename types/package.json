@@ -1,10 +1,10 @@
 {
   "scripts": {
-    "build": "node build.js && tsc"
+    "build": "node node_modules/@data-fair/lib/types/build.js ./ && tsc"
   },
   "dependencies": {
+    "@data-fair/lib": "^0.0.5",
     "camel-case": "^4.1.2",
-    "json-schema-to-typescript": "^11.0.3",
-    "typescript": "^4.9.5"
+    "json-schema-to-typescript": "^11.0.3"
   }
 }

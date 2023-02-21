@@ -1,7 +1,7 @@
 import config from 'config'
 import { type FromSchema } from 'json-schema-to-ts'
 import Ajv from 'ajv'
-import * as types from '~/types'
+import { validateThrow } from '@data-fair/lib/express/req'
 
 const ajv = new Ajv()
 
@@ -24,5 +24,5 @@ const configSchema = {
 export type Config = FromSchema<typeof configSchema>
 
 config.util.makeImmutable(config)
-const typedConfig = types.validateThrow<Config>(ajv.compile(configSchema), config, 'en', 'config')
+const typedConfig = validateThrow<Config>(ajv.compile(configSchema), config, 'en', 'config', true)
 export default typedConfig

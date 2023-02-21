@@ -4,15 +4,15 @@ FROM node:18.14-alpine3.17 AS build
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY api/package*.json .
 RUN npm ci
 
-COPY src src
-COPY types types
-
+COPY api/src src
+COPY types /types
+RUN ls -l
 # check lint rules here to enforce them
-COPY .eslint* ./
-COPY tsconfig.json ./
+COPY api/.eslint* .
+COPY api/tsconfig.json .
 RUN npm run lint
 
 # we use ncc to produce a lightweight single file dist
@@ -35,7 +35,7 @@ WORKDIR /app
 
 COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/dist /app/dist
-COPY config config
+COPY api/config config
 
 EXPOSE 8080
 

@@ -1,0 +1,24 @@
+{
+  "$id": "agg-query/schema.json",
+  "title": "agg query",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["start", "end"],
+  "properties": {
+    "start": {
+      "type": "string",
+      "format": "date"
+    },
+    "end": {
+      "type": "string",
+      "format": "date"
+    },
+    "operationTrack": {"$ref": "daily-api-metric/schema.json#/definitions/operationTrack"},
+    "statusClass": {"$ref": "daily-api-metric/schema.json#/definitions/statusClass"},
+    "userClass": {"$ref": "daily-api-metric/schema.json#/definitions/userClass"},
+    "split": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["day", "refererApp", "processing", "resource"] }
+    }
+  }
+} 

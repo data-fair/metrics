@@ -20,6 +20,8 @@ export interface AggResultSeries {
     };
 }
 export declare const aggResultSchema: {
+    $id: string;
+    title: string;
     type: string;
     additionalProperties: boolean;
     required: string[];

@@ -6,6 +6,7 @@
     "dev-deps": "docker compose up -d",
     "dev-ui": "cd ui && npm run dev",
     "dev-api": "cd api && npm run dev",
+    "dev-daemon": "cd daemon && umask 0 && cargo run",
     "build-types": "cd types && npm run build"
   },
   "author": "Alban Mouton <alban.mouton@koumoul.com>",

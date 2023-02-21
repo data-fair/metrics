@@ -18,7 +18,9 @@ services:
   #####
 
   api:
-    build: ./api
+    build:
+      context: ./
+      dockerfile: ./api/Dockerfile
     profiles:
       - build
     network_mode: host

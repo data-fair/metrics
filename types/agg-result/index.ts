@@ -23,6 +23,8 @@ export interface AggResultSeries {
 }
 
 export const aggResultSchema = {
+  "$id": "agg-result/schema.json",
+  "title": "agg result",
   "type": "object",
   "additionalProperties": false,
   "required": [

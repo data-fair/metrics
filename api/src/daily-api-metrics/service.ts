@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
-import { type Account } from '@data-fair/lib/payload/session-state'
-import { type AggQuery, type DailyApiMetrics } from './types'
+import { type Account } from '@data-fair/lib/types/session-state'
+import { type AggQuery } from 'types/agg-query'
+import { type DailyApiMetric } from 'types/daily-api-metric'
 import { type AggResult } from 'types/agg-result'
 import { camelCase } from 'camel-case'
 import dayjs from 'dayjs'
@@ -22,7 +23,7 @@ export const list = async (account: Account) => {
     .sort({ day: 1 })
     .limit(10000)
     .toArray())
-  return results as unknown as DailyApiMetrics[]
+  return results as unknown as DailyApiMetric[]
 }
 
 export const agg = async (account: Account, query: AggQuery) => {
@@ -115,7 +116,7 @@ export const agg = async (account: Account, query: AggQuery) => {
     result.nbRequests += item.nbRequests
     result.bytes += item.bytes
     if (split[0] === 'day') {
-      serie.days = serie.days || {}
+      serie.days = serie.days ?? {}
       serie.days[item.day] = { nbRequests: item.nbRequests, bytes: item.bytes, meanDuration: item.meanDuration }
     }
   }

@@ -1,4 +1,6 @@
 {
+  "$id": "agg-result/schema.json",
+  "title": "agg result",
   "type": "object",
   "additionalProperties": false,
   "required": ["series", "nbRequests", "bytes"],

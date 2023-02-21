@@ -8,6 +8,8 @@
 exports.__esModule = true;
 exports.aggResultSchema = void 0;
 exports.aggResultSchema = {
+    "$id": "agg-result/schema.json",
+    "title": "agg result",
     "type": "object",
     "additionalProperties": false,
     "required": [

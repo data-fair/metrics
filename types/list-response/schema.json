@@ -1,0 +1,19 @@
+{
+  "$id": "list-response/schema.json",
+  "title": "list-response",
+  "type":"object",
+  "additionalProperties":false,
+  "required":[
+    "count",
+    "results"
+  ],
+  "properties":{
+    "count":{
+      "type":"integer"
+    },
+    "results":{
+      "type":"array",
+      "items":{"$ref": "daily-api-metric/schema.json"}
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "$id": "daily-api-metric/schema.json",
+  "type":"object",
+  "title": "daily api metric",
+  "additionalProperties":false,
+  "required":[
+    "day",
+    "resource",
+    "operationTrack",
+    "statusClass",
+    "userClass",
+    "refererDomain",
+    "refererApp",
+    "nbRequests",
+    "bytes",
+    "duration"
+  ],
+  "properties":{
+    "owner": {"$ref": "@data-fair/lib/types/session-state"},
+    "day":{
+      "type":"string",
+      "format":"date"
+    },
+    "resource": {"$ref": "#/definitions/resource"},
+    "operationTrack": {"$ref": "#/definitions/operationTrack"},
+    "statusClass": {"$ref": "#/definitions/statusClass"},
+    "userClass": {"$ref": "#/definitions/userClass"},
+    "refererDomain":{
+      "type":"string"
+    },
+    "refererApp":{
+      "type":"string"
+    },
+    "processing":{
+      "type":"string"
+    },
+    "nbRequests":{
+      "type":"integer",
+      "default":0
+    },
+    "bytes":{
+      "type":"integer",
+      "default":0
+    },
+    "duration":{
+      "type":"number",
+      "default":0
+    }
+  },
+  "definitions": {
+    "resource": {
+      "type":"object",
+      "additionalProperties":false,
+      "required":[
+        "type",
+        "id"
+      ],
+      "properties":{
+        "type":{
+          "type":"string"
+        },
+        "id":{
+          "type":"string"
+        },
+        "title":{
+          "type":"string"
+        }
+      }
+    },
+    "operationTrack": {
+      "type":"string",
+      "enum":[
+        "readDataFiles",
+        "readDataAPI",
+        "openApplication"
+      ]
+    },
+    "statusClass": {
+      "type":"string",
+      "enum":[
+        "info",
+        "ok",
+        "redirect",
+        "clientError",
+        "serverError"
+      ]
+    },
+    "userClass": {
+      "type":"string",
+      "enum":[
+        "anonymous",
+        "owner",
+        "external",
+        "ownerAPIKey",
+        "externalAPIKey",
+        "ownerProcessing",
+        "externalProcessing"
+      ]
+    }
+  }
+}
