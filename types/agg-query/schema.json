@@ -1,5 +1,6 @@
 {
-  "$id": "agg-query/schema.json",
+  "$id": "https://github.com/data-fair/metrics/agg-query",
+  "x-exports": ["types", "validate"],
   "title": "agg query",
   "type": "object",
   "additionalProperties": false,
@@ -13,9 +14,9 @@
       "type": "string",
       "format": "date"
     },
-    "operationTrack": {"$ref": "daily-api-metric/schema.json#/definitions/operationTrack"},
-    "statusClass": {"$ref": "daily-api-metric/schema.json#/definitions/statusClass"},
-    "userClass": {"$ref": "daily-api-metric/schema.json#/definitions/userClass"},
+    "operationTrack": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/definitions/operationTrack"},
+    "statusClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/definitions/statusClass"},
+    "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/definitions/userClass"},
     "split": {
       "type": "array",
       "items": { "type": "string", "enum": ["day", "refererApp", "processing", "resource"] }

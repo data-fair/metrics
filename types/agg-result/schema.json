@@ -1,5 +1,6 @@
 {
-  "$id": "agg-result/schema.json",
+  "$id": "https://github.com/data-fair/metrics/agg-result",
+  "x-exports": ["types", "stringify"],
   "title": "agg result",
   "type": "object",
   "additionalProperties": false,

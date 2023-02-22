@@ -1,5 +1,6 @@
 {
-  "$id": "daily-api-metric/schema.json",
+  "$id": "https://github.com/data-fair/metrics/daily-api-metric",
+  "x-exports": ["types"],
   "type":"object",
   "title": "daily api metric",
   "additionalProperties":false,
@@ -16,7 +17,7 @@
     "duration"
   ],
   "properties":{
-    "owner": {"$ref": "@data-fair/lib/types/session-state"},
+    "owner": {"$ref": "https://github.com/data-fair/lib/session-state#/definitions/account"},
     "day":{
       "type":"string",
       "format":"date"

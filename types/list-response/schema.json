@@ -1,5 +1,6 @@
 {
-  "$id": "list-response/schema.json",
+  "$id": "https://github.com/data-fair/metrics/list-response",
+  "x-exports": ["types", "stringify"],
   "title": "list-response",
   "type":"object",
   "additionalProperties":false,
@@ -13,7 +14,7 @@
     },
     "results":{
       "type":"array",
-      "items":{"$ref": "daily-api-metric/schema.json"}
+      "items":{"$ref": "https://github.com/data-fair/metrics/daily-api-metric"}
     }
   }
 }
