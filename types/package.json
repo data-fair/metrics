@@ -3,7 +3,7 @@
     "build": "node node_modules/@data-fair/lib/types/build.js ./ && tsc"
   },
   "dependencies": {
-    "@data-fair/lib": "^0.0.11",
+    "@data-fair/lib": "^0.0.12",
     "ajv-errors": "^3.0.0",
     "ajv-formats": "^2.1.1",
     "ajv-i18n": "^4.2.0",

@@ -17,10 +17,10 @@ pub struct DailyApiMetric {
     pub nbRequests: i32,
 
     #[serde(rename = "operationTrack")]
-    pub operationTrack: OperationTrack,
+    pub operationTrack: String,
 
-    #[serde(rename = "refererApp")]
-    pub refererApp: String,
+    #[serde(rename = "owner")]
+    pub owner: Account,
 
     #[serde(rename = "refererDomain")]
     pub refererDomain: String,
@@ -36,19 +36,50 @@ pub struct DailyApiMetric {
 
     #[serde(rename = "processing")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub processing: Option<Box<String>>,
+    pub processing: Option<Box<Processing>>,
+
+    #[serde(rename = "refererApp")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refererApp: Option<Box<String>>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub enum OperationTrack {
-    #[serde(rename = "openApplication")]
-    OpenApplication,
+pub enum AccountType {
+    #[serde(rename = "organization")]
+    Organization,
 
-    #[serde(rename = "readDataAPI")]
-    ReadDataApi,
+    #[serde(rename = "user")]
+    User,
+}
 
-    #[serde(rename = "readDataFiles")]
-    ReadDataFiles,
+#[derive(Serialize, Deserialize)]
+pub struct Account {
+    #[serde(rename = "id")]
+    pub id: String,
+
+    #[serde(rename = "name")]
+    pub name: String,
+
+    #[serde(rename = "type")]
+    pub type_: AccountType,
+
+    #[serde(rename = "department")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub department: Option<Box<String>>,
+
+    #[serde(rename = "departmentName")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub departmentName: Option<Box<String>>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Processing {
+    #[serde(rename = "id")]
+    pub id: String,
+
+    #[serde(rename = "title")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<Box<String>>,
 }
 
 #[derive(Serialize, Deserialize)]

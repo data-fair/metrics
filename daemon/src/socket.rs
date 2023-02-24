@@ -2,34 +2,41 @@ use serde::{Deserialize};
 use std::error::Error;
 use tokio::net::UnixDatagram;
 use tokio::fs::{remove_file, metadata};
-use url::Url;
 use std::cell::{Cell, RefCell};
 use std::str;
 use regex::Regex;
 use chrono::prelude::*;
-use crate::daily_api_metric::{DailyApiMetric, OperationTrack};
+use jwtk::jwk::RemoteJwksVerifier;
+use crate::daily_api_metric::{DailyApiMetric};
+use crate::parse::parse_raw_line;
 
 // cf the log format in nginx.conf
 // log_format operation escape=json '{"h":"$host","r":"$http_referer","t":$request_time,"b":$bytes_sent,"s":"$status","o":"$upstream_http_x_owner","i":"$cookie_id_token","io":"$cookie_id_token_org","ak":"$http_x_apikey","a":"$http_x_account","p":"$http_x_processing","c":"$upstream_cache_status","rs":"$upstream_http_x_resource","op":"$upstream_http_x_operation"}';
 #[derive(Deserialize)]
-struct RawLine {
-    h: String,
-    r: String,
-    t: f64,
-    b: i32,
-    s: u16,
-    o: String,
-    i: String,
-    io: String,
-    ak: String,
-    a:String,
-    p:String,
-    c: String,
-    rs: String,
-    op: OperationTrack
+pub struct RawLine {
+    pub h: String,
+    pub r: String,
+    pub t: f64,
+    pub b: i32,
+    pub s: i32,
+    pub o: String,
+    pub i: String,
+    pub io: String,
+    pub ak: String,
+    pub a:String,
+    pub p:String,
+    pub c: String,
+    pub rs: String,
+    pub op: String
 }
 
 pub async fn listen_socket(halt: &Cell<bool>, bulk_ref: &RefCell<Vec<DailyApiMetric>>) -> Result<(), Box<dyn Error>> {
+    let token_verifier = RemoteJwksVerifier::new(
+        "http://localhost:6218/jwks".into(),
+        None,
+        Duration::from_secs(600),
+    );
+
     // matches the shape of the expected syslog line ("<PRI>Mmm dd hh:mm:ss df: JSON")
     let line_regexp = Regex::new("<[0-9]+>(.{15}) df: (.*)").unwrap();
 
@@ -66,39 +73,19 @@ pub async fn listen_socket(halt: &Cell<bool>, bulk_ref: &RefCell<Vec<DailyApiMet
 
         match serde_json::from_str::<RawLine>(json) {
             Ok(raw_line) => {
-                let day = date_iso.chars().take(10).collect::<String>();
-                let referer_url_result = Url::parse(&raw_line.r);
-                // it's ok if extracting domain from url fails
-                // sometimes we will referer directly with a domain name
-                let referer_domain = match referer_url_result {
-                  Ok(referer_url) => {
-                    let domain = referer_url.domain();
-                    match domain {
-                      None => raw_line.r,
-                      Some(domain) => domain.to_string(),
+                match parse_raw_line(raw_line, date_iso, token_verifier).await {
+                    Ok(daily_api_metric) => {
+                        bulk_ref.borrow_mut().push(daily_api_metric)
+                    },
+                    Err(e) => {
+                        // TODO: prometheus error increment
+                        println!("Error transforming raw line to daily api metric \"{}\" {}", e, message_str)
                     }
-                  },
-                  Err(err) => raw_line.r,
-                };
-                let line = DailyApiMetric {
-                  bytes: raw_line.b,
-                  day: day,
-                  duration: raw_line.t,
-                  nbRequests: 1,
-                  operationTrack: raw_line.op,
-                  refererApp: (),
-                  refererDomain: referer_domain,
-                  resource: (),
-                  statusClass: raw_line.s,
-                  userClass: (),
-                  processing: ()
-                };
-
-                bulk_ref.borrow_mut().push(line);
+                }
             },
             Err(e) => {
                 // TODO: prometheus error increment
-                println!("Error parsing line \"{}\" {}", e, message_str)
+                println!("Error parsing line from JSON \"{}\" {}", e, message_str)
             }
         }
     }

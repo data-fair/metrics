@@ -5,13 +5,13 @@
   "title": "daily api metric",
   "additionalProperties":false,
   "required":[
+    "owner",
     "day",
     "resource",
     "operationTrack",
     "statusClass",
     "userClass",
     "refererDomain",
-    "refererApp",
     "nbRequests",
     "bytes",
     "duration"
@@ -23,18 +23,12 @@
       "format":"date"
     },
     "resource": {"$ref": "#/definitions/resource"},
-    "operationTrack": {"$ref": "#/definitions/operationTrack"},
+    "operationTrack": {"type": "string"},
     "statusClass": {"$ref": "#/definitions/statusClass"},
     "userClass": {"$ref": "#/definitions/userClass"},
-    "refererDomain":{
-      "type":"string"
-    },
-    "refererApp":{
-      "type":"string"
-    },
-    "processing":{
-      "type":"string"
-    },
+    "refererDomain":{"type":"string"},
+    "refererApp":{"type":"string"},
+    "processing":{"$ref": "#/definitions/processing"},
     "nbRequests":{
       "type":"integer",
       "default":0
@@ -68,13 +62,40 @@
         }
       }
     },
-    "operationTrack": {
-      "type":"string",
-      "enum":[
-        "readDataFiles",
-        "readDataAPI",
-        "openApplication"
-      ]
+    "processing": {
+      "type":"object",
+      "additionalProperties":false,
+      "required":[
+        "id"
+      ],
+      "properties":{
+        "id":{
+          "type":"string"
+        },
+        "title":{
+          "type":"string"
+        }
+      }
+    },
+    "operation": {
+      "type":"object",
+      "additionalProperties":false,
+      "required":[
+        "id",
+        "class",
+        "track"
+      ],
+      "properties":{
+        "id":{
+          "type":"string"
+        },
+        "class":{
+          "type":"string"
+        },
+        "track":{
+          "type":"string"
+        }
+      }
     },
     "statusClass": {
       "type":"string",
