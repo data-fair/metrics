@@ -20,7 +20,7 @@ pub struct DailyApiMetric {
     pub operationTrack: String,
 
     #[serde(rename = "owner")]
-    pub owner: Account,
+    pub owner: ShortAccount,
 
     #[serde(rename = "refererDomain")]
     pub refererDomain: String,
@@ -36,50 +36,21 @@ pub struct DailyApiMetric {
 
     #[serde(rename = "processing")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub processing: Option<Box<Processing>>,
+    pub processing: Option<Processing>,
 
     #[serde(rename = "refererApp")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub refererApp: Option<Box<String>>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub enum AccountType {
-    #[serde(rename = "organization")]
-    Organization,
-
-    #[serde(rename = "user")]
-    User,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Account {
-    #[serde(rename = "id")]
-    pub id: String,
-
-    #[serde(rename = "name")]
-    pub name: String,
-
-    #[serde(rename = "type")]
-    pub type_: AccountType,
-
-    #[serde(rename = "department")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub department: Option<Box<String>>,
-
-    #[serde(rename = "departmentName")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub departmentName: Option<Box<String>>,
+    pub refererApp: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Processing {
-    #[serde(rename = "id")]
+    #[serde(rename = "_id")]
     pub id: String,
 
     #[serde(rename = "title")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub title: Option<Box<String>>,
+    pub title: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -92,47 +63,22 @@ pub struct Resource {
 
     #[serde(rename = "title")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub title: Option<Box<String>>,
+    pub title: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub enum StatusClass {
-    #[serde(rename = "clientError")]
-    ClientError,
+pub struct ShortAccount {
+    #[serde(rename = "id")]
+    pub id: String,
 
-    #[serde(rename = "info")]
-    Info,
+    #[serde(rename = "type")]
+    pub type_: String,
 
-    #[serde(rename = "ok")]
-    Ok,
-
-    #[serde(rename = "redirect")]
-    Redirect,
-
-    #[serde(rename = "serverError")]
-    ServerError,
+    #[serde(rename = "department")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub department: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub enum UserClass {
-    #[serde(rename = "anonymous")]
-    Anonymous,
+pub type StatusClass = String;
 
-    #[serde(rename = "external")]
-    External,
-
-    #[serde(rename = "externalAPIKey")]
-    ExternalApikey,
-
-    #[serde(rename = "externalProcessing")]
-    ExternalProcessing,
-
-    #[serde(rename = "owner")]
-    Owner,
-
-    #[serde(rename = "ownerAPIKey")]
-    OwnerApikey,
-
-    #[serde(rename = "ownerProcessing")]
-    OwnerProcessing,
-}
+pub type UserClass = String;

@@ -17,7 +17,7 @@
     "duration"
   ],
   "properties":{
-    "owner": {"$ref": "https://github.com/data-fair/lib/session-state#/definitions/account"},
+    "owner": {"$ref": "#/definitions/shortAccount"},
     "day":{
       "type":"string",
       "format":"date"
@@ -43,6 +43,15 @@
     }
   },
   "definitions": {
+    "shortAccount": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": { "type": "string" },
+        "id": { "type": "string" },
+        "department": { "type": "string" }
+      }
+    },
     "resource": {
       "type":"object",
       "additionalProperties":false,
@@ -66,10 +75,10 @@
       "type":"object",
       "additionalProperties":false,
       "required":[
-        "id"
+        "_id"
       ],
       "properties":{
-        "id":{
+        "_id":{
           "type":"string"
         },
         "title":{
@@ -82,8 +91,7 @@
       "additionalProperties":false,
       "required":[
         "id",
-        "class",
-        "track"
+        "class"
       ],
       "properties":{
         "id":{
@@ -98,26 +106,10 @@
       }
     },
     "statusClass": {
-      "type":"string",
-      "enum":[
-        "info",
-        "ok",
-        "redirect",
-        "clientError",
-        "serverError"
-      ]
+      "type":"string"
     },
     "userClass": {
-      "type":"string",
-      "enum":[
-        "anonymous",
-        "owner",
-        "external",
-        "ownerAPIKey",
-        "externalAPIKey",
-        "ownerProcessing",
-        "externalProcessing"
-      ]
+      "type":"string"
     }
   }
 }

@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::{cell::{Cell, RefCell}};
-use daily_api_metric::DailyApiMetric;
+use mongo_request::MongoRequest;
 use socket::listen_socket;
 use queue::run_queue;
 
@@ -19,6 +19,7 @@ mod socket;
 mod daily_api_metric;
 mod session_state;
 mod parse;
+mod mongo_request;
 
 // example on how to run parallel loops:
 // https://stackoverflow.com/a/71766211/10132434
@@ -27,7 +28,7 @@ mod parse;
 async fn main() -> Result<(), Box<dyn Error>> {
     // TODO: manage graceful shutdown
     let halt = Cell::new(false);
-    let bulk_cell: RefCell<Vec<DailyApiMetric>> = RefCell::new(vec![]);
+    let bulk_cell: RefCell<Vec<MongoRequest>> = RefCell::new(vec![]);
     let res = tokio::try_join!(
         run_queue(&halt, &bulk_cell),
         listen_socket(&halt, &bulk_cell)
