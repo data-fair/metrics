@@ -11,6 +11,7 @@ use chrono::prelude::*;
 use jwtk::jwk::RemoteJwksVerifier;
 use crate::parse::parse_raw_line;
 use crate::mongo_request::{create_request, MongoRequest};
+use crate::prometheus::DF_INTERNAL_ERROR;
 
 // cf the log format in nginx.conf
 // log_format operation escape=json '{"h":"$host","r":"$http_referer","t":$request_time,"b":$bytes_sent,"s":"$status","o":"$upstream_http_x_owner","i":"$cookie_id_token","io":"$cookie_id_token_org","ak":"$http_x_apikey","a":"$http_x_account","p":"$http_x_processing","c":"$upstream_cache_status","rs":"$upstream_http_x_resource","op":"$upstream_http_x_operation"}';
@@ -95,7 +96,7 @@ pub async fn listen_socket(halt: &Cell<bool>, bulk_ref: &RefCell<Vec<MongoReques
                                 }
                             }
                             _ => {
-                                // nothing to do
+                                // nothing to do, probably missing operationTrack
                             }
                         }
                         
@@ -103,8 +104,8 @@ pub async fn listen_socket(halt: &Cell<bool>, bulk_ref: &RefCell<Vec<MongoReques
                     Err(e) => {
                         match e {
                             _ => {
-                                // TODO: prometheus error increment
-                                println!("Error transforming raw line to metric \"{}\" {}", e, message_str)
+                                DF_INTERNAL_ERROR.with_label_values(&["parse-raw-line"]).inc();
+                                println!("(parse-raw-line) Error transforming raw line to metric \"{}\" {}", e, message_str)
                             }
                         }
                         
@@ -112,8 +113,8 @@ pub async fn listen_socket(halt: &Cell<bool>, bulk_ref: &RefCell<Vec<MongoReques
                 }
             },
             Err(e) => {
-                // TODO: prometheus error increment
-                println!("Error parsing line from JSON \"{}\" {}", e, message_str)
+                DF_INTERNAL_ERROR.with_label_values(&["parse-log-json"]).inc();
+                println!("(parse-log-json) Error parsing line from JSON \"{}\" {}", e, message_str)
             }
         }
     }

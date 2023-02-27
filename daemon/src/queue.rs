@@ -7,6 +7,7 @@ use mongodb::options::UpdateOptions;
 use daily_api_metric::DailyApiMetric;
 use crate::daily_api_metric;
 use crate::mongo_request::MongoRequest;
+use crate::prometheus::DF_METRICS_BULKS;
 
 pub struct DailyApiMetricCollConf;
 impl CollectionConfig for DailyApiMetricCollConf {
@@ -43,6 +44,7 @@ pub async fn run_queue(halt: &Cell<bool>, bulk_cell: &RefCell<Vec<MongoRequest>>
     
     // db_repository.bulk_update(&vec!(bulk_updates)).await?;
     if bulk.len() > 0 {
+      DF_METRICS_BULKS.with_label_values(&[]).observe(bulk.len() as f64);
       println!("perform bulk {}", bulk.len());
       db_repository.bulk_update(bulk_updates).await?;
       bulk.clear();

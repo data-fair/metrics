@@ -5,6 +5,7 @@ use jwtk::jwk::RemoteJwksVerifier;
 use crate::daily_api_metric::{DailyApiMetric, Resource, ShortAccount, Processing};
 use crate::session_state::User;
 use crate::socket::RawLine;
+use crate::prometheus::{DF_METRICS_REQUESTS, DF_METRICS_REQUESTS_BYTES};
 
 #[derive(Deserialize)]
 struct Operation {
@@ -52,16 +53,21 @@ pub async fn parse_raw_line(raw_line: &RawLine, date_iso: String, token_verifier
         Ok(processing) => Option::<Processing>::Some(processing),
         Err(..) => Option::<Processing>::None
     };
+
+    let status_class = match raw_line.s {
+        0..=199 => "info",
+        200..=299 => "ok",
+        300..=399 => "redirect",
+        400..=499 => "clientError",
+        _ => "serverError"
+    };
     
     let operation = serde_json::from_str::<Operation>(&raw_line.op)?;
+
+    DF_METRICS_REQUESTS.with_label_values(&[&raw_line.c, &operation.id, status_class, &raw_line.h]).observe(raw_line.t);
+    DF_METRICS_REQUESTS_BYTES.with_label_values(&[&raw_line.c, &operation.id, status_class, &raw_line.h]).inc_by(f64::from(raw_line.b));
+
     if let Some(operation_track) = operation.track {
-        let status_class = match raw_line.s {
-            0..=199 => "info",
-            200..=299 => "ok",
-            300..=399 => "redirect",
-            400..=499 => "clientError",
-            _ => "serverError"
-        };
     
         let mut user_class = "anonymous";
         if let Some(token) = token_verifier.verify::<User>(&raw_line.i).await.ok() {

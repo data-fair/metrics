@@ -3,6 +3,7 @@ use std::{cell::{Cell, RefCell}};
 use mongo_request::MongoRequest;
 use socket::listen_socket;
 use queue::run_queue;
+use crate::prometheus::metrics_server;
 
 // daily_api_metric.rs model is generated using:
 // npx --package=@koumoul/schema-jtd@0.5.0 schema2td --add types/node_modules/@data-fair/lib/src/types/session-state/schema.json -- types/daily-api-metric/schema.json tmp/daily-api-metric.jtd.json
@@ -20,6 +21,7 @@ mod daily_api_metric;
 mod session_state;
 mod parse;
 mod mongo_request;
+mod prometheus;
 
 // example on how to run parallel loops:
 // https://stackoverflow.com/a/71766211/10132434
@@ -31,7 +33,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let bulk_cell: RefCell<Vec<MongoRequest>> = RefCell::new(vec![]);
     let res = tokio::try_join!(
         run_queue(&halt, &bulk_cell),
-        listen_socket(&halt, &bulk_cell)
+        listen_socket(&halt, &bulk_cell),
+        metrics_server(&halt)
     );
     match res {
         Ok(..) => {
