@@ -1,9 +1,9 @@
-use std::error::Error;
-use std::{cell::{Cell, RefCell}};
-use mongo_request::MongoRequest;
-use socket::listen_socket;
-use queue::run_queue;
 use crate::prometheus::metrics_server;
+use mongo_request::MongoRequest;
+use queue::run_queue;
+use socket::listen_socket;
+use std::cell::{Cell, RefCell};
+use std::error::Error;
 
 // daily_api_metric.rs model is generated using:
 // npx --package=@koumoul/schema-jtd@0.5.0 schema2td --add types/node_modules/@data-fair/lib/src/types/session-state/schema.json -- types/daily-api-metric/schema.json tmp/daily-api-metric.jtd.json
@@ -15,13 +15,13 @@ use crate::prometheus::metrics_server;
 // dc run jtd jtd-codegen tmp/session-state.jtd.json --rust-out tmp/
 // mv tmp/mod.rs daemon/src/session_state.rs
 
-mod queue;
-mod socket;
 mod daily_api_metric;
-mod session_state;
-mod parse;
 mod mongo_request;
+mod parse;
 mod prometheus;
+mod queue;
+mod session_state;
+mod socket;
 
 // example on how to run parallel loops:
 // https://stackoverflow.com/a/71766211/10132434
@@ -40,10 +40,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Ok(..) => {
             println!("done");
             Ok(())
-        },
+        }
         Err(err) => {
             return Err(err);
         }
     }
 }
-

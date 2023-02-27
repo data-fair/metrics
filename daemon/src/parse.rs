@@ -1,35 +1,39 @@
-use std::error::Error;
-use serde::{Deserialize};
-use url::Url;
-use jwtk::jwk::RemoteJwksVerifier;
-use crate::daily_api_metric::{DailyApiMetric, Resource, ShortAccount, Processing};
+use crate::daily_api_metric::{DailyApiMetric, Processing, Resource, ShortAccount};
+use crate::prometheus::{DF_METRICS_REQUESTS, DF_METRICS_REQUESTS_BYTES};
 use crate::session_state::User;
 use crate::socket::RawLine;
-use crate::prometheus::{DF_METRICS_REQUESTS, DF_METRICS_REQUESTS_BYTES};
+use jwtk::jwk::RemoteJwksVerifier;
+use serde::Deserialize;
+use std::error::Error;
+use url::Url;
 
 #[derive(Deserialize)]
 struct Operation {
     id: String,
     class: String,
-    track: Option<String>
+    track: Option<String>,
 }
 
-pub async fn parse_raw_line(raw_line: &RawLine, date_iso: String, token_verifier: &RemoteJwksVerifier) -> Result<Option<DailyApiMetric>, Box<dyn Error>> {
+pub async fn parse_raw_line(
+    raw_line: &RawLine,
+    date_iso: String,
+    token_verifier: &RemoteJwksVerifier,
+) -> Result<Option<DailyApiMetric>, Box<dyn Error>> {
     let day = date_iso.chars().take(10).collect::<String>();
-    
+
     let owner = serde_json::from_str::<ShortAccount>(&raw_line.o)?;
-    
+
     let mut referer_domain = raw_line.r.to_string();
     if referer_domain == "http-req-exporter" {
         return Result::Ok(Option::<DailyApiMetric>::None);
     }
-    
+
     let mut referer_app = Option::<String>::None;
     if let Ok(referer_url) = Url::parse(&raw_line.r) {
         // referer given in query params is used to track original referer in the case of embedded pages
         // data-fair automatically adds this param to embed views and apps
         let mut query = referer_url.query_pairs();
-        if let Some(referer_param) = query.find(|(param,_)| param == "referer") {
+        if let Some(referer_param) = query.find(|(param, _)| param == "referer") {
             referer_domain = referer_param.1.to_string()
         } else {
             if let Some(domain) = referer_url.domain() {
@@ -39,19 +43,21 @@ pub async fn parse_raw_line(raw_line: &RawLine, date_iso: String, token_verifier
 
         if let Some(path_parts) = referer_url.path_segments() {
             let path_parts_vec = path_parts.collect::<Vec<&str>>();
-            if path_parts_vec.get(0).unwrap_or(&"") == &"data-fair" && path_parts_vec.get(1).unwrap_or(&"") == &"app" {                
+            if path_parts_vec.get(0).unwrap_or(&"") == &"data-fair"
+                && path_parts_vec.get(1).unwrap_or(&"") == &"app"
+            {
                 if let Some(app) = path_parts_vec.get(2) {
                     referer_app = Option::<String>::Some(app.to_string());
-                }   
+                }
             }
         }
     }
-  
+
     let resource = serde_json::from_str::<Resource>(&raw_line.rs)?;
-    
+
     let processing = match serde_json::from_str::<Processing>(&raw_line.p) {
         Ok(processing) => Option::<Processing>::Some(processing),
-        Err(..) => Option::<Processing>::None
+        Err(..) => Option::<Processing>::None,
     };
 
     let status_class = match raw_line.s {
@@ -59,16 +65,19 @@ pub async fn parse_raw_line(raw_line: &RawLine, date_iso: String, token_verifier
         200..=299 => "ok",
         300..=399 => "redirect",
         400..=499 => "clientError",
-        _ => "serverError"
+        _ => "serverError",
     };
-    
+
     let operation = serde_json::from_str::<Operation>(&raw_line.op)?;
 
-    DF_METRICS_REQUESTS.with_label_values(&[&raw_line.c, &operation.id, status_class, &raw_line.h]).observe(raw_line.t);
-    DF_METRICS_REQUESTS_BYTES.with_label_values(&[&raw_line.c, &operation.id, status_class, &raw_line.h]).inc_by(f64::from(raw_line.b));
+    DF_METRICS_REQUESTS
+        .with_label_values(&[&raw_line.c, &operation.id, status_class, &raw_line.h])
+        .observe(raw_line.t);
+    DF_METRICS_REQUESTS_BYTES
+        .with_label_values(&[&raw_line.c, &operation.id, status_class, &raw_line.h])
+        .inc_by(f64::from(raw_line.b));
 
     if let Some(operation_track) = operation.track {
-    
         let mut user_class = "anonymous";
         if let Some(token) = token_verifier.verify::<User>(&raw_line.i).await.ok() {
             let user = &token.claims().extra;
@@ -81,7 +90,10 @@ pub async fn parse_raw_line(raw_line: &RawLine, date_iso: String, token_verifier
             }
         } else if let Some(processing) = &processing {
             if let Ok(processing_account) = serde_json::from_str::<ShortAccount>(&raw_line.o) {
-                if owner.type_ == "user" && processing_account.type_ == "user" && owner.id == processing_account.id {
+                if owner.type_ == "user"
+                    && processing_account.type_ == "user"
+                    && owner.id == processing_account.id
+                {
                     user_class = "ownerProcessing";
                 } else {
                     user_class = "externalProcessing";
@@ -105,8 +117,7 @@ pub async fn parse_raw_line(raw_line: &RawLine, date_iso: String, token_verifier
                 }
             }
         }
-        
-    
+
         let daily_api_metric = DailyApiMetric {
             owner: owner,
             bytes: raw_line.b,
@@ -119,9 +130,9 @@ pub async fn parse_raw_line(raw_line: &RawLine, date_iso: String, token_verifier
             resource: resource,
             statusClass: status_class.to_string(),
             userClass: user_class.to_string(),
-            processing: processing
+            processing: processing,
         };
-        return Result::Ok(Option::<DailyApiMetric>::Some(daily_api_metric))
+        return Result::Ok(Option::<DailyApiMetric>::Some(daily_api_metric));
     } else {
         return Result::Ok(Option::<DailyApiMetric>::None);
     }

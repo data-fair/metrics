@@ -1,11 +1,11 @@
-use mongodm::bson::Document;
+use crate::daily_api_metric::DailyApiMetric;
 use mongodm::bson::doc;
-use crate::daily_api_metric::{DailyApiMetric};
+use mongodm::bson::Document;
 
 pub struct MongoRequest {
     pub key: Document,
     pub set: Document,
-    pub inc: Document
+    pub inc: Document,
 }
 
 pub fn create_request(metric: DailyApiMetric) -> MongoRequest {
@@ -20,7 +20,7 @@ pub fn create_request(metric: DailyApiMetric) -> MongoRequest {
       "userClass": &metric.userClass,
       "refererDomain": &metric.refererDomain
     };
-    
+
     let mut set = doc! {
       "owner.type": &metric.owner.type_,
       "owner.id": &metric.owner.id,
@@ -34,18 +34,18 @@ pub fn create_request(metric: DailyApiMetric) -> MongoRequest {
     };
 
     if let Some(department) = metric.owner.department {
-      key.insert("owner.department", &department);
-      set.insert("owner.department", &department);
+        key.insert("owner.department", &department);
+        set.insert("owner.department", &department);
     }
 
     if let Some(referer_app) = metric.refererApp {
-      key.insert("refererApp", &referer_app);
-      set.insert("refererApp", &referer_app);
+        key.insert("refererApp", &referer_app);
+        set.insert("refererApp", &referer_app);
     }
     if let Some(processing) = metric.processing {
-      key.insert("processing._id", &processing.id);
-      set.insert("processing._id", &processing.id);
-      set.insert("processing.title", &processing.title);
+        key.insert("processing._id", &processing.id);
+        set.insert("processing._id", &processing.id);
+        set.insert("processing.title", &processing.title);
     }
 
     let inc = doc! {
@@ -53,10 +53,10 @@ pub fn create_request(metric: DailyApiMetric) -> MongoRequest {
       "bytes": metric.bytes,
       "duration": metric.duration
     };
-    
+
     return MongoRequest {
-      key: key,
-      set: set,
-      inc: inc
-    }
+        key: key,
+        set: set,
+        inc: inc,
+    };
 }
