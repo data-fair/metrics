@@ -23,7 +23,12 @@ RUN cargo build --release --target x86_64-unknown-linux-musl --bin daemon
 # actual daemon image
 FROM alpine:3.17
 WORKDIR /app
-RUN addgroup -S metrics-daemon && adduser -S metrics-daemon -G metrics-daemon
+
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/daemon /app/daemon
-USER guest
+
+RUN addgroup -g 1000 -S metrics-daemon
+RUN adduser -H -D -S -u 1000 metrics-daemon -G metrics-daemon
+USER metrics-daemon
+
+VOLUME /data
 CMD ["/app/daemon"]

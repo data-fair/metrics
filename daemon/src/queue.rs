@@ -1,3 +1,4 @@
+use std::env;
 use std::error::Error;
 use std::{cell::{RefCell, Cell}, time::Duration};
 use mongodm::{ToRepository, Model, CollectionConfig, BulkUpdate};
@@ -21,7 +22,8 @@ pub async fn run_queue(halt: &Cell<bool>, bulk_cell: &RefCell<Vec<MongoRequest>>
   println!("run queue");
 
   println!("connect to mongodb");
-  let mongo_client_options = ClientOptions::parse("mongodb://localhost:27017").await.unwrap();
+  let mongo_url = env::var("MONGO_URL").unwrap_or("mongodb://localhost:27017".to_string());
+  let mongo_client_options = ClientOptions::parse(mongo_url).await.unwrap();
   let mongo_client = Client::with_options(mongo_client_options).unwrap();
   let db = mongo_client.database("daily-api-metrics");
   db.run_command(doc! {"ping": 1}, None).await?;

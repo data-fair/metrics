@@ -1,3 +1,4 @@
+use std::env;
 use serde::{Deserialize};
 use std::error::Error;
 use std::time::Duration;
@@ -43,13 +44,13 @@ pub async fn listen_socket(halt: &Cell<bool>, bulk_ref: &RefCell<Vec<MongoReques
 
     // socket binding documented here https://docs.rs/tokio/latest/tokio/net/struct.UnixDatagram.html
 
-    let socket_path = "../dev/data/metrics.log.sock";
-    let socket_exists = metadata(socket_path).await.is_ok();
+    let socket_path = env::var("SOCKET_PATH").unwrap_or("../dev/data/metrics.log.sock".to_string());
+    let socket_exists = metadata(socket_path.clone()).await.is_ok();
+    println!("create socket {}", socket_path);
     if socket_exists {
         println!("remove existing socket");
-        remove_file(socket_path).await?;
+        remove_file(socket_path.clone()).await?;
     }
-    println!("create socket {}", socket_path);
     let socket = UnixDatagram::bind(&socket_path)?;
     println!("socket was created");
     while !halt.get() {

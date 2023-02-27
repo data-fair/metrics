@@ -26,7 +26,10 @@ services:
     network_mode: host
 
     environment:
-      PUBLIC_URL: /data/nginx-access.log.sock
+      PORT: 6219
+      PUBLIC_URL: http://localhost:6218/metrics/
+      DIRECTORY_URL: http://localhost:6218/simple-directory
+      MONGO_URL: mongodb://localhost:27017/metrics-development
 
   ui:
     build: ./ui
@@ -44,7 +47,7 @@ services:
     volumes:
       - ./dev/data/:/data
     environment:
-      SOCKET: /data/nginx-access.log.sock
+      SOCKET_PATH: /data/metrics.log.sock
 
   #####
   # related services from the data-fair stack
