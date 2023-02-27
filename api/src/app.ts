@@ -1,6 +1,7 @@
 import express, { type Request, type Response, type NextFunction } from 'express'
 import { type HttpError } from 'http-errors'
 import { initSession } from '@data-fair/lib/express/session'
+import { internalError } from '@data-fair/lib/node/prometheus'
 import config from './config'
 import dailyApiMetricsRouter from './daily-api-metrics/router'
 
@@ -19,8 +20,7 @@ app.use(function (err: HttpError, _req: Request, res: Response, next: NextFuncti
   if (res.headersSent) { next(err); return }
   const status = err.status || err.statusCode || 500
   if (status >= 500) {
-    console.error('[http-error]', err)
-    // TODO: prometheus
+    internalError('http', 'failure while serving http request', err)
   }
   res.status(status)
   if (process.env.NODE_ENV === 'production') {

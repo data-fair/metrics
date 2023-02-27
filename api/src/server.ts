@@ -3,6 +3,7 @@ import { createHttpTerminator } from 'http-terminator'
 import config from '~/config'
 import { app } from '~/app'
 import * as db from '~/db'
+import * as prometheus from '@data-fair/lib/node/prometheus'
 app.get('test')
 const server = http.createServer(app)
 // cf https://connectreport.com/blog/tuning-http-keep-alive-in-node-js/
@@ -13,6 +14,10 @@ server.headersTimeout = (60 * 1000) + 2000
 const httpTerminator = createHttpTerminator({ server })
 
 export const start = async () => {
+  if (config.prometheus.active) {
+    await prometheus.start(config.prometheus.port)
+  }
+
   await db.connect()
   server.listen(config.port)
   await new Promise(resolve => server.once('listening', resolve))
@@ -21,4 +26,7 @@ export const start = async () => {
 
 export const stop = async () => {
   await httpTerminator.terminate()
+  if (config.prometheus.active) {
+    await prometheus.stop()
+  }
 }

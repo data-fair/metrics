@@ -5,7 +5,7 @@
     "build": "ncc build --source-map src/index.ts"
   },
   "devDependencies": {
-    "@data-fair/lib": "^0.0.11",
+    "@data-fair/lib": "^0.2.1",
     "@koumoul/schema-jtd": "^0.2.0",
     "@tsconfig/node18": "^1.0.1",
     "@types/config": "^3.3.0",
@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "ajv-errors": "^3.0.0",
-    "http-terminator": "^3.2.0"
+    "http-terminator": "^3.2.0",
+    "prom-client": "^14.1.1"
   }
 }

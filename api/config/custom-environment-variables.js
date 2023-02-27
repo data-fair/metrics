@@ -1,9 +1,10 @@
 module.exports = {
-  port: {
-    __name: 'PORT',
-    __format: 'number'
-  },
+  port: 'PORT',
   publicUrl: 'PUBLIC_URL',
   directoryUrl: 'DIRECTORY_URL',
-  mongoUrl: 'MONGO_URL'
+  mongoUrl: 'MONGO_URL',
+  prometheus: {
+    port: 'PROMETHEUS_PORT',
+    active: 'PROMETHEUS_ACTIVE'
+  }
 }
