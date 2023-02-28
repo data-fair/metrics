@@ -2,6 +2,19 @@
 
 *A service to help monitoring HTTP requests in the data-fair stack.*
 
+## Developers
+
+Take a look at the [contribution guidelines](./CONTRIBUTING.md).
+
+## Daemon configuration variables
+
+| name | default | |
+--------------------
+| MONGO_URL | mongodb://mongo:27017/metrics | |
+| SOCKET_PATH | /data/metrics.log.sock | |
+| MAX_BULK_INTERVAL | 60 | max interval between mongodb bulk commands (in seconds) |
+| MAX_BULK_SIZE | 1000 | max size of mongodb bulk commands |
+
 ## NEXT
 
 Je propose d'utiliser ce service comme bac à sable pour la modernisation de notre stack. Plus tard on pourra adopter bout par bout les meilleurs éléments de recette dans les services plus importants.
