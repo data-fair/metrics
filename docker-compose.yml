@@ -48,6 +48,10 @@ services:
       - ./dev/data/:/data
     environment:
       SOCKET_PATH: /data/metrics.log.sock
+      MONGO_URL: mongodb://localhost:27017/metrics-development
+      MAX_BULK_INTERVAL: 2
+      MAX_BULK_SIZE: 10
+      TEST_HOOKS: true
 
   #####
   # related services from the data-fair stack
@@ -74,7 +78,7 @@ services:
       - ./dev/resources/organizations.json:/webapp/data/organizations.json
 
   data-fair:
-    image: ghcr.io/data-fair/data-fair:3
+    image: ghcr.io/data-fair/data-fair:master
     ports:
       - 6222:8080
     depends_on:

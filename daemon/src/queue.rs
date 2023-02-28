@@ -1,6 +1,7 @@
 use crate::daily_api_metric;
 use crate::mongo_request::MongoRequest;
 use crate::prometheus::DF_METRICS_BULKS;
+use crate::test_hooks::TEST_HOOKS;
 use daily_api_metric::DailyApiMetric;
 use mongodb::options::UpdateOptions;
 use mongodm::mongo::{bson::doc, options::ClientOptions, Client};
@@ -69,7 +70,9 @@ pub async fn run_queue(
                 DF_METRICS_BULKS
                     .with_label_values(&[])
                     .observe(bulk.len() as f64);
-                println!("perform bulk {}", bulk.len());
+                if *TEST_HOOKS {
+                    println!("test/bulk/{}", bulk.len());
+                }
                 db_repository.bulk_update(bulk_updates).await?;
                 bulk.clear();
             }

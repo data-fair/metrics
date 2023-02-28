@@ -6,7 +6,6 @@ use hyper::{
     Body, Request, Response, Server,
 };
 use prometheus::{CounterVec, Encoder, HistogramVec, TextEncoder};
-use std::cell::Cell;
 use std::error::Error;
 use tokio::sync::broadcast::Receiver;
 

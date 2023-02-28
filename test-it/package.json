@@ -1,14 +1,19 @@
 {
   "scripts": {
-    "test": "mocha .",
+    "test": "mocha -t 10000 *.js",
     "lint": "eslint . --fix"
   },
   "devDependencies": {
-    "@data-fair/lib": "^0.2.1",
+    "@data-fair/lib": "^0.3.0",
+    "agentkeepalive": "^4.2.1",
     "axios": "^1.3.4",
-    "cacheable-lookup": "^7.0.0",
+    "cacheable-lookup": "^6.1.0",
     "eslint": "^8.32.0",
     "eslint-config-standard": "^17.0.0",
+    "minimatch": "^7.3.0",
     "mocha": "^10.2.0"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2"
   }
 }

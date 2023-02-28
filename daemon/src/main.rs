@@ -1,10 +1,12 @@
+use crate::mongo_request::MongoRequest;
 use crate::prometheus::metrics_server;
-use mongo_request::MongoRequest;
-use queue::run_queue;
-use socket::listen_socket;
+use crate::queue::run_queue;
+use crate::socket::listen_socket;
+use crate::test_hooks::TEST_HOOKS;
 use std::cell::{Cell, RefCell};
 use std::error::Error;
 use tokio::signal;
+use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::broadcast::{self, Sender};
 
 // daily_api_metric.rs model is generated using:
@@ -24,14 +26,17 @@ mod prometheus;
 mod queue;
 mod session_state;
 mod socket;
+mod test_hooks;
 
 // example on how to run parallel loops:
 // https://stackoverflow.com/a/71766211/10132434
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    if *TEST_HOOKS {
+        println!("test/start-main")
+    }
     let (shutdown_sender, mut _shutdown_receiver) = broadcast::channel::<bool>(16);
-    // TODO: manage graceful shutdown
     let halt = Cell::new(false);
     let bulk_cell: RefCell<Vec<MongoRequest>> = RefCell::new(vec![]);
     let res = tokio::try_join!(
@@ -42,7 +47,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     );
     match res {
         Ok(..) => {
-            println!("done");
+            if *TEST_HOOKS {
+                println!("test/stop-main")
+            }
             Ok(())
         }
         Err(err) => {
@@ -55,15 +62,13 @@ async fn wait_shutdown(
     shutdown_sender: Sender<bool>,
     halt: &Cell<bool>,
 ) -> Result<(), Box<dyn Error>> {
-    match signal::ctrl_c().await {
-        Ok(()) => {
-            println!("received shutdown signal");
-        }
-        Err(err) => {
-            eprintln!("Unable to listen for shutdown signal: {}", err);
-            // we also shut down in case of error
-        }
-    }
+    let mut sigterm = signal(SignalKind::terminate())?;
+    let mut sigint = signal(SignalKind::interrupt())?;
+    tokio::select! {
+        _ = signal::ctrl_c() => println!("shutdown (ctr-c)"),
+        _ = sigint.recv() => println!("shutdown (SIGINT)"),
+        _ = sigterm.recv() => println!("shutdown (SIGTERM)"),
+    };
     shutdown_sender.send(true).unwrap();
     halt.set(true);
     Ok(())

@@ -1,13 +1,15 @@
 use crate::mongo_request::{create_request, MongoRequest};
 use crate::parse::parse_raw_line;
 use crate::prometheus::DF_INTERNAL_ERROR;
+use crate::test_hooks::TEST_HOOKS;
 use chrono::prelude::*;
 use jwtk::jwk::RemoteJwksVerifier;
 use regex::Regex;
-use serde::Deserialize;
-use std::cell::{Cell, RefCell};
+use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
 use std::env;
 use std::error::Error;
+use std::fs;
 use std::str;
 use std::time::Duration;
 use tokio::fs::{metadata, remove_file};
@@ -16,7 +18,7 @@ use tokio::sync::broadcast::Receiver;
 
 // cf the log format in nginx.conf
 // log_format operation escape=json '{"h":"$host","r":"$http_referer","t":$request_time,"b":$bytes_sent,"s":"$status","o":"$upstream_http_x_owner","i":"$cookie_id_token","io":"$cookie_id_token_org","ak":"$http_x_apikey","a":"$http_x_account","p":"$http_x_processing","c":"$upstream_cache_status","rs":"$upstream_http_x_resource","op":"$upstream_http_x_operation"}';
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RawLine {
     pub h: String,
     pub r: String,
@@ -51,39 +53,50 @@ pub async fn listen_socket(
 
     let socket_path = env::var("SOCKET_PATH").unwrap_or("../dev/data/metrics.log.sock".to_string());
     let socket_exists = metadata(socket_path.clone()).await.is_ok();
-    println!("create socket {}", socket_path);
     if socket_exists {
         println!("remove existing socket");
         remove_file(socket_path.clone()).await?;
     }
+    println!("create socket {}", socket_path);
     let socket = UnixDatagram::bind(&socket_path)?;
+    let mut perms = fs::metadata(socket_path.clone())?.permissions();
+    perms.set_readonly(false);
+    fs::set_permissions(socket_path.clone(), perms)?;
     println!("socket was created");
     loop {
-        let interrupted = tokio::select! {
-            _ = socket.readable() => false,
-            _ = shutdown_receiver.recv() => true
+        tokio::select! {
+            _ = socket.readable() => (),
+            _ = shutdown_receiver.recv() => {
+                break;
+            }
         };
-        if interrupted {
-            println!("shutdown socket listener");
-            break;
+
+        if *TEST_HOOKS {
+            println!("test/socket-waiting");
         }
-        // socket.readable().await?;
         // 4096 should be a reasonable max size ?
         let mut buf = vec![0; 4096];
-        let size = socket.recv(&mut buf).await?;
+        let size = tokio::select! {
+            size = socket.recv(&mut buf) => size,
+            _ = shutdown_receiver.recv() => {
+                break;
+            }
+        }?;
+        // let size = socket.recv(&mut buf).await?;
         let message_bytes = &buf[..size];
 
-        let message_str = str::from_utf8(&message_bytes).unwrap();
+        let message_str = str::from_utf8(&message_bytes)?;
         // println!("received message: {}", message_str);
 
-        let captured = line_regexp.captures(message_str).unwrap();
+        let captured = line_regexp
+            .captures(message_str)
+            .ok_or("line does not match regexp")?;
         let date = &captured[1];
         let json = &captured[2];
         // println!("captured date {} and JSON {}", date, json);
 
         let date_with_year = format!("{}{}", "2023", date);
-        let date_iso = NaiveDateTime::parse_from_str(date_with_year.as_str(), "%Y %b %d %T")
-            .unwrap()
+        let date_iso = NaiveDateTime::parse_from_str(date_with_year.as_str(), "%Y %b %d %T")?
             .and_local_timezone(Utc)
             .unwrap()
             .to_rfc3339();
@@ -91,6 +104,9 @@ pub async fn listen_socket(
 
         match serde_json::from_str::<RawLine>(json) {
             Ok(raw_line) => {
+                if *TEST_HOOKS {
+                    println!("test/raw-line/{}", serde_json::to_string(&raw_line)?);
+                }
                 match parse_raw_line(&raw_line, date_iso, &token_verifier).await {
                     Ok(daily_api_metric_option) => {
                         match daily_api_metric_option {
@@ -144,5 +160,10 @@ pub async fn listen_socket(
             }
         }
     }
+
+    println!("remove socket beore closing");
+    remove_file(socket_path.clone()).await?;
+
+    println!("shutdown socket listener");
     Ok(())
 }
