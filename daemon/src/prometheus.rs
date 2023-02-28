@@ -8,6 +8,7 @@ use hyper::{
 use prometheus::{CounterVec, Encoder, HistogramVec, TextEncoder};
 use std::cell::Cell;
 use std::error::Error;
+use tokio::sync::broadcast::Receiver;
 
 use lazy_static::lazy_static;
 use prometheus::{register_counter_vec, register_histogram_vec};
@@ -56,17 +57,20 @@ async fn serve_req(_req: Request<Body>) -> Result<Response<Body>, hyper::Error> 
     Ok(response)
 }
 
-pub async fn metrics_server(halt: &Cell<bool>) -> Result<(), Box<dyn Error>> {
+pub async fn metrics_server(mut shutdown_receiver: Receiver<bool>) -> Result<(), Box<dyn Error>> {
     let addr = ([127, 0, 0, 1], 9090).into();
     println!("prometheus registry listening on http://{}/metrics", addr);
 
-    let serve_future = Server::bind(&addr).serve(make_service_fn(|_| async {
+    let server = Server::bind(&addr).serve(make_service_fn(|_| async {
         Ok::<_, hyper::Error>(service_fn(serve_req))
     }));
 
-    if let Err(err) = serve_future.await {
-        eprintln!("prometheus server error: {}", err);
-        return Err(Box::new(err));
-    }
+    let graceful = server.with_graceful_shutdown(async {
+        shutdown_receiver.recv().await.ok();
+    });
+
+    graceful.await?;
+    println!("shutdown prometheus server");
+
     Ok(())
 }

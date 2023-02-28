@@ -47,11 +47,11 @@ pub async fn run_queue(
     );
 
     let mut i = 0;
-    while !halt.get() {
+    loop {
         i = i + 1;
         tokio::time::sleep(Duration::from_secs(1)).await;
         let mut bulk = bulk_cell.borrow_mut();
-        if i == max_bulk_interval || bulk.len() as u32 >= max_bulk_size {
+        if i == max_bulk_interval || bulk.len() as u32 >= max_bulk_size || halt.get() {
             i = 0;
 
             // cf https://docs.rs/mongodm/latest/mongodm/struct.Repository.html#method.bulk_update
@@ -74,6 +74,10 @@ pub async fn run_queue(
                 bulk.clear();
             }
             // println!("queue {}", bulk.len());
+        }
+        if halt.get() {
+            println!("shutdown queue");
+            break;
         }
     }
     Ok(())

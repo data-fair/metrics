@@ -12,6 +12,7 @@ use std::str;
 use std::time::Duration;
 use tokio::fs::{metadata, remove_file};
 use tokio::net::UnixDatagram;
+use tokio::sync::broadcast::Receiver;
 
 // cf the log format in nginx.conf
 // log_format operation escape=json '{"h":"$host","r":"$http_referer","t":$request_time,"b":$bytes_sent,"s":"$status","o":"$upstream_http_x_owner","i":"$cookie_id_token","io":"$cookie_id_token_org","ak":"$http_x_apikey","a":"$http_x_account","p":"$http_x_processing","c":"$upstream_cache_status","rs":"$upstream_http_x_resource","op":"$upstream_http_x_operation"}';
@@ -34,7 +35,7 @@ pub struct RawLine {
 }
 
 pub async fn listen_socket(
-    halt: &Cell<bool>,
+    mut shutdown_receiver: Receiver<bool>,
     bulk_ref: &RefCell<Vec<MongoRequest>>,
 ) -> Result<(), Box<dyn Error>> {
     let token_verifier = RemoteJwksVerifier::new(
@@ -57,8 +58,16 @@ pub async fn listen_socket(
     }
     let socket = UnixDatagram::bind(&socket_path)?;
     println!("socket was created");
-    while !halt.get() {
-        socket.readable().await?;
+    loop {
+        let interrupted = tokio::select! {
+            _ = socket.readable() => false,
+            _ = shutdown_receiver.recv() => true
+        };
+        if interrupted {
+            println!("shutdown socket listener");
+            break;
+        }
+        // socket.readable().await?;
         // 4096 should be a reasonable max size ?
         let mut buf = vec![0; 4096];
         let size = socket.recv(&mut buf).await?;
