@@ -21,7 +21,7 @@ jobs:
     - name: Run test dependencies
       run: |
         NO_UI=true docker compose up -d --no-color --quiet-pull
-        docker ps
+        docker compose ps
 
     - name: Prepare BUILD.json
       run: |
@@ -64,6 +64,8 @@ jobs:
     - name: Run integration tests on built images
       working-directory: ./test-it
       run: |
+        docker compose ps
+        curl http://localhost:6218/data-fair/api/v1/datasets
         chmod a+w ../dev/data
         ls -l ../dev/data/
         npm ci
