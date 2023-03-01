@@ -58,8 +58,8 @@ jobs:
         push: false
         tags: ${{ steps.docker_meta_daemon.outputs.tags }}
         labels: ${{ steps.docker_meta_daemon.outputs.labels }}
-        # cache-from: type=gha
-        # cache-to: type=gha,mode=max
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: Run integration tests on built images
       working-directory: ./test-it
