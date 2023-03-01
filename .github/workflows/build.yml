@@ -21,8 +21,7 @@ jobs:
     - name: Run test dependencies
       run: |
         docker compose pull --quiet
-        NO_UI=true docker compose up -d
-        docker compose ps
+        NO_UI=true docker compose up -d --wait
 
     - name: Prepare BUILD.json
       run: |

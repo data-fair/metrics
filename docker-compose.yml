@@ -90,8 +90,10 @@ services:
     ports:
       - 6222:8080
     depends_on:
-      - mongo
-      - elasticsearch
+      mongo:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     restart: on-failure:10
     environment:
       - DEBUG=files
@@ -113,6 +115,11 @@ services:
       - 9200:9200
     environment:
       - discovery.type=single-node
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      timeout: 10s
+      interval: 10s
+      retries: 10
 
   mongo:
     image: mongo:4.4
