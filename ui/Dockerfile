@@ -4,10 +4,10 @@ FROM node:18.14-alpine3.17 AS build
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY ui/package*.json ./
 RUN npm ci
 
-COPY . .
+COPY ui .
 
 # check lint rules here to enforce them
 RUN npm run lint
@@ -32,5 +32,7 @@ ENV NODE_ENV production
 ENV HOST 0.0.0.0
 ENV PORT 8080
 USER node
+
+ADD README.md BUILD.json* ./
 
 CMD ["dumb-init", "node", "--max-http-header-size", "64000", ".output/server/index.mjs"]

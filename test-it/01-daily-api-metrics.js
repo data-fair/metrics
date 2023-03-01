@@ -7,7 +7,7 @@ const processWrapper = (name, cmd) => {
   const process = childProcess.spawn(cmd, { cwd: '..', shell: true })
   let buffer = []
   process.stdout.on('data', (data) => {
-    const lines = data.toString().trim().split('\n')
+    const lines = data.toString().trim().split('\n').map(l => l.trim())
     for (const line of lines) {
       buffer.push(line)
       checkWaitFor()
@@ -15,7 +15,7 @@ const processWrapper = (name, cmd) => {
     }
   })
   process.stderr.on('data', (data) => {
-    const lines = data.toString().trim().split('\n')
+    const lines = data.toString().trim().split('\n').map(l => l.trim())
     for (const line of lines) {
       buffer.push(line)
       checkWaitFor()
@@ -54,12 +54,12 @@ describe('daily-api-metrics', () => {
   let daemon
   before('run daemon', async () => {
     childProcess.execSync('docker compose restart -t 0 nginx')
-    daemon = processWrapper('daemon', 'docker compose run --rm --name test-daemon daemon')
+    daemon = processWrapper('daemon', 'docker compose up --no-build --no-log-prefix --no-color daemon')
     await daemon.waitFor('init queue*', true)
     await daemon.waitFor('socket was created', true)
   })
   after('shutdown daemon', async () => {
-    childProcess.exec('docker stop test-daemon')
+    childProcess.exec('docker compose stop daemon')
     await daemon.waitFor('test/stop-main')
   })
 

@@ -18,6 +18,7 @@ services:
   #####
 
   api:
+    image: ghcr.io/data-fair/metrics/api:dev
     build:
       context: ./
       dockerfile: ./api/Dockerfile
@@ -32,7 +33,10 @@ services:
       MONGO_URL: mongodb://localhost:27017/metrics-development
 
   ui:
-    build: ./ui
+    image: ghcr.io/data-fair/metrics/ui:dev
+    build:
+      context: ./
+      dockerfile: ./ui/Dockerfile
     profiles:
       - build
     network_mode: host
@@ -40,7 +44,10 @@ services:
       PORT: 6220
 
   daemon:
-    build: ./daemon
+    image: ghcr.io/data-fair/metrics/daemon:dev
+    build:
+      context: ./
+      dockerfile: ./daemon/Dockerfile
     profiles:
       - build
     network_mode: host
@@ -73,6 +80,7 @@ services:
       - STORAGE_TYPE=file
       - ROLES_DEFAULTS=["admin", "contrib", "user"]
       - PROMETHEUS_ACTIVE=false
+      - NO_UI=${NO_UI}
     volumes:
       - ./dev/resources/users.json:/webapp/data/users.json
       - ./dev/resources/organizations.json:/webapp/data/organizations.json
@@ -100,7 +108,7 @@ services:
   #####
 
   elasticsearch:
-    image: ghcr.io/data-fair/elasticsearch:7.17.6
+    image: ghcr.io/data-fair/elasticsearch:7.17.9
     ports:
       - 9200:9200
     environment:

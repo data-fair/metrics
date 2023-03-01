@@ -1,0 +1,70 @@
+name: Build CI
+
+on:
+  push:
+    branches: [ 'next' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+
+    - uses: actions/checkout@v3
+
+    # no need to work on a cache here, it is not faster than pulling
+    # instead work on switching to some images hosted on ghcr.io, it is the fastest
+    - name: Run test dependencies
+      run: |
+        NO_UI=true docker compose up -d
+        docker ps
+
+    - name: Prepare BUILD.json
+      run: |
+        echo '{"version": "${{github.ref_name}}", "repository": "${{github.server_url}}/${{github.repository}}", "commit": "${{github.sha}}"}' > BUILD.json
+        cat BUILD.json
+
+    - uses: docker/setup-buildx-action@v2
+
+    - name: Prepare daemon docker image metadata
+      id: docker_meta_daemon
+      uses: docker/metadata-action@v4
+      with:
+        images: ghcr.io/${{ github.repository }}/daemon
+        #flavor: |
+        #  prefix=daemon-
+        labels: |
+          org.opencontainers.image.title=data-fair / metrics / daemon
+        tags: |
+          type=raw,value=dev
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+
+    - name: Build api docker image
+      id: docker_build_daemon
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: daemon/Dockerfile
+        # push: ${{ github.event_name != 'pull_request' }}
+        load: true
+        push: false
+        tags: ${{ steps.docker_meta_daemon.outputs.tags }}
+        labels: ${{ steps.docker_meta_daemon.outputs.labels }}
+        # cache-from: type=gha
+        # cache-to: type=gha,mode=max
+
+    - name: Run integration tests on built images
+      working-directory: ./test-it
+      run: |
+        npm ci
+        npm test
+
+    # - name: Stop test dependencies
+    #   run: docker-compose stop

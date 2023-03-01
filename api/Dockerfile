@@ -1,5 +1,15 @@
 ###
-# build server in first step of a multi-stage build
+# prepare shared types
+FROM node:18.14-alpine3.17 AS types
+
+WORKDIR /types
+
+COPY types/package*.json .
+RUN npm ci --omit=dev
+ADD types .
+
+###
+# build api service
 FROM node:18.14-alpine3.17 AS build
 
 WORKDIR /app
@@ -8,12 +18,12 @@ COPY api/package*.json .
 RUN npm ci
 
 COPY api/src src
-COPY types /types
-RUN ls -l
 # check lint rules here to enforce them
 COPY api/.eslint* .
 COPY api/tsconfig.json .
 RUN npm run lint
+
+COPY --from=types /types /types
 
 # we use ncc to produce a lightweight single file dist
 RUN npm run build
@@ -25,7 +35,7 @@ RUN npm prune --production && \
     rm -rf node_modules/.cache
 
 ###
-# actual service image
+# prepare actual service image
 FROM node:18.14-alpine3.17
 MAINTAINER "contact@koumoul.com"
 
@@ -41,5 +51,7 @@ EXPOSE 8080
 
 ENV NODE_ENV production
 USER node
+
+ADD README.md BUILD.json* ./
 
 CMD ["dumb-init", "node", "--max-http-header-size", "64000", "dist/index.js"]

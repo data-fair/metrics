@@ -8,7 +8,7 @@ WORKDIR /app
 ###
 # planning step of cargo-chef
 FROM chef as planner
-COPY . .
+COPY daemon .
 RUN cargo chef prepare --recipe-path recipe.json
 
 ###
@@ -16,7 +16,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef as builder
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
-COPY . .
+COPY daemon .
 RUN cargo build --release --target x86_64-unknown-linux-musl --bin daemon
 
 ###
@@ -29,6 +29,8 @@ COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/daemon /app/da
 RUN addgroup -g 1000 -S metrics-daemon
 RUN adduser -H -D -S -u 1000 metrics-daemon -G metrics-daemon
 USER metrics-daemon
+
+ADD README.md BUILD.json* ./
 
 VOLUME /data
 CMD ["/app/daemon"]

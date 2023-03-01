@@ -8,7 +8,8 @@
     "dev-api": "cd api && npm run dev",
     "dev-daemon": "cd daemon && umask 0 && MONGO_URL=mongodb://localhost:27017/metrics-development SOCKET_PATH=../dev/data/metrics.log.sock MAX_BULK_INTERVAL=2 MAX_BULK_SIZE=10 cargo run",
     "test-it": "cd test-it && npm run test",
-    "build-types": "cd types && npm run build"
+    "build-types": "cd types && npm run build",
+    "act": "act -s GITHUB_TOKEN=$GITHUB_TOKEN"
   },
   "author": "Alban Mouton <alban.mouton@koumoul.com>",
   "license": "AGPL-3.0-only"
