@@ -64,7 +64,7 @@ jobs:
     - name: Run integration tests on built images
       working-directory: ./test-it
       run: |
-        ls -l ../dev/
+        chown 1000:1000 ../dev/data
         ls -l ../dev/data/
         npm ci
         npm test
