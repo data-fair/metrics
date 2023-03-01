@@ -8,13 +8,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
+
     - uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
-
-    - uses: actions/checkout@v3
 
     # no need to work on a cache here, it is not faster than pulling
     # instead work on switching to some images hosted on ghcr.io, it is the fastest
@@ -67,5 +67,7 @@ jobs:
         npm ci
         npm test
 
-    # - name: Stop test dependencies
-    #   run: docker-compose stop
+    - name: Stop test dependencies
+      # cf https://stackoverflow.com/a/58859404/10132434
+      if: success() || failure()
+      run: docker-compose stop
