@@ -72,7 +72,7 @@ describe('daily-api-metrics', () => {
     await globalThis.ws.superadmin.waitForJournal(dataset.id, 'finalize-end')
     await globalThis.ax.superadmin.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
     const rawLine = JSON.parse((await daemon.waitFor('test/raw-line/*')).replace('test/raw-line/', ''))
-    assert.equal(rawLine.h, 'localhost')
+    assert.equal(rawLine.h, '127.0.0.1')
     assert.deepEqual(JSON.parse(rawLine.o), { type: 'user', id: 'superadmin' })
     await daemon.waitFor('test/bulk/1')
   })
