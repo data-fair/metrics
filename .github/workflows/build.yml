@@ -64,7 +64,7 @@ jobs:
     - name: Run integration tests on built images
       working-directory: ./test-it
       run: |
-        chown 1000:1000 ../dev/data
+        chmod a+w ../dev/data
         ls -l ../dev/data/
         npm ci
         npm test
@@ -72,7 +72,7 @@ jobs:
     - name: Stop test dependencies
       # cf https://stackoverflow.com/a/58859404/10132434
       if: always()
-      run: docker-compose stop
+      run: docker compose stop
 
     - name: Push daemon docker image
       run: docker push --all-tags ghcr.io/${{ github.repository }}/daemon
