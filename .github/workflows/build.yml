@@ -65,6 +65,7 @@ jobs:
       working-directory: ./test-it
       run: |
         docker compose ps
+        docker compose logs data-fair
         curl http://localhost:6218/data-fair/api/v1/datasets
         chmod a+w ../dev/data
         ls -l ../dev/data/
