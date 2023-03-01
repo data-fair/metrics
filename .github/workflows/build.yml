@@ -20,7 +20,7 @@ jobs:
     # instead work on switching to some images hosted on ghcr.io, it is the fastest
     - name: Run test dependencies
       run: |
-        NO_UI=true docker compose up -d
+        NO_UI=true docker compose up -d --no-color --quiet-pull
         docker ps
 
     - name: Prepare BUILD.json
@@ -47,7 +47,7 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}}
 
-    - name: Build api docker image
+    - name: Build daemon docker image
       id: docker_build_daemon
       uses: docker/build-push-action@v4
       with:
@@ -64,10 +64,15 @@ jobs:
     - name: Run integration tests on built images
       working-directory: ./test-it
       run: |
+        ls -l dev/
+        ls -l dev/data/
         npm ci
         npm test
 
     - name: Stop test dependencies
       # cf https://stackoverflow.com/a/58859404/10132434
-      if: success() || failure()
+      if: always()
       run: docker-compose stop
+
+    - name: Push daemon docker image
+      run: docker push --all-tags ghcr.io/${{ github.repository }}/daemon
