@@ -61,10 +61,6 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - run: docker compose ps
-    - run: curl http://localhost:9200/_cat/health
-    - run: curl http://localhost:6218/data-fair/api/v1/datasets
-
     - name: Run integration tests on built images
       working-directory: ./test-it
       run: |
@@ -77,5 +73,13 @@ jobs:
       if: always()
       run: docker compose stop
 
+
+    - name: Login to Github container registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Push daemon docker image
       run: docker push --all-tags ghcr.io/${{ github.repository }}/daemon
