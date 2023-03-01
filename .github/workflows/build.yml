@@ -61,17 +61,14 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - run: docker compose ps
+    - run: curl http://localhost:9200/_cat/health
+    - run: curl http://localhost:6218/data-fair/api/v1/datasets
+
     - name: Run integration tests on built images
       working-directory: ./test-it
       run: |
-        docker compose ps
-        docker compose logs data-fair
-        docker compose logs elasticsearch
-        NO_UI=true docker compose up -d
-        curl http://localhost:9200/_cat/health
-        curl http://localhost:6218/data-fair/api/v1/datasets
         chmod a+w ../dev/data
-        ls -l ../dev/data/
         npm ci
         npm test
 
