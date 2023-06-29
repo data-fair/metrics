@@ -38,6 +38,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
     let (shutdown_sender, mut _shutdown_receiver) = broadcast::channel::<bool>(16);
     let halt = Cell::new(false);
+    // TODO: check that RefCell is the most appropriate smart pointer type in this case
     let bulk_cell: RefCell<Vec<MongoRequest>> = RefCell::new(vec![]);
     let res = tokio::try_join!(
         run_queue(&halt, &bulk_cell),

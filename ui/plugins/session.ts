@@ -1,5 +1,6 @@
-import { useSession } from '@data-fair/lib/vue/use-session'
-import { Session } from '@data-fair/lib/vue/use-session.d'
+import { useSession } from '@data-fair/lib/mjs/vue/use-session'
+import { type Session } from '@data-fair/lib/mjs/vue/use-session.d'
+import { useCookies, createCookies } from '@vueuse/integrations/useCookies'
 
 // this should not be necessary but for some reason typing of $session is broken without it
 // https://nuxt.com/docs/guide/directory-structure/plugins#typing-plugins
@@ -15,6 +16,7 @@ declare module 'vue' {
 }
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-  const session = await useSession({req: nuxtApp.ssrContext?.event.node.req})
+  const route = useRoute()
+  const session = await useSession({ req: nuxtApp.ssrContext?.event.node.req, route })
   return { provide: { session } }
 })

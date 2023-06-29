@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-main>
+      <!--{{ $session.state }} / {{ $session.topLocation }}-->
       <NuxtPage />
     </v-main>
   </v-app>

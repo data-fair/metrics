@@ -1,6 +1,8 @@
 <template>
   <div>
-    Hello !
+    <NuxtLink to="/">
+      Home
+    </NuxtLink>
   </div>
 </template>
 

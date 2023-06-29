@@ -1,14 +1,14 @@
 <template>
-  <v-container>
+  <!--<v-container>
     <v-alert type="error">
       {{ error.message || error }}
     </v-alert>
-  </v-container>
+  </v-container>-->
+  <div>{{ error }}</div>
 </template>
 
 <script>
 export default {
-  layout: 'embed',
   // eslint-disable-next-line vue/require-prop-types
   props: ['error']
 }

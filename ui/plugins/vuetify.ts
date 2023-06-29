@@ -1,4 +1,4 @@
-import { createVuetify } from 'vuetify'
+import { createVuetify, DefaultsInstance } from 'vuetify'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const vuetify = createVuetify({ ssr: false })

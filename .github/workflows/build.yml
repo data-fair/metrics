@@ -142,4 +142,4 @@ jobs:
     - name: Push ui docker image
       run: docker push --all-tags ghcr.io/${{ github.repository }}/ui
 
-    # TODO: keel webhook with a condition to prevent restarting identical images ?
+    # TODO: keel webhook with a condition to prevent restarting identical images ? maybe using this https://stackoverflow.com/a/63822945/10132434
