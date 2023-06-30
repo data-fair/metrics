@@ -31,6 +31,9 @@ services:
     image: ghcr.io/data-fair/data-fair:master
     restart: on-failure:10
     network_mode: host
+    depends_on:
+      - mongo
+      - elasticsearch
     environment:
       - PORT=6203
       - DEBUG=files
@@ -43,16 +46,25 @@ services:
       - PROMETHEUS_ACTIVE=false
 
   elasticsearch:
-    image: koumoul/data-fair-elasticsearch:latest
+    image: ghcr.io/data-fair/elasticsearch:7.x
     ports:
       - 9200:9200
     environment:
       - discovery.type=single-node
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      timeout: 10s
+      interval: 2s
+      retries: 50
 
   mongo:
-    image: mongo:4.1
+    image: mongo:4.2
     ports:
       - 27017:27017
+    volumes:
+      - mongo-data:/data/db
 
   openapi-viewer:
     image: koumoul/openapi-viewer:1
@@ -61,4 +73,5 @@ services:
 
 volumes:
   nginx_cache:
-    driver: local
+  elasticsearch-data:
+  mongo-data:
