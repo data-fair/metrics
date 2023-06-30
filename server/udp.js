@@ -194,7 +194,8 @@ exports.run = async () => {
 
       bulk.push(body)
     } catch (err) {
-      console.error('failed to parse incoming log', err, msg)
+      prometheus.internalError.inc({ errorCode: 'log-parse' })
+      console.error('(log-parse) failed to parse incoming log', err, msg)
     }
     if (bulk.length >= config.httpLogs.maxBulkSize) processBulk(mongo.db)
   })
