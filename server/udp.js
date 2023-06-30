@@ -4,7 +4,6 @@ const { promisify } = require('util')
 const eventToPromise = require('event-to-promise')
 const equal = require('fast-deep-equal')
 const dbUtils = require('./utils/db')
-const session = require('./utils/session')
 const prometheus = require('./utils/prometheus')
 
 const debug = require('debug')('udp')
@@ -16,7 +15,7 @@ const processBulk = async (db) => {
   timeout = setTimeout(() => processBulk(db), config.httpLogs.maxBulkDelay)
   const patches = []
   for (const line of bulk) {
-    if (!line.operation.track) {
+    if (!line.op.track) {
       debug('ignore operation without tracking category')
       continue
     }
@@ -26,45 +25,45 @@ const processBulk = async (db) => {
     }
     const day = line.date.slice(0, 10)
     const patchKey = {
-      'owner.type': line.owner.type,
-      'owner.id': line.owner.id,
+      'owner.type': line.o.type,
+      'owner.id': line.o.id,
       day,
-      'resource.type': line.resource.type,
-      'resource.id': line.resource.id,
-      operationTrack: line.operation.track,
-      statusClass: line.status.class,
+      'resource.type': line.rs.type,
+      'resource.id': line.rs.id,
+      operationTrack: line.op.track,
+      statusClass: line.s.class,
       userClass: line.userClass,
       refererDomain: line.refererDomain,
       refererApp: line.refererApp
     }
-    if (line.owner.department) {
-      patchKey['owner.department'] = line.owner.department
+    if (line.o.department) {
+      patchKey['owner.department'] = line.o.department
     }
-    if (line.processing) {
-      patchKey['processing._id'] = line.processing._id
+    if (line.p) {
+      patchKey['processing._id'] = line.p._id
     }
     const existingPatch = patches.find(p => equal(p[0], patchKey))
     if (existingPatch) {
       existingPatch[1].$inc.nbRequests += 1
-      existingPatch[1].$inc.bytes += line.bytes
-      existingPatch[1].$inc.duration += line.duration
+      existingPatch[1].$inc.bytes += line.b
+      existingPatch[1].$inc.duration += line.t
     } else {
       patches.push([patchKey, {
         $set: {
-          owner: line.owner,
+          owner: line.o,
           day,
-          resource: line.resource,
-          operationTrack: line.operation.track,
-          statusClass: line.status.class,
+          resource: line.rs,
+          operationTrack: line.op.track,
+          statusClass: line.s.class,
           userClass: line.userClass,
           refererDomain: line.refererDomain,
           refererApp: line.refererApp,
-          processing: line.processing
+          processing: line.p
         },
         $inc: {
           nbRequests: 1,
-          bytes: line.bytes,
-          duration: line.duration
+          bytes: line.b,
+          duration: line.t
         }
       }])
     }
@@ -79,6 +78,25 @@ const processBulk = async (db) => {
     await bulkOp.execute()
   }
 }
+
+// use shorter keys for lighter logs but also accept older longer keys for retro-compatibility
+// TODO: remove this mapping once transition is completed
+const shortKeys = [
+  ['duration', 't'],
+  ['resource', 'rs'],
+  ['status', 's'],
+  ['owner', 'o'],
+  ['host', 'h'],
+  ['id_token', 'i'],
+  ['id_token_org', 'io'],
+  ['apiKey', 'ak'],
+  ['account', 'a'],
+  ['processing', 'p'],
+  ['cacheStatus', 'c'],
+  ['operation', 'op'],
+  ['referer', 'r'],
+  ['bytes', 'b']
+]
 
 // Run app and return it in a promise
 let server, mongo
@@ -97,37 +115,43 @@ exports.run = async () => {
     try {
       const body = JSON.parse(msg)
       debug('received log', msg)
-      if (body.resource && typeof body.resource === 'string') body.resource = JSON.parse(body.resource)
-      if (body.resource && body.resource.title) body.resource.title = decodeURIComponent(body.resource.title)
-      if (body.status && typeof body.status === 'string') body.status = JSON.parse(body.status)
-      if (typeof body.status === 'number') body.status = { code: body.status }
-      if (body.operation && typeof body.operation === 'string') body.operation = JSON.parse(body.operation)
-      if (body.owner && typeof body.owner === 'string') body.owner = JSON.parse(body.owner)
-      if (body.account && typeof body.account === 'string') body.account = JSON.parse(body.account)
-      if (body.processing && typeof body.processing === 'string') body.processing = JSON.parse(body.processing)
-      if (body.processing && body.processing.title) body.processing.title = decodeURIComponent(body.processing.title)
-      if (body.referer) {
+
+      for (const keyPair of shortKeys) {
+        if (keyPair[0] in body) body[keyPair[1]] = body[keyPair[0]]
+      }
+
+      body.date = new Date().toISOString()
+
+      if (body.rs && typeof body.rs === 'string') body.rs = JSON.parse(body.rs)
+      if (body.rs && body.rs.title) body.rs.title = decodeURIComponent(body.rs.title)
+      if (body.s && typeof body.s === 'string') body.s = JSON.parse(body.s)
+      if (typeof body.s === 'number') body.s = { code: body.s }
+      if (body.op && typeof body.op === 'string') body.op = JSON.parse(body.op)
+      if (body.o && typeof body.o === 'string') body.o = JSON.parse(body.o)
+      if (body.a && typeof body.a === 'string') body.a = JSON.parse(body.a)
+      if (body.p && typeof body.p === 'string') body.p = JSON.parse(body.p)
+      if (body.p && body.p.title) body.p.title = decodeURIComponent(body.p.title)
+      if (body.r) {
         try {
-          const url = new URL(body.referer)
+          const url = new URL(body.r)
           body.refererDomain = url.hostname
           // referer given in query params is used to track original referer in the case of embedded pages
           // data-fair automatically adds this param to embed views and apps
           if (url.searchParams.get('referer')) body.refererDomain = url.searchParams.get('referer')
           if (url.pathname.startsWith('/data-fair/app/')) body.refererApp = url.pathname.replace('/data-fair/app/', '').split('/').shift()
-          delete body.referer
+          delete body.r
         } catch (err) {
-          body.refererDomain = body.referer
+          body.refererDomain = body.r
         }
       } else {
         body.refererDomain = 'none'
       }
-      if (body.id_token && body.id_token.length > 1) {
-        // TODO: only decode for performance ? memoize ?
-        body.user = await session.verifyToken(body.id_token)
+      if (body.i && body.i.length > 1) {
+        body.user = JSON.parse(Buffer.from(body.i.split('.')[1], 'base64url').toString())
       }
-      if (body.user && body.id_token_org) body.user.organization = body.user.organization = body.user.organizations.find(o => o.id === body.id_token_org)
-      if (!body.user && body.apiKey) {
-        const decoded = Buffer.from(body.apiKey, 'base64url').toString()
+      if (body.user && body.io) body.user.organization = body.user.organization = body.user.organizations.find(o => o.id === body.io)
+      if (!body.user && body.ak) {
+        const decoded = Buffer.from(body.ak, 'base64url').toString()
         const parts = decoded.split(':')
         if (parts.length >= 3) {
           if (parts[0] === 'u') {
@@ -142,31 +166,31 @@ exports.run = async () => {
           }
         }
       }
-      if (body.processing && body.account) {
-        if (body.account.type === 'user') {
-          body.user = { id: body.account.id, name: 'Processing', processing: true }
+      if (body.p && body.a) {
+        if (body.a.type === 'user') {
+          body.user = { id: body.a.id, name: 'Processing', processing: true }
         } else {
-          body.user = { id: body.processing._id, name: 'Processing', processing: true, organization: { id: body.account.id } }
+          body.user = { id: body.p._id, name: 'Processing', processing: true, organization: { id: body.a.id } }
         }
-        body.processing.title += ` (${body.account.name})`
+        body.p.title += ` (${body.a.name})`
       }
       if (!body.user) body.userClass = 'anonymous'
-      else if (body.owner?.type === 'user' && body.user.id === body.owner?.id) body.userClass = 'owner'
-      else if (body.owner?.type === 'organization' && body.user.organization?.id === body.owner?.id) body.userClass = 'owner'
+      else if (body.o?.type === 'user' && body.user.id === body.o?.id) body.userClass = 'owner'
+      else if (body.o?.type === 'organization' && body.user.organization?.id === body.o?.id) body.userClass = 'owner'
       else body.userClass = 'external'
 
       if (body.user && body.user.apiKey) body.userClass += 'APIKey'
       if (body.user && body.user.processing) body.userClass += 'Processing'
 
-      if (body.status.code < 200) body.status.class = 'info'
-      else if (body.status.code < 300) body.status.class = 'ok'
-      else if (body.status.code < 400) body.status.class = 'redirect'
-      else if (body.status.code < 500) body.status.class = 'clientError'
-      else body.status.class = 'serverError'
+      if (body.s.code < 200) body.s.class = 'info'
+      else if (body.s.code < 300) body.s.class = 'ok'
+      else if (body.s.code < 400) body.s.class = 'redirect'
+      else if (body.s.code < 500) body.s.class = 'clientError'
+      else body.s.class = 'serverError'
 
-      const promLabels = { cacheStatus: body.cacheStatus, operationId: body.operation.id, statusClass: body.status.class, host: body.host }
-      prometheus.requests.labels(promLabels).observe(body.duration)
-      prometheus.requestsBytes.labels(promLabels).inc(body.bytes)
+      const promLabels = { cacheStatus: body.c, operationId: body.op.id, statusClass: body.s.class, host: body.h }
+      prometheus.requests.labels(promLabels).observe(body.t)
+      prometheus.requestsBytes.labels(promLabels).inc(body.b)
 
       bulk.push(body)
     } catch (err) {
