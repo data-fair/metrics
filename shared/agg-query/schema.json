@@ -1,0 +1,25 @@
+{
+  "$id": "https://github.com/data-fair/metrics/agg-query",
+  "x-exports": ["types", "validate"],
+  "title": "agg query",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["start", "end"],
+  "properties": {
+    "start": {
+      "type": "string",
+      "format": "date"
+    },
+    "end": {
+      "type": "string",
+      "format": "date"
+    },
+    "operationTrack": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/operationTrack"},
+    "statusClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/statusClass"},
+    "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"},
+    "split": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["day", "refererApp", "processing", "resource"] }
+    }
+  }
+} 

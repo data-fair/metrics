@@ -1,0 +1,112 @@
+{
+  "$id": "https://github.com/data-fair/metrics/daily-api-metric",
+  "x-exports": ["types"],
+  "type":"object",
+  "title": "daily api metric",
+  "additionalProperties":false,
+  "required":[
+    "owner",
+    "day",
+    "resource",
+    "operationTrack",
+    "statusClass",
+    "userClass",
+    "refererDomain",
+    "nbRequests",
+    "bytes",
+    "duration"
+  ],
+  "properties":{
+    "owner": {"$ref": "https://github.com/data-fair/lib/account#/$defs/accountKeys"},
+    "day":{
+      "type":"string",
+      "format":"date"
+    },
+    "resource": {"$ref": "#/$defs/resourceDef"},
+    "operationTrack": {"$ref": "#/$defs/operationTrack"},
+    "statusClass": {"$ref": "#/$defs/statusClass"},
+    "userClass": {"$ref": "#/$defs/userClass"},
+    "refererDomain":{"type":"string"},
+    "refererApp":{"type":"string"},
+    "processing":{"$ref": "#/$defs/processing"},
+    "nbRequests":{
+      "type":"integer",
+      "default":0
+    },
+    "bytes":{
+      "type":"integer",
+      "default":0
+    },
+    "duration":{
+      "type":"number",
+      "default":0
+    }
+  },
+  "$defs": {
+    "resourceDef": {
+      "type":"object",
+      "additionalProperties":false,
+      "required":[
+        "type",
+        "id"
+      ],
+      "properties":{
+        "type":{
+          "type":"string"
+        },
+        "id":{
+          "type":"string"
+        },
+        "title":{
+          "type":"string"
+        }
+      }
+    },
+    "processing": {
+      "type":"object",
+      "additionalProperties":false,
+      "required":[
+        "_id"
+      ],
+      "properties":{
+        "_id":{
+          "type":"string"
+        },
+        "title":{
+          "type":"string"
+        }
+      }
+    },
+    "operation": {
+      "type":"object",
+      "additionalProperties":false,
+      "required":[
+        "id",
+        "class"
+      ],
+      "properties":{
+        "id":{
+          "type":"string"
+        },
+        "class":{
+          "type":"string"
+        },
+        "track":{
+          "type":"string"
+        }
+      }
+    },
+    "operationTrack": {
+      "type": "string",
+      "enum": ["readDataAPI", "openApplication", "readDataFiles"]
+    },
+    "statusClass": {
+      "type":"string",
+      "enum": ["info", "ok", "redirect", "clientError", "serverError"]
+    },
+    "userClass": {
+      "type":"string",
+      "enum": ["anonymous", "user", "owner", "external", "ownerProcessing", "externalProcessing", "ownerAPIKey", "externalAPIKey"]
+    }
+  }
+}
