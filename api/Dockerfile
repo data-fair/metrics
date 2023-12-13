@@ -1,6 +1,6 @@
 ###
 # prepare shared types
-FROM node:18.14-alpine3.17 AS types
+FROM node:20.10.0-alpine3.18 AS types
 
 WORKDIR /types
 
