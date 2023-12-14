@@ -1,7 +1,6 @@
 <template>
   <v-app>
     <v-main>
-      <!--{{ $session.state }} / {{ $session.topLocation }}-->
       <NuxtPage />
     </v-main>
   </v-app>
@@ -12,6 +11,7 @@
 import 'iframe-resizer/js/iframeResizer.contentWindow'
 
 if (typeof window !== 'undefined') {
+  // @ts-ignore
   window.iFrameResizer = {
     heightCalculationMethod: 'taggedElement'
   }
