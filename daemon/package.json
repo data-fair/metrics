@@ -1,0 +1,16 @@
+{
+  "name": "daemon",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "umask 0 && NODE_ENV=development node --watch ./index.js"
+  },
+  "dependencies": {
+    "@data-fair/lib": "^0.16.0",
+    "config": "^3.3.9",
+    "node-unix-socket": "^0.2.5"
+  },
+  "devDependencies": {
+    "@types/config": "^3.3.3"
+  }
+}
