@@ -157,7 +157,7 @@ export async function pushLogLine (day, line) {
         userClass,
         refererDomain,
         refererApp,
-        processing: JSON.parse(line[10])
+        processing: line[10] ? JSON.parse(line[10]) : undefined
       },
       $inc: {
         nbRequests: 1,
@@ -177,6 +177,7 @@ export async function pushLogLine (day, line) {
 
 export function getBulk () {
   if (!patches.length) return null
+  console.log(`Applying ${patches.length} patches to mongo`)
   const bulk = mongo.db.collection('daily-api-metrics').initializeUnorderedBulkOp()
   for (const [patchKey, patch] of patches) {
     bulk.find(patchKey).upsert().updateOne(patch)

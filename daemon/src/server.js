@@ -1,6 +1,8 @@
 import { unlink } from 'node:fs/promises'
 import config from './config.js'
 import { DgramSocket } from 'node-unix-socket'
+import mongo from '@data-fair/lib/node/mongo.js'
+import * as prometheus from '@data-fair/lib/node/prometheus.js'
 import { pushLogLine, getBulk } from './service.js'
 
 // inspired by https://github.com/vadimdemedes/syslog-parse/blob/master/source/index.ts
@@ -24,14 +26,17 @@ const logLineRegexp = new RegExp([
  * @returns {[string, import('./types.js').LogLine]}
  */
 const parseLogLine = (logLine) => {
-  const match = logLineRegexp.exec(logLine)
+  const match = logLine.match(logLineRegexp)
   if (!match) throw new Error('regexp dit not match')
   const day = `${new Date().getUTCFullYear()}-${monthsIso[months.indexOf(match[1])]}-${match[2]}`
-  return [day, JSON.parse(match[6])]
+  return [day, JSON.parse(match[3])]
 }
 
 const socket = new DgramSocket()
 export const start = async () => {
+  if (config.prometheus.active) await prometheus.start()
+  await mongo.connect(config.mongoUrl)
+
   try {
     await unlink(config.socketPath)
   } catch (err) {
@@ -40,7 +45,6 @@ export const start = async () => {
   socket.bind(config.socketPath)
 
   socket.on('data', (data) => {
-    console.log('incoming data', data.toString())
     try {
       const [date, line] = parseLogLine(data.toString())
       pushLogLine(date, line)
@@ -48,13 +52,12 @@ export const start = async () => {
       console.error('Could not parse log line', err)
     }
   })
-
   console.log(`Metrics daemon listening on ${config.socketPath}`)
 }
 
 export const stop = async () => {
   socket.close()
-  await new Promise(resolve => socket?.once('close', resolve))
   const bulk = getBulk()
   await bulk?.execute()
+  await mongo.client.close()
 }
