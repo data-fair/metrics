@@ -4,7 +4,9 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: false,
-  devtools: { enabled: true },
+  devtools: {
+    // enabled: true
+  },
   // https://vuetifyjs.com/en/getting-started/installation/#using-nuxt-3
   build: {
     transpile: ['vuetify']
@@ -13,6 +15,15 @@ export default defineNuxtConfig({
     baseURL: '/metrics/'
   },
   modules: [
+    ['@nuxtjs/i18n', {
+      locales: ['fr', 'en'],
+      defaultLocale: 'fr',
+      strategy: 'no_prefix',
+      detectBrowserLanguage: {
+        useCookie: true,
+        cookieKey: 'i18n_lang'
+      }
+    }],
     ['@nuxtjs/google-fonts', {
       families: { Nunito: true }
     }],

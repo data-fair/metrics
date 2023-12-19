@@ -19,7 +19,7 @@
     "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"},
     "split": {
       "type": "array",
-      "items": { "type": "string", "enum": ["day", "refererApp", "processing", "resource"] }
+      "items": { "type": "string", "enum": ["day", "refererApp", "processing", "resource", "refererDomain", "userClass"] }
     }
   }
 } 

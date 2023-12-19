@@ -7,32 +7,40 @@
     offset-y
     min-width="auto"
   >
-    <template #activator="{ on, attrs }">
+    <template #activator="{ props }">
       <v-text-field
-        :value="value && $day(value).format('L')"
+        :model-value="modelValue && dayjs(modelValue).format('L')"
         :label="label"
         readonly
-        v-bind="attrs"
+        v-bind="props"
         style="max-width: 150px;"
         hide-details
         outlined
         dense
         class="mr-4 mt-2"
-        v-on="on"
       />
     </template>
     <v-date-picker
-      :value="value"
-      @input="v => {menu = false; $emit('input', v)}"
+      :model-value="date.parseISO(modelValue)"
+      @update:model-value="(v) => {menu = false; $emit('update:modelValue', date.toISO(v))}"
     />
   </v-menu>
 </template>
 
 <script>
+import { useDate } from 'vuetify'
+import { useLocaleDayjs } from '@data-fair/lib/vue/locale-dayjs.js'
+
 export default {
   props: {
     label: { type: String, required: true },
-    value: { type: String, default: null }
+    modelValue: { type: String, default: null }
+  },
+  emits: ['update:modelValue'],
+  setup () {
+    const { dayjs } = useLocaleDayjs()
+    const date = useDate()
+    return { dayjs, date }
   },
   data () {
     return { menu: false }

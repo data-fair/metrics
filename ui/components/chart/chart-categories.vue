@@ -20,7 +20,9 @@
 </template>
 
 <script>
+import { Chart } from 'chart.js'
 import truncateMiddle from 'truncate-middle'
+import formatBytes from '@data-fair/lib/format/bytes.js'
 import safeDecodeUriComponent from '~/assets/safe-decode-uri-component.js'
 
 const userClasses = {
@@ -94,8 +96,8 @@ export default {
           label: getLabel(s, this.category, this.labels),
           value: s.nbRequests,
           previousValue: s.previousNbRequests,
-          tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.bytes, this.$i18n.locale)}`,
-          previousTooltip: `${s.previousNbRequests.toLocaleString()} requête(s) cumulant ${Vue.filter('displayBytes')(s.previousBytes, this.$i18n.locale)} sur période précédente`
+          tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${formatBytes(s.bytes, this.$i18n.locale)}`,
+          previousTooltip: `${s.previousNbRequests.toLocaleString()} requête(s) cumulant ${formatBytes(s.previousBytes, this.$i18n.locale)} sur période précédente`
         }))
       const vuetify = this.$vuetify
       return {
@@ -171,7 +173,7 @@ export default {
   },
   async mounted () {
     await this.fetch()
-    this.chart = new this.$Chart(document.getElementById(this.id + '-canvas'), this.chartConfig)
+    this.chart = new Chart(document.getElementById(this.id + '-canvas'), this.chartConfig)
   },
   methods: {
     async fetch () {
@@ -201,6 +203,7 @@ export default {
       this.loading = false
     },
     async fetchPeriod (period) {
+      /** @type {import('../../../shared/index.js').aggResultType} */
       const aggResult = await $fetch('api/v1/daily-api-metrics/_agg', {
         query: {
           split: this.category,

@@ -16,11 +16,19 @@
 </template>
 
 <script>
+import { Chart } from 'chart.js'
+import formatBytes from '@data-fair/lib/format/bytes.js'
+import { useLocaleDayjs } from '@data-fair/lib/vue/locale-dayjs.js'
+
 export default {
   props: {
     title: { type: String, required: true },
     filter: { type: Object, required: true },
     periods: { type: Object, required: true }
+  },
+  setup () {
+    const { dayjs } = useLocaleDayjs()
+    return { dayjs }
   },
   data () {
     return {
@@ -40,9 +48,9 @@ export default {
       const days = this.aggResult.days.map((day) => {
         const serieItem = this.aggResult.series[0].days[day]
         return {
-          label: this.$day(day).format('L'),
+          label: this.dayjs(day).format('L'),
           value: serieItem ? serieItem.nbRequests : 0,
-          tooltip: serieItem ? `${serieItem.nbRequests.toLocaleString()} requêtes cumulant ${Vue.filter('displayBytes')(serieItem.bytes, this.$i18n.locale)}` : '0 requête'
+          tooltip: serieItem ? `${serieItem.nbRequests.toLocaleString()} requêtes cumulant ${formatBytes(serieItem.bytes, this.$i18n.locale)}` : '0 requête'
         }
       })
       return {
@@ -91,7 +99,7 @@ export default {
   async mounted () {
     await this.fetch()
     if (this.chart) this.chart.destroy()
-    this.chart = new this.$Chart(document.getElementById(this.id + '-canvas'), this.chartConfig)
+    this.chart = new Chart(document.getElementById(this.id + '-canvas'), this.chartConfig)
   },
   methods: {
     async update () {

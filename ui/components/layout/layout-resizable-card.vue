@@ -30,14 +30,14 @@ export default {
     mdCols: { type: Number, default: 6 },
     lgCols: { type: Number, default: 4 }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   data () {
     return { large: false }
   },
   methods: {
     toggle () {
       this.large = !this.large
-      this.$emit('input', this.large)
+      this.$emit('update:modelValue', this.large)
     }
   }
 }

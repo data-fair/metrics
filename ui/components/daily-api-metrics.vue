@@ -7,7 +7,6 @@
           :items="metricItems"
           :return-object="false"
           label="Métrique"
-          @change="render"
         />
       </v-col>
       <v-col>
@@ -16,7 +15,6 @@
           :items="splitItems"
           :return-object="false"
           label="Groupé par"
-          @change="fetch"
         />
       </v-col>
       <v-col>
@@ -25,7 +23,6 @@
           :items="statusClasses"
           :return-object="false"
           label="Statut de la réponse"
-          @change="fetch"
         />
       </v-col>
       <v-col>
@@ -34,7 +31,6 @@
           :items="userClasses"
           :return-object="false"
           label="Type d'utilisateur"
-          @change="fetch"
         />
       </v-col>
     </v-row>
@@ -48,15 +44,22 @@
 </template>
 
 <script>
-import { Chart, BarController, CategoryScale, LinearScale, BarElement, Legend } from 'chart.js'
+import { ref, reactive } from 'vue'
+import { useLocaleDayjs } from '@data-fair/lib/vue/locale-dayjs.js'
+import formatBytes from '@data-fair/lib/format/bytes.js'
+import { Chart } from 'chart.js'
 // const palette = require('google-palette')('cb-Dark2', 8)
-
-Chart.register(BarController, CategoryScale, LinearScale, BarElement, Legend)
 
 export default {
   setup () {
-    const { data } = useFetch('api/v1/daily-api-metrics/_agg', { query: { split: this.split, ...this.filters } })
-    return { aggResult: data }
+    const { dayjs } = useLocaleDayjs()
+    const filters = reactive({ statusClass: 'ok', userClass: null })
+    const split = ref('resource')
+
+    /** @type {import('vue').Ref<import('../../shared/index.js').aggResultType>} */
+    // @ts-ignore
+    const data = useFetch('api/v1/daily-api-metrics/_agg', { query: { split, ...filters } }).data
+    return { split, filters, dayjs, aggResult: data }
   },
   data () {
     return {
@@ -76,11 +79,6 @@ export default {
         { value: 'ownerProcessing', text: 'propriétaire (traitement)' },
         { value: 'externalProcessing', text: 'utilisateur externe (traitement)' }
       ],
-      filters: {
-        statusClass: 'ok',
-        userClass: null
-      },
-      split: 'resource',
       splitItems: [
         { value: 'resource', text: 'Jeu de données' },
         { value: 'refererDomain', text: 'Domaine d\'origine' },
@@ -99,21 +97,32 @@ export default {
       return {
         type: 'bar',
         data: {
-          labels: this.aggResult.days.map(day => this.$day(day).format('L')),
+          // @ts-ignore
+          labels: this.aggResult.days.map(day => this.dayjs(day).format('L')),
+          // @ts-ignore
           datasets: this.aggResult.series
+            // @ts-ignore
             .map(s => s)
+            // @ts-ignore
             .sort((s1, s2) => s1[this.metric] - s2[this.metric])
+            // @ts-ignore
             .map((serie, i) => ({
+              // @ts-ignore
               label: {
+                // @ts-ignore
                 resource: key => decodeURIComponent(key.resource.title),
+                // @ts-ignore
                 refererDomain: key => key.refererDomain,
+                // @ts-ignore
                 operationTrack: key => ({
                   readDataAPI: 'API de données',
                   readDataFiles: 'Téléchargement de fichiers de données',
                   openApplication: 'Ouverture d\'une visualisation'
                 }[key.operationTrack])
               }[this.split](serie.key),
+              // @ts-ignore
               data: this.aggResult.days.map(day => serie.days[day] ? serie.days[day][this.metric] : 0),
+              // @ts-ignore
               backgroundColor: palette[i] && ('#' + palette[i])
             }))
         },
@@ -126,7 +135,8 @@ export default {
               stacked: true,
               ticks: this.metric === 'bytes'
                 ? {
-                    callback: value => Vue.filter('displayBytes')(value, this.$i18n.locale)
+                    // @ts-ignore
+                    callback: value => formatBytes(value, this.$i18n.locale)
                   }
                 : undefined
             },
@@ -145,11 +155,14 @@ export default {
   },
   watch: {
     chartConfig () {
+      // @ts-ignore
       if (this.chart) this.chart.destroy()
+      // @ts-ignore
       this.chart = new Chart(document.getElementById('chart'), this.chartConfig)
     }
   },
   unmounted () {
+    // @ts-ignore
     if (this.chart) this.chart.destroy()
   }
 }
