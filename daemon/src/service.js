@@ -105,6 +105,8 @@ let lastApply = Date.now()
  * @param {import("./types.js").LogLine} line
  */
 export async function pushLogLine (day, line) {
+  // @test:spy("pushLogLine", [day, line])
+
   // process/extract info from log line
   const operationId = line[13].match(idPropRegexp)?.[1]
   const operationTrack = line[13].match(trackPropRegexp)?.[1]

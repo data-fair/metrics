@@ -1,12 +1,10 @@
-import { defineNuxtConfig } from 'nuxt/config'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import { defineNuxtConfig } from 'nuxt/config'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: false,
-  devtools: {
-    // enabled: true
-  },
+  devtools: { enabled: true },
   // https://vuetifyjs.com/en/getting-started/installation/#using-nuxt-3
   build: {
     transpile: ['vuetify']
@@ -29,8 +27,7 @@ export default defineNuxtConfig({
     }],
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
-        config.plugins = config.plugins || []
-        // @ts-ignore
+        // @ts-expect-error
         config.plugins.push(vuetify({
           autoImport: true,
           styles: { configFile: new URL('assets/settings.scss', import.meta.url).pathname }

@@ -12,12 +12,12 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const monthsIso = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 const logLineRegexp = new RegExp([
   '(?:<[0-9]+>)?', // optional priority (not captured)
-  '([a-zA-Z]{3}) ', // month,
-  '([0-9]{2}) ', // day
+  '([a-zA-Z]{3})\\s+', // month,
+  '([0-9]{1,2})\\s+', // day
   '(?:[0-9]{2}):', // hours (not captured)
   '(?:[0-9]{2}):', // minutes (not captured)
-  '(?:[0-9]{2}) ', // seconds (not captured)
-  '(?:.*?): ', // host, process, pid (not captured)
+  '(?:[0-9]{2})\\s+', // seconds (not captured)
+  '(?:.*?):', // host, process, pid (not captured)
   '(.*)' // message
 ].join(''))
 
@@ -25,10 +25,11 @@ const logLineRegexp = new RegExp([
  * @param {string} logLine
  * @returns {[string, import('./types.js').LogLine]}
  */
-const parseLogLine = (logLine) => {
+export const parseLogLine = (logLine) => {
+  // @test:spy("parseLogLine", logLine)
   const match = logLine.match(logLineRegexp)
   if (!match) throw new Error('regexp dit not match')
-  const day = `${new Date().getUTCFullYear()}-${monthsIso[months.indexOf(match[1])]}-${match[2]}`
+  const day = `${new Date().getUTCFullYear()}-${monthsIso[months.indexOf(match[1])]}-${match[2].length === 1 ? '0' : ''}${match[2]}`
   return [day, JSON.parse(match[3])]
 }
 
@@ -45,6 +46,7 @@ export const start = async () => {
   socket.bind(config.socketPath)
 
   socket.on('data', (data) => {
+    console.log('DATA', data)
     try {
       const [date, line] = parseLogLine(data.toString())
       pushLogLine(date, line)

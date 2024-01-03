@@ -1,9 +1,11 @@
-import { createVuetify } from 'vuetify'
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
 import { defaultOptions } from '@data-fair/lib/vuetify.js'
-import { useReactiveSearchParams } from '@data-fair/lib/vue/reactive-search-params.js'
+import useReactiveSearchParams from '@data-fair/lib/vue/reactive-search-params.js'
 
 export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.vueApp.use(createVuetify(defaultOptions(useReactiveSearchParams())))
+  const reactiveSearchParams = useReactiveSearchParams()
+  const vuetify = createVuetify(defaultOptions(reactiveSearchParams))
+  nuxtApp.vueApp.use(vuetify)
 })
