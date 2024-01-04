@@ -35,7 +35,7 @@ const socket = unixDgram.createSocket('unix_dgram', (/** @type {Buffer} */data) 
   try {
     pushLogLine(parseLogLine(data.toString()))
   } catch (err) {
-    console.error('Could not parse log line', err)
+    console.error('Could not parse log line', err, data.toString())
   }
 })
 
