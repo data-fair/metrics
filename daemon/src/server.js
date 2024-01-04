@@ -1,6 +1,7 @@
 import { unlink, chmod } from 'node:fs/promises'
 import config from './config.js'
-import { DgramSocket } from 'node-unix-socket'
+// @ts-ignore
+import unixDgram from 'unix-dgram'
 import mongo from '@data-fair/lib/node/mongo.js'
 import * as prometheus from '@data-fair/lib/node/prometheus.js'
 import { pushLogLine, getBulk } from './service.js'
@@ -30,7 +31,14 @@ export const parseLogLine = (logLine) => {
   return JSON.parse(match[1])
 }
 
-const socket = new DgramSocket()
+const socket = unixDgram.createSocket('unix_dgram', (/** @type {Buffer} */data) => {
+  try {
+    pushLogLine(parseLogLine(data.toString()))
+  } catch (err) {
+    console.error('Could not parse log line', err)
+  }
+})
+
 export const start = async () => {
   if (config.prometheus.active) await prometheus.start()
   await mongo.connect(config.mongoUrl)
@@ -65,13 +73,6 @@ export const start = async () => {
   socket.bind(config.socketPath)
   await chmod(config.socketPath, '662')
 
-  socket.on('data', (data) => {
-    try {
-      pushLogLine(parseLogLine(data.toString()))
-    } catch (err) {
-      console.error('Could not parse log line', err)
-    }
-  })
   console.log(`Metrics daemon listening on ${config.socketPath}`)
 }
 
