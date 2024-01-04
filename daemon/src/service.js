@@ -3,6 +3,9 @@ import { globalRegistry } from '@data-fair/lib/node/prometheus.js'
 import mongo from '@data-fair/lib/node/mongo.js'
 import equal from 'fast-deep-equal'
 import config from './config.js'
+import debug from 'debug'
+
+const debugPatches = debug('patches')
 
 const requestsHistogram = new Histogram({
   name: 'df_metrics_requests',
@@ -203,6 +206,7 @@ export function pushLogLine (line) {
 
 export function getBulk () {
   if (!patches.length) return null
+  debugPatches('send bulk patches', patches.length)
   const bulk = mongo.db.collection('daily-api-metrics').initializeUnorderedBulkOp()
   for (const [patchKey, patch] of patches) {
     bulk.find(patchKey).upsert().updateOne(patch)
