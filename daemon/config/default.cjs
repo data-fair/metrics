@@ -4,5 +4,7 @@ module.exports = {
   prometheus: {
     active: true,
     port: 9090
-  }
+  },
+  maxBulkSize: 1000,
+  maxDelayMS: 10 * 1000
 }

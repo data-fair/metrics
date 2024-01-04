@@ -2,6 +2,7 @@ import { Counter, Histogram, Gauge } from 'prom-client'
 import { globalRegistry } from '@data-fair/lib/node/prometheus.js'
 import mongo from '@data-fair/lib/node/mongo.js'
 import equal from 'fast-deep-equal'
+import config from './config.js'
 
 const requestsHistogram = new Histogram({
   name: 'df_metrics_requests',
@@ -98,14 +99,17 @@ const trackPropRegexp = /"track":"((\\"|[^"])*)"/
 
 /** @type {[Record<string, string>, any][]} */
 const patches = []
-let lastApply = Date.now()
+/** @type {ReturnType<typeof setTimeout> | null} */
+let timeout = null
 
 /**
- * @param {string} day
  * @param {import("./types.js").LogLine} line
  */
-export async function pushLogLine (day, line) {
-  // @test:spy("pushLogLine", [day, line])
+export function pushLogLine (line) {
+  const date = new Date()
+  const day = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+
+  // @test:spy("parsedLine", [day, line])
 
   // process/extract info from log line
   const operationId = line[13].match(idPropRegexp)?.[1]
@@ -169,17 +173,28 @@ export async function pushLogLine (day, line) {
     }])
   }
 
-  const now = Date.now()
-  if (patches.length >= 1000 || now - lastApply > 10000) {
-    lastApply = now
+  if (patches.length >= config.maxBulkSize) {
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = null
+    }
     const bulk = getBulk()
-    await bulk?.execute()
+    bulk?.execute().then(() => {
+      // @test:spy("sentBulkMaxSize", bulk.batches.length)
+    })
+  } else if (!timeout) {
+    timeout = setTimeout(async () => {
+      timeout = null
+      const bulk = getBulk()
+      bulk?.execute().then(() => {
+        // @test:spy("sentBulkDelay", bulk.batches.length)
+      })
+    }, config.maxDelayMS)
   }
 }
 
 export function getBulk () {
   if (!patches.length) return null
-  console.log(`Applying ${patches.length} patches to mongo`)
   const bulk = mongo.db.collection('daily-api-metrics').initializeUnorderedBulkOp()
   for (const [patchKey, patch] of patches) {
     bulk.find(patchKey).upsert().updateOne(patch)

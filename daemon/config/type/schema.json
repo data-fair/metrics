@@ -5,7 +5,7 @@
   "type": "object",
   "title": "Daemon config",
   "additionalProperties": false,
-  "required": ["socketPath", "mongoUrl", "prometheus"],
+  "required": ["socketPath", "mongoUrl", "prometheus", "maxBulkSize", "maxDelayMS"],
   "properties": {
     "socketPath": {
       "type": "string",
@@ -21,6 +21,12 @@
           "type": "boolean"
         }
       }
+    },
+    "maxBulkSize": {
+      "type": "integer"
+    },
+    "maxDelayMS": {
+      "type": "integer"
     },
     "util": {},
     "get": {},

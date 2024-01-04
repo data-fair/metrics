@@ -12,7 +12,7 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = '1'
 process.env.NODE_CONFIG_DIR = 'daemon/config/'
 const daemonServer = await import('../daemon/src/server.js')
 await daemonServer.start()
-childProcess.execSync('chmod a+w ./dev/data/metrics.log.sock')
+// childProcess.execSync('chmod a+w ./dev/data/metrics.log.sock')
 childProcess.execSync('docker compose restart -t 0 nginx')
 
 process.env.NODE_CONFIG_DIR = 'api/config/'
@@ -33,14 +33,13 @@ try {
     })).data
     await adminWS.waitForJournal(dataset.id, 'finalize-end')
     await adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
-    const [rawLine, parsedLine] = await Promise.all([testSpies.waitFor('parseLogLine'), await testSpies.waitFor('pushLogLine')])
-    console.log('raw line', rawLine)
-    console.log('parsed line', parsedLine)
-    // TODO
-    // const rawLine = JSON.parse((await daemon.waitFor('test/raw-line/*')).replace('test/raw-line/', ''))
-    // assert.equal(rawLine.h, '127.0.0.1')
-    // assert.deepEqual(JSON.parse(rawLine.o), { type: 'user', id: 'superadmin' })
-    // await daemon.waitFor('test/bulk/1')
+    const [rawLine, [day, parsedLine]] = await Promise.all([testSpies.waitFor('rawLine'), await testSpies.waitFor('parsedLine')])
+    assert.ok(rawLine)
+    assert.equal(day.length, 10)
+    assert.ok(Array.isArray(parsedLine))
+    assert.equal(parsedLine[0], 'localhost')
+    const bulk1 = await testSpies.waitFor('sentBulkDelay')
+    assert.equal(bulk1, 1)
   })
 } finally {
   adminWS.close()

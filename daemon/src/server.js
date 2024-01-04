@@ -1,4 +1,4 @@
-import { unlink } from 'node:fs/promises'
+import { unlink, chmod } from 'node:fs/promises'
 import config from './config.js'
 import { DgramSocket } from 'node-unix-socket'
 import mongo from '@data-fair/lib/node/mongo.js'
@@ -6,31 +6,28 @@ import * as prometheus from '@data-fair/lib/node/prometheus.js'
 import { pushLogLine, getBulk } from './service.js'
 
 // inspired by https://github.com/vadimdemedes/syslog-parse/blob/master/source/index.ts
-// but lighter and only capturing the fields we need
-
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const monthsIso = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-const logLineRegexp = new RegExp([
+// but lighter and only capturing the message we need
+/* const logLineRegexp = new RegExp([
   '(?:<[0-9]+>)?', // optional priority (not captured)
-  '([a-zA-Z]{3})\\s+', // month,
-  '([0-9]{1,2})\\s+', // day
+  '(?:[a-zA-Z]{3})\\s+', // month (not captured),
+  '(?:[0-9]{1,2})\\s+', // day (not captured)
   '(?:[0-9]{2}):', // hours (not captured)
   '(?:[0-9]{2}):', // minutes (not captured)
   '(?:[0-9]{2})\\s+', // seconds (not captured)
   '(?:.*?):', // host, process, pid (not captured)
   '(.*)' // message
-].join(''))
+].join('')) */
+const logLineRegexp = /.*? df: (.*)/
 
 /**
  * @param {string} logLine
- * @returns {[string, import('./types.js').LogLine]}
+ * @returns {import('./types.js').LogLine}
  */
 export const parseLogLine = (logLine) => {
-  // @test:spy("parseLogLine", logLine)
+  // @test:spy("rawLine", logLine)
   const match = logLine.match(logLineRegexp)
   if (!match) throw new Error('regexp dit not match')
-  const day = `${new Date().getUTCFullYear()}-${monthsIso[months.indexOf(match[1])]}-${match[2].length === 1 ? '0' : ''}${match[2]}`
-  return [day, JSON.parse(match[3])]
+  return JSON.parse(match[1])
 }
 
 const socket = new DgramSocket()
@@ -44,12 +41,11 @@ export const start = async () => {
     // nothing to do, the socket probably does not exist
   }
   socket.bind(config.socketPath)
+  await chmod(config.socketPath, '662')
 
   socket.on('data', (data) => {
-    console.log('DATA', data)
     try {
-      const [date, line] = parseLogLine(data.toString())
-      pushLogLine(date, line)
+      pushLogLine(parseLogLine(data.toString()))
     } catch (err) {
       console.error('Could not parse log line', err)
     }
