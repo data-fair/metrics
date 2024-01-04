@@ -1,6 +1,6 @@
 module.exports = {
   port: 'PORT',
-  publicUrl: 'PUBLIC_URL',
+  origin: 'ORIGIN',
   directoryUrl: 'DIRECTORY_URL',
   mongoUrl: 'MONGO_URL',
   prometheus: {
