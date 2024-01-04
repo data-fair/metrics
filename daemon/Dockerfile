@@ -48,7 +48,7 @@ ADD package.json .
 
 WORKDIR /app/daemon
 
-USER node
+# USER node
 
 CMD ["node", "index.js"]
 
