@@ -1,38 +1,36 @@
-###
-# build nuxt application in first step of a multi-stage build
-FROM node:18.14-alpine3.17 AS build
+FROM node:20.10.0-alpine3.18 AS builder
 
-WORKDIR /app
+RUN npm i -g clean-modules@3.0.4
 
-COPY ui/package*.json ./
-RUN npm ci
+WORKDIR /app/
+ADD /package.json .
+ADD /package-lock.json .
+ADD /ui/package.json ui/
 
-COPY ui .
+# install dev deps to run the "prepare" script, then prune them
+RUN npm -w ui --include-workspace-root ci --no-audit --no-fund
+ADD /ui/ ui/
+ADD /shared shared
+RUN npm -w ui run build
 
-# check lint rules here to enforce them
-RUN npm run lint
+##########################
+FROM node:20.10.0-alpine3.18
 
-RUN npm run build
+ENV NODE_ENV production
+ENV PORT 8080
 
-###
-# actual service image
-FROM node:18.14-alpine3.17
-MAINTAINER "contact@koumoul.com"
+WORKDIR /app/
 
-RUN apk add --no-cache dumb-init
+COPY --from=builder /app/ui/.output /app/ui/.output
 
-WORKDIR /app
+ADD README.md .
+ADD package.json .
 
-COPY --from=build /app/.output /app/.output
-RUN ls -a
+WORKDIR /app/ui
 
 EXPOSE 8080
 
-ENV NODE_ENV production
-ENV HOST 0.0.0.0
-ENV PORT 8080
 USER node
 
-ADD README.md BUILD.json* ./
+CMD ["node", "--max-http-header-size", "64000", ".output/server/index.mjs"]
 
-CMD ["dumb-init", "node", "--max-http-header-size", "64000", ".output/server/index.mjs"]

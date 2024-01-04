@@ -1,11 +1,4 @@
-/api/node_modules
-/types/node_modules
-/ui/node_modules
-/ui/dist
-/ui/.output
-/ui/.nuxt
-/daemon/target
-/.github
-/test-it
-/tmp
-/dev
+node_modules
+.nuxt
+.output
+daemon-rust

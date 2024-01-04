@@ -14,9 +14,9 @@
     "dev-api": "npm -w api run dev",
     "dev-daemon": "npm -w daemon run dev",
     "dev-zellij": "zellij --layout .zellij.kdl",
-    "build-types": "df-build-types api && df-build-types daemon && df-build-types shared",
-    "prepare": "npm run build-types && husky install",
-    "act": "act -s GITHUB_TOKEN=$GITHUB_TOKEN"
+    "build-types": "df-build-types shared",
+    "prepare": "husky install",
+    "quality": "npm run dev-deps && npm run lint && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
   },
   "author": "Alban Mouton <alban.mouton@koumoul.com>",
   "license": "AGPL-3.0-only",
@@ -28,8 +28,11 @@
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
-    "@data-fair/lib": "^0.16.0",
+    "@data-fair/lib": "^0.17.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "ajv-errors": "^3.0.0",
+    "ajv-formats": "^2.1.1",
+    "ajv-i18n": "^4.2.0",
     "axios": "^1.6.2",
     "eslint": "^8.55.0",
     "eslint-config-standard": "^17.1.0",

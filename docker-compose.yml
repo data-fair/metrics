@@ -13,54 +13,6 @@ services:
       - ./dev/data/:/data
 
   #####
-  # services members of the "@data-fair/metrics" suite
-  # with build instructions, used for testing and distribution
-  #####
-
-  api:
-    image: ghcr.io/data-fair/metrics/api:dev
-    build:
-      context: ./
-      dockerfile: ./api/Dockerfile
-    profiles:
-      - build
-    network_mode: host
-
-    environment:
-      PORT: 6219
-      PUBLIC_URL: http://localhost:6218/metrics/
-      DIRECTORY_URL: http://localhost:6218/simple-directory
-      MONGO_URL: mongodb://localhost:27017/metrics-development
-
-  ui:
-    image: ghcr.io/data-fair/metrics/ui:dev
-    build:
-      context: ./
-      dockerfile: ./ui/Dockerfile
-    profiles:
-      - build
-    network_mode: host
-    environment:
-      PORT: 6220
-
-  daemon:
-    image: ghcr.io/data-fair/metrics/daemon:dev
-    build:
-      context: ./
-      dockerfile: ./daemon/Dockerfile
-    profiles:
-      - build
-    network_mode: host
-    volumes:
-      - ./dev/data/:/data
-    environment:
-      SOCKET_PATH: /data/metrics.log.sock
-      MONGO_URL: mongodb://localhost:27017/metrics-development
-      MAX_BULK_INTERVAL: 2
-      MAX_BULK_SIZE: 10
-      TEST_HOOKS: true
-
-  #####
   # related services from the data-fair stack
   #####
 

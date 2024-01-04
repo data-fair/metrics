@@ -35,7 +35,7 @@ export const start = async () => {
   if (config.prometheus.active) await prometheus.start()
   await mongo.connect(config.mongoUrl)
 
-  await mongo.configureIndexes({
+  await mongo.configure({
     'daily-api-metrics': {
       'main-keys': [
         {

@@ -8,7 +8,12 @@ The cornerstone of the dev environment is [Docker](https://docs.docker.com/engin
 
 Everything else can be done inside docker if you do not want to install too much stuff locally. But for the best DX it is better to install [Node.js v18+](https://nodejs.org/) (probably through [nvm](https://github.com/nvm-sh/nvm)) and [Rust](https://www.rust-lang.org/tools/install).
 
-## Install service dependencies
+## Install dependencies
+
+Install npm dependencies for all workspaces:
+```
+npm install
+```
 
 Pull images at first and then once in a while:
 
@@ -22,16 +27,9 @@ Then run the containers:
 npm run dev-deps
 ```
 
-## Work on @data-fair/metrics:ui
+## Work on @data-fair/metrics/ui
 
 The UI is a [nuxt](https://nuxt.com/) project.
-
-Install/update the dependencies:
-
-```
-cd ui
-npm i
-```
 
 Run a development server (access it here http://localhost:6218/metrics/):
 
@@ -39,16 +37,9 @@ Run a development server (access it here http://localhost:6218/metrics/):
 npm run dev-ui
 ```
 
-## Work on @data-fair/metrics:api
+## Work on @data-fair/metrics/api
 
 The API is a small [https://expressjs.com](Express) server.
-
-Install/update the dependencies:
-
-```bash
-cd api
-npm i
-```
 
 Run a development server (access it here http://localhost:6218/metrics/api/):
 
@@ -56,20 +47,33 @@ Run a development server (access it here http://localhost:6218/metrics/api/):
 npm run dev-api
 ```
 
-## Working on types
+## Work on @data-fair/metrics/daemon
 
-Some types are managed using [JSON Schemas](https://json-schema.org/), [JSON Typedef](https://jsontypedef.com/) and related tools.
+The daemon is a small nodejs application that listens for nginx logs on a unix datagram socket.
+
+Run a development process:
+
+```
+npm run dev-daemon
+```
+
+## Working on types
 
 Update the types based on schemas:
 
 ```
-docker compose run --rm jtd jtd-codegen api/src/types/config/config.jtd.json --typescript-out api/src/types/config
-npx --package @koumoul/schema-jtd@0.1.1 schema2td api/src/types/config/config.schema.json api/src/types/config/config.jtd.json
+npm run build-types
 ```
 
 ## Building docker images
 
 Build images:
+
+```
+docker build -f api/Dockerfile -t data-fair/metrics/api:dev .
+docker build -f ui/Dockerfile -t data-fair/metrics/ui:dev .
+docker build -f daemon/Dockerfile -t data-fair/metrics/daemon:dev .
+```
 
 ```
 docker compose --profile build build
