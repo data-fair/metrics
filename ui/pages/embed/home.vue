@@ -4,23 +4,20 @@
     :fluid="$vuetify.display.lgAndDown"
     data-iframe-height
   >
-    <v-app-bar
-      :color="$vuetify.theme.current.dark ? 'transparent' : 'grey lighten-4'"
+    <v-toolbar
+      variant="tonal"
       rounded
-      flat
-      outlined
       :class="`mb-4 section-bar-${$vuetify.theme.current.dark ? 'dark' : 'light'}`"
-      height="auto"
     >
       <v-icon
         x-large
         color="primary"
-        class="mr-4"
+        class="mx-4"
       >
         mdi-calendar-range
       </v-icon>
-      <filter-period @update:modelValue="v => periods = v" />
-    </v-app-bar>
+      <filter-period @update:model-value="v => periods = v" />
+    </v-toolbar>
     <template v-if="periods">
       <v-row dense>
         <chart-categories
@@ -28,35 +25,33 @@
           category="resource"
           :filter="{statusClass: 'ok', operationTrack: 'readDataFiles'}"
           :periods="periods"
-          @update:modelValue-agg="v => aggResultDataFiles = v"
+          @update:agg="v => aggResultDataFiles = v"
         />
         <chart-categories
           title="Appels API / jeu de données"
           category="resource"
           :filter="{statusClass: 'ok', operationTrack: 'readDataAPI'}"
           :periods="periods"
-          @update:modelValue-agg="v => aggResultDataAPI = v"
+          @update:agg="v => aggResultDataAPI = v"
         />
         <chart-categories
           title="Ouvertures de visualisations"
           category="resource"
           :filter="{statusClass: 'ok', operationTrack: 'openApplication'}"
           :periods="periods"
-          @update:modelValue-agg="v => aggResultOpenApp = v"
+          @update:agg="v => aggResultOpenApp = v"
         />
       </v-row>
 
-      <v-app-bar
-        :color="$vuetify.theme.current.dark ? 'transparent' : 'grey lighten-4'"
+      <v-toolbar
+        variant="tonal"
         rounded
-        flat
-        outlined
         :class="`my-4 section-bar-${$vuetify.theme.current.dark ? 'dark' : 'light'}`"
       >
         <v-icon
           x-large
           color="primary"
-          class="mr-4"
+          class="mx-4"
         >
           mdi-database
         </v-icon>
@@ -64,14 +59,14 @@
           v-model="dataset"
           :loading="!aggResultDataAPI"
           :items="datasetItems"
-          outlined
           hide-details
-          dense
+          variant="outlined"
+          density="compact"
           clearable
           label="ciblez un jeu de données"
           style="max-width: 500px;"
         />
-      </v-app-bar>
+      </v-toolbar>
 
       <v-row>
         <v-col
@@ -152,7 +147,7 @@ export default {
     datasetItems () {
       if (!this.aggResultDataAPI) return []
       return this.aggResultDataAPI.current.series
-        .map(s => ({ text: safeDecodeUriComponent(s.key.resource.title), value: s.key.resource.id, serie: s }))
+        .map(s => ({ title: safeDecodeUriComponent(s.key.resource.title), value: s.key.resource.id, serie: s }))
     },
     baseFilter () {
       /** @type {any} */

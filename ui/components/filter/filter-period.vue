@@ -6,8 +6,8 @@
       label="période"
       style="max-width: 360px;"
       hide-details
-      outlined
-      dense
+      variant="outlined"
+      density="compact"
       class="mr-4 mt-2"
       @update:model-value="setPeriod"
     />

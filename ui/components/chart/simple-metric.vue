@@ -1,7 +1,6 @@
 <template>
   <v-card
-    outlined
-    shaped
+    variant="text"
     :loading="loading"
   >
     <v-card-title class="accent--text text--darken-2 text-h3 mt-2 pb-0 justify-center text-center">

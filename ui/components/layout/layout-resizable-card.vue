@@ -4,13 +4,14 @@
     :md="large ? 12 : mdCols"
     :lg="large ? 12 : lgCols"
   >
-    <v-card flat>
-      <v-card-title class="text-overline primary--text text--darken-2 justify-center text-center py-0 px-8">
+    <v-card variant="text">
+      <v-card-title class="text-overline font-weight-bold text-primary justify-center text-center">
         {{ title }}
       </v-card-title>
       <v-btn
         v-if="$vuetify.display.mdAndUp"
         icon
+        flat
         style="position: absolute; right:0; top: 0;"
         @click="toggle"
       >

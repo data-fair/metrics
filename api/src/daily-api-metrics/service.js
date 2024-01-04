@@ -49,9 +49,9 @@ export const agg = async (account, query) => {
   if (query.statusClass) $match.statusClass = query.statusClass
   if (query.userClass) $match.userClass = query.userClass
   if (query.operationTrack) $match.operationTrack = query.operationTrack
-  // if (query.resourceType) $match['resource.type'] = query.resourceType
-  // if (query.resourceId) $match['resource.id'] = query.resourceId
-  // if (query.processingId) $match['processing._id'] = query.resourceId
+  if (query.resourceType) $match['resource.type'] = query.resourceType
+  if (query.resourceId) $match['resource.id'] = query.resourceId
+  if (query.processingId) $match['processing._id'] = query.resourceId
 
   /** @type {Record<string, any>} */
   const $group = {

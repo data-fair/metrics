@@ -55,7 +55,7 @@ export default {
     labels: { type: Object, required: false, default: null },
     lgCols: { type: Number, default: 4 }
   },
-  emits: ['input-agg'],
+  emits: ['update:agg'],
   setup () {
 
   },
@@ -107,7 +107,7 @@ export default {
           datasets: [{
             label: 'Période en cours',
             data: categories.map(c => c.value),
-            backgroundColor: this.$vuetify.theme.themes.light.colors.accent,
+            backgroundColor: this.$vuetify.theme.current.colors.accent,
             borderRadius: 4
           }, {
             label: 'Période précédente',
@@ -182,7 +182,7 @@ export default {
         this.fetchPeriod(this.periods.current),
         this.fetchPeriod(this.periods.previous)
       ])
-      this.$emit('input-agg', {
+      this.$emit('update:agg', {
         current: JSON.parse(JSON.stringify(aggResult)),
         previous: JSON.parse(JSON.stringify(aggResultPrevious))
       })

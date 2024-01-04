@@ -15,8 +15,8 @@
         v-bind="props"
         style="max-width: 150px;"
         hide-details
-        outlined
-        dense
+        variant="outlined"
+        density="compact"
         class="mr-4 mt-2"
       />
     </template>
