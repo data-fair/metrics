@@ -7,6 +7,6 @@ import useReactiveSearchParams from '@data-fair/lib/vue/reactive-search-params.j
 export default defineNuxtPlugin((nuxtApp) => {
   const reactiveSearchParams = useReactiveSearchParams()
   const cookie = useCookie('theme_dark', { watch: false })
-  const vuetify = createVuetify(defaultOptions(reactiveSearchParams, cookie.value === 'true'))
+  const vuetify = createVuetify(defaultOptions(reactiveSearchParams, cookie.value))
   nuxtApp.vueApp.use(vuetify)
 })
