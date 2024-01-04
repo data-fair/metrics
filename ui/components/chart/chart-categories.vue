@@ -107,7 +107,7 @@ export default {
           datasets: [{
             label: 'Période en cours',
             data: categories.map(c => c.value),
-            backgroundColor: this.$vuetify.theme.themes.light.accent,
+            backgroundColor: this.$vuetify.theme.themes.light.colors.accent,
             borderRadius: 4
           }, {
             label: 'Période précédente',
@@ -131,7 +131,7 @@ export default {
               ticks: {
                 precision: 0,
                 callback (_value, index) {
-                  return truncateMiddle(categories[index].label, vuetify.breakpoint.mdAndUp ? 20 : 10, 10, '...')
+                  return truncateMiddle(categories[index].label, vuetify.display.mdAndUp ? 20 : 10, 10, '...')
                 }
               }
             }

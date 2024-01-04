@@ -35,6 +35,28 @@ export const start = async () => {
   if (config.prometheus.active) await prometheus.start()
   await mongo.connect(config.mongoUrl)
 
+  await mongo.configureIndexes({
+    'daily-api-metrics': {
+      'main-keys': [
+        {
+          'owner.type': 1,
+          'owner.id': 1,
+          'owner.department': 1,
+          day: 1,
+          'resource.type': 1,
+          'resource.id': 1,
+          operationTrack: 1,
+          statusClass: 1,
+          userClass: 1,
+          refererDomain: 1,
+          refererApp: 1,
+          'processing._id': 1
+        },
+        { unique: true }
+      ]
+    }
+  })
+
   try {
     await unlink(config.socketPath)
   } catch (err) {

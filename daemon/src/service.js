@@ -153,18 +153,26 @@ export function pushLogLine (line) {
     existingPatch[1].$inc.bytes += line[3]
     existingPatch[1].$inc.duration += line[2]
   } else {
+    const resource = JSON.parse(line[12])
+    if (resource.title) resource.title = decodeURIComponent(resource.title)
+    const processing = line[10] ? JSON.parse(line[10]) : undefined
+    if (processing?.title) processing.title = decodeURIComponent(processing.title)
+
+    /** @type {Record<string, any>} */
+    const set = {
+      owner: JSON.parse(line[5]),
+      day,
+      resource,
+      operationTrack,
+      statusClass,
+      userClass,
+      refererDomain
+    }
+    if (processing) set.processing = processing
+    if (refererApp) set.refererApp = refererApp
+
     patches.push([patchKey, {
-      $set: {
-        owner: JSON.parse(line[5]),
-        day,
-        resource: JSON.parse(line[12]),
-        operationTrack,
-        statusClass,
-        userClass,
-        refererDomain,
-        refererApp,
-        processing: line[10] ? JSON.parse(line[10]) : undefined
-      },
+      $set: set,
       $inc: {
         nbRequests: 1,
         bytes: line[3],

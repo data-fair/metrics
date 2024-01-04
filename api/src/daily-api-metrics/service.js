@@ -3,6 +3,7 @@ import { camelCase } from 'camel-case'
 import dayjs from 'dayjs'
 import dayjsUtc from 'dayjs/plugin/utc.js'
 import mongo from '@data-fair/lib/node/mongo.js'
+import equal from 'fast-deep-equal'
 
 dayjs.extend(dayjsUtc)
 
@@ -112,7 +113,7 @@ export const agg = async (account, query) => {
     const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, /** @type {Record<String, string>} */({}))
     if (item.resource) key.resource = item.resource
     if (item.processing) key.processing = item.processing
-    let serie = result.series.find((s) => JSON.stringify(s.key) === JSON.stringify(key))
+    let serie = result.series.find((s) => equal(s.key, key))
     if (!serie) {
       serie = {
         key,

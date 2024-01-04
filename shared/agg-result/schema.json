@@ -31,7 +31,15 @@
       "required": ["key", "nbRequests", "bytes"],
       "properties": {
         "key": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "refererApp": {"type": "string"},
+            "processing": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/processing"},
+            "resource": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/resourceDef"},
+            "refererDomain": {"type": "string"},
+            "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"}
+          }
         },
         "nbRequests": {
           "type": "integer"
