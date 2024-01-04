@@ -14,7 +14,7 @@
     "dev-api": "npm -w api run dev",
     "dev-daemon": "npm -w daemon run dev",
     "dev-zellij": "zellij --layout .zellij.kdl",
-    "build-types": "df-build-types shared",
+    "build-types": "df-build-types shared && df-build-types api && df-build-types daemon",
     "prepare": "husky install",
     "quality": "npm run dev-deps && npm run lint && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
   },
