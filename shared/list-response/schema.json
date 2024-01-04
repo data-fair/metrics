@@ -1,6 +1,6 @@
 {
   "$id": "https://github.com/data-fair/metrics/list-response",
-  "x-exports": ["types", "stringify"],
+  "x-exports": ["types"],
   "title": "list-response",
   "type":"object",
   "additionalProperties":false,

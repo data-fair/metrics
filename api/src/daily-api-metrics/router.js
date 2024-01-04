@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { session, asyncHandler } from '@data-fair/lib/express/index.js'
-import { listResponseType, aggQueryType } from '../../../shared/index.js'
+import { aggQueryType } from '../../../shared/index.js'
 
 import { list, agg } from './service.js'
 
@@ -10,7 +10,7 @@ export default router
 router.get('', asyncHandler(async (req, res) => {
   const reqSession = await session.reqAuthenticated(req)
   const results = await list(reqSession.account)
-  res.type('json').send(listResponseType.stringify({ count: results.length, results }))
+  res.json({ count: results.length, results })
 }))
 
 router.get('/_agg', asyncHandler(async (req, res) => {
