@@ -6,7 +6,7 @@
   >
     <v-progress-linear
       :indeterminate="loading"
-      background-opacity="0"
+      bg-opacity="0"
     />
     <v-responsive
       v-if="!chartConfig"
