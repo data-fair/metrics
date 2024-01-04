@@ -13,7 +13,6 @@
     "config": "^3.3.9",
     "dayjs": "^1.11.7",
     "express": "^4.18.2",
-    "fast-json-stringify": "^5.9.2",
     "flatstr": "^1.0.12",
     "http-errors": "^2.0.0",
     "http-terminator": "^3.2.0",

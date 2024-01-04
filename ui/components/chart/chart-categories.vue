@@ -6,6 +6,7 @@
   >
     <v-progress-linear
       :indeterminate="loading"
+      color="primary"
       bg-opacity="0"
     />
     <v-responsive

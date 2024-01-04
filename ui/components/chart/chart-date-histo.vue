@@ -2,7 +2,8 @@
   <layout-resizable-card :title="title">
     <v-progress-linear
       :indeterminate="loading"
-      background-opacity="0"
+      color="primary"
+      bg-opacity="0"
     />
     <v-responsive
       v-if="!chartConfig"
