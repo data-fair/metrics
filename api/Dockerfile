@@ -10,7 +10,7 @@ RUN npm ci --workspaces=false --no-audit --no-fund --omit=optional
 
 ADD shared shared
 ADD api api
-RUN npm run build-types
+RUN npm run build-types-api
 
 ##########################
 # install api prod deps

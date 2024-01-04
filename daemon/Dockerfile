@@ -10,7 +10,7 @@ RUN npm ci --workspaces=false --no-audit --no-fund --omit=optional
 
 ADD shared shared
 ADD daemon daemon
-RUN npm run build-types
+RUN npm run build-types-daemon
 
 ##########################
 # install daemon prod deps
