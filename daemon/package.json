@@ -10,7 +10,8 @@
     "config": "^3.3.9",
     "debug": "^4.3.4",
     "mongodb": "^6.3.0",
-    "node-unix-socket": "^0.2.5"
+    "node-unix-socket": "^0.2.5",
+    "prom-client": "^15.1.0"
   },
   "devDependencies": {
     "@types/config": "^3.3.3"
