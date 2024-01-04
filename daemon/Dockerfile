@@ -16,6 +16,7 @@ RUN npm run build-types-daemon
 # install daemon prod deps
 FROM node:20.10.0-alpine3.18 AS installer
 
+RUN apk add python3 make g++ git
 RUN npm i -g clean-modules@3.0.4
 
 WORKDIR /app/
