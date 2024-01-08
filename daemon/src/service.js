@@ -129,9 +129,15 @@ export function pushLogLine (line) {
   const userClass = getUserClass(line, user, ownerType, ownerId)
   const [refererDomain, refererApp] = getRefererInfo(line)
 
+  let bytesSent = line[3]
+  if (line[14] && line[14] !== '-') {
+    const gzipRatio = Number(line[14])
+    if (!isNaN(gzipRatio)) bytesSent /= gzipRatio
+  }
+
   // increment prometheus metrics
   requestsHistogram.labels(line[11], operationId, statusClass, line[0]).observe(line[2])
-  requestsBytesCounter.labels(line[11], operationId, statusClass, line[0]).inc(line[3])
+  requestsBytesCounter.labels(line[11], operationId, statusClass, line[0]).inc(bytesSent)
 
   // manage mongo patches
   /** @type {Record<string, string>} */
@@ -153,7 +159,7 @@ export function pushLogLine (line) {
   const existingPatch = patches.find(p => equal(p[0], patchKey))
   if (existingPatch) {
     existingPatch[1].$inc.nbRequests += 1
-    existingPatch[1].$inc.bytes += line[3]
+    existingPatch[1].$inc.bytes += bytesSent
     existingPatch[1].$inc.duration += line[2]
   } else {
     const resource = JSON.parse(line[12])
@@ -178,7 +184,7 @@ export function pushLogLine (line) {
       $set: set,
       $inc: {
         nbRequests: 1,
-        bytes: line[3],
+        bytes: bytesSent,
         duration: line[2]
       }
     }])

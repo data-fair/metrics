@@ -32,8 +32,11 @@ try {
       schema: [{ key: 'prop1', type: 'string' }]
     })).data
     await adminWS.waitForJournal(dataset.id, 'finalize-end')
-    await adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
-    const [rawLine, [day, parsedLine]] = await Promise.all([testSpies.waitFor('rawLine'), await testSpies.waitFor('parsedLine')])
+    const [rawLine, [day, parsedLine]] = await Promise.all([
+      testSpies.waitFor('rawLine'),
+      testSpies.waitFor('parsedLine'),
+      adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
+    ])
     assert.ok(rawLine)
     assert.equal(day.length, 10)
     assert.ok(Array.isArray(parsedLine))
