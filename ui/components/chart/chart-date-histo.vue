@@ -1,18 +1,10 @@
 <template>
-  <layout-resizable-card :title="title">
-    <v-progress-linear
-      :indeterminate="loading"
-      color="primary"
-      bg-opacity="0"
-    />
-    <v-responsive
-      v-if="!chartConfig"
-      :aspect-ratio="aspectRatio"
-    />
-    <canvas
-      v-else
-      :id="id + '-canvas'"
-    />
+  <layout-resizable-card
+    :title="title"
+    :aspect-ratio="aspectRatio"
+    :loading="loading"
+  >
+    <canvas :id="id + '-canvas'" />
   </layout-resizable-card>
 </template>
 
@@ -67,7 +59,6 @@ export default {
         },
         options: {
           locale: this.$i18n.locale,
-          aspectRatio: this.aspectRatio,
           scales: {},
           plugins: {
             legend: {

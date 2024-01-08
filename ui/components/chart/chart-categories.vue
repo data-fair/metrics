@@ -3,20 +3,10 @@
     v-model="large"
     :title="title"
     :lg-cols="lgCols"
+    :aspect-ratio="aspectRatio"
+    :loading="loading"
   >
-    <v-progress-linear
-      :indeterminate="loading"
-      color="primary"
-      bg-opacity="0"
-    />
-    <v-responsive
-      v-if="!chartConfig"
-      :aspect-ratio="aspectRatio"
-    />
-    <canvas
-      v-else
-      :id="id + '-canvas'"
-    />
+    <canvas :id="id + '-canvas'" />
   </layout-resizable-card>
 </template>
 
@@ -79,7 +69,6 @@ export default {
       if (!this.aggResult) return
 
       const series = [...this.aggResult.series]
-      // splice removes the forst items and returns them
       const limitedSeries = series.splice(0, this.large ? 19 : 9)
       if (series.length) {
         limitedSeries.push({
@@ -120,7 +109,6 @@ export default {
         options: {
           indexAxis: 'y',
           locale: this.$i18n.locale,
-          aspectRatio: this.aspectRatio,
           scales: {
             x: {
               beginAtZero: true,
@@ -174,6 +162,7 @@ export default {
   },
   async mounted () {
     await this.fetch()
+    if (this.chart) this.chart.destroy()
     this.chart = new Chart(document.getElementById(this.id + '-canvas'), this.chartConfig)
   },
   methods: {
