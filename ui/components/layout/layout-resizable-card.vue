@@ -17,6 +17,7 @@
           icon
           flat
           style="position: absolute; right:0; top: 0;"
+          :title="large ? 'réduire' : 'agrandir'"
           @click="toggle"
         >
           <v-icon>mdi-image-size-select-small</v-icon>
