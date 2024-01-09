@@ -132,7 +132,7 @@ export function pushLogLine (line) {
   let bytesSent = line[3]
   if (line[14] && line[14] !== '-') {
     const gzipRatio = Number(line[14])
-    if (!isNaN(gzipRatio)) bytesSent /= gzipRatio
+    if (!isNaN(gzipRatio)) bytesSent *= gzipRatio
   }
 
   // increment prometheus metrics
