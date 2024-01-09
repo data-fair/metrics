@@ -29,6 +29,7 @@
 import { useLocaleDayjs } from '@data-fair/lib/vue/locale-dayjs.js'
 
 export default {
+  emits: ['update:modelValue'],
   setup () {
     const { dayjs } = useLocaleDayjs()
     return { dayjs }
