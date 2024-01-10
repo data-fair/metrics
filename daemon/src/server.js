@@ -36,6 +36,7 @@ const socket = unixDgram.createSocket('unix_dgram', (/** @type {Buffer} */data) 
     pushLogLine(parseLogLine(data.toString()))
   } catch (err) {
     console.error('Could not parse log line', err, data.toString())
+    prometheus.internalError('log-parse', 'could not parse log line', err, data.toString())
   }
 })
 
