@@ -18,7 +18,7 @@
     "build-types-api": "df-build-types shared && df-build-types api",
     "build-types-daemon": "df-build-types shared && df-build-types daemon",
     "prepare": "husky install",
-    "quality": "npm run dev-deps && npm run lint && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
+    "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
   },
   "author": "Alban Mouton <alban.mouton@koumoul.com>",
   "license": "AGPL-3.0-only",
