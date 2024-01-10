@@ -1,71 +1,50 @@
 {
   "name": "@data-fair/metrics",
   "version": "0.10.0",
-  "description": "",
-  "main": "server",
+  "description": "A service to help monitoring HTTP requests in the data-fair stack.",
+  "type": "module",
   "scripts": {
-    "test": "NODE_ENV=test mocha --exit --bail --timeout 20000 test/",
-    "lint": "eslint --ext js,vue --ignore-path .gitignore .",
-    "lint-fix": "eslint --ext js,vue --ignore-path .gitignore --fix .",
-    "dev-server": "DEBUG=upgrade* NODE_ENV=development nodemon server",
-    "dev-client": "NODE_ENV=development nuxt",
+    "test": "node test-it/index.js",
+    "lint": "eslint --ext .js,.ts,.vue .",
+    "lint-fix": "eslint --fix --ext .js,.ts,.vue .",
+    "check-types": "tsc",
+    "dev-deps": "docker compose up -d",
+    "stop-dev-deps": "docker compose stop",
+    "dev-ui": "npm -w ui run dev",
+    "dev-api": "npm -w api run dev",
+    "dev-daemon": "npm -w daemon run dev",
     "dev-zellij": "zellij --layout .zellij.kdl",
-    "build": "nuxt build",
-    "start": "node server",
-    "analyze": "nuxt build --analyze"
+    "build-types": "df-build-types shared && df-build-types api && df-build-types daemon",
+    "build-types-api": "df-build-types shared && df-build-types api",
+    "build-types-daemon": "df-build-types shared && df-build-types daemon",
+    "prepare": "husky install",
+    "quality": "npm run dev-deps && npm run lint && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
   },
-  "author": "",
+  "author": "Alban Mouton <alban.mouton@koumoul.com>",
   "license": "AGPL-3.0-only",
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended",
-      "standard",
-      "plugin:vue/recommended"
-    ],
-    "rules": {
-      "vue/no-v-html": "off",
-      "vue/multi-word-component-names": "off"
-    }
-  },
+  "workspaces": [
+    "api",
+    "ui",
+    "daemon"
+  ],
   "devDependencies": {
-    "@babel/eslint-parser": "^7.16.0",
-    "eslint": "^7.12.1",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.25.2",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.1",
-    "eslint-plugin-vue": "^8.0.3",
-    "http-proxy-middleware": "^2.0.1",
-    "mocha": "^9.1.3"
-  },
-  "dependencies": {
-    "@data-fair/sd-express": "^1.4.3",
-    "@data-fair/sd-vue": "^2.6.1",
-    "@koumoul/nuxt-config-inject": "^0.4.10",
-    "@nuxtjs/axios": "^5.13.6",
-    "@nuxtjs/i18n": "^7.2.0",
-    "@nuxtjs/vuetify": "^1.12.1",
-    "camel-case": "^3.0.0",
-    "chart.js": "^3.6.0",
-    "config": "^3.3.6",
-    "cookie-parser": "^1.4.5",
-    "cookie-universal-nuxt": "^2.1.5",
-    "dayjs": "^1.10.7",
-    "event-to-promise": "^0.8.0",
-    "express": "^4.17.1",
-    "fast-deep-equal": "^3.1.3",
-    "google-palette": "^1.1.0",
-    "iframe-resizer": "^4.3.2",
-    "mongodb": "^4.2.0",
-    "nodemon": "^2.0.15",
-    "nuxt": "^2.15.8",
-    "prom-client": "^14.0.1",
-    "truncate-middle": "^1.0.6",
-    "vuetify": "^2.5.14"
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "@data-fair/lib": "^0.19.0",
+    "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "agentkeepalive": "^4.5.0",
+    "ajv-errors": "^3.0.0",
+    "ajv-formats": "^2.1.1",
+    "ajv-i18n": "^4.2.0",
+    "axios": "^1.6.2",
+    "cacheable-lookup": "^6.1.0",
+    "eslint": "^8.55.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-config-typescript": "^3.0.0",
+    "eslint-plugin-vue": "^9.19.2",
+    "husky": "^8.0.3",
+    "json-schema-to-typescript": "^11.0.5",
+    "typescript": "^5.3.3",
+    "ws": "^8.16.0"
   }
 }

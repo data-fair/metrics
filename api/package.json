@@ -1,0 +1,27 @@
+{
+  "name": "api",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=development node --watch ./index.js"
+  },
+  "dependencies": {
+    "@data-fair/lib": "^0.19.0",
+    "ajv-formats": "^2.1.1",
+    "ajv-i18n": "^4.2.0",
+    "camel-case": "^4.1.2",
+    "config": "^3.3.9",
+    "dayjs": "^1.11.7",
+    "express": "^4.18.2",
+    "flatstr": "^1.0.12",
+    "http-errors": "^2.0.0",
+    "http-terminator": "^3.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.1.0",
+    "mongodb": "^6.2.0",
+    "prom-client": "^14.2.0"
+  },
+  "devDependencies": {
+    "@types/config": "^3.3.3"
+  }
+}

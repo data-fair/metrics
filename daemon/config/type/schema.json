@@ -1,0 +1,35 @@
+{
+  "$id": "https://github.com/data-fair/metrics/daemon/config",
+  "x-exports": ["types", "validate"],
+  "x-ajv": {"coerceTypes": "array"},
+  "type": "object",
+  "title": "Daemon config",
+  "additionalProperties": false,
+  "required": ["socketPath", "mongoUrl", "prometheus", "maxBulkSize", "maxDelayMS"],
+  "properties": {
+    "socketPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mongoUrl": {
+      "type": "string"
+    },
+    "prometheus": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
+    "maxBulkSize": {
+      "type": "integer"
+    },
+    "maxDelayMS": {
+      "type": "integer"
+    },
+    "util": {},
+    "get": {},
+    "has": {}
+  }
+}

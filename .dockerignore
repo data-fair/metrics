@@ -1,7 +1,4 @@
 node_modules
-coverage
-.nyc_output
 .nuxt
-data
-nuxt-dist
-doc-dist
+.output
+daemon-rust

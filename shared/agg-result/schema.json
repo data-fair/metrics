@@ -1,0 +1,77 @@
+{
+  "$id": "https://github.com/data-fair/metrics/agg-result",
+  "x-exports": ["types"],
+  "title": "agg result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["series", "nbRequests", "bytes"],
+  "properties": {
+    "nbRequests": {
+      "type": "integer"
+    },
+    "bytes": {
+      "type": "integer"
+    },
+    "days": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "series": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/aggResultSeries" }
+    }
+  },
+  "$defs": {
+    "aggResultSeries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "nbRequests", "bytes"],
+      "properties": {
+        "key": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "refererApp": {"type": "string"},
+            "processing": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/processing"},
+            "resource": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/resourceDef"},
+            "refererDomain": {"type": "string"},
+            "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"}
+          }
+        },
+        "nbRequests": {
+          "type": "integer"
+        },
+        "bytes": {
+          "type": "integer"
+        },
+        "days": {
+          "type": "object",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+              "^[0-9-]+$": {
+                "type": "object",
+                "required": ["nbRequests", "bytes"],
+                "properties": {
+                  "nbRequests": {
+                    "type": "integer"
+                  },
+                  "bytes": {
+                    "type": "integer"
+                  },
+                  "meanDuration": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
