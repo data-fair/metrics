@@ -65,6 +65,8 @@ services:
     image: ghcr.io/data-fair/elasticsearch:7.17.9
     ports:
       - 9200:9200
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
     environment:
       - discovery.type=single-node
     healthcheck:
@@ -77,14 +79,9 @@ services:
     image: mongo:4.4
     ports:
       - 27017:27017
-
-  #####
-  # dev tools installed through docker for convenience
-  #####
-
-  jtd:
-    build: ./dev/docker/jtd
-    profiles:
-      - tools
     volumes:
-      - ./:/jtd
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
+  elasticsearch-data:

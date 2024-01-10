@@ -1,6 +1,6 @@
 {
   "name": "@data-fair/metrics",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "A service to help monitoring HTTP requests in the data-fair stack.",
   "type": "module",
   "scripts": {
