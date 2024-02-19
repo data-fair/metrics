@@ -17,14 +17,16 @@ services:
   #####
 
   simple-directory:
-    image: ghcr.io/data-fair/simple-directory:5
-    ports:
-      - 6221:8080
-      - 1080:1080
-      - 1025:1025
+    image: ghcr.io/data-fair/simple-directory:master
+    network_mode: host
+    # ports:
+    #   - 6221:8080
+    #   - 1080:1080
+    #   - 1025:1025
     depends_on:
       - mongo
     environment:
+      - PORT=6221
       - DEBUG=session
       - ADMINS=["superadmin@test.com"]
       - PUBLIC_URL=http://localhost:6218/simple-directory
@@ -39,8 +41,9 @@ services:
 
   data-fair:
     image: ghcr.io/data-fair/data-fair:master
-    ports:
-      - 6222:8080
+    network_mode: host
+    #ports:
+    #  - 6222:8080
     depends_on:
       mongo:
         condition: service_started
@@ -48,11 +51,12 @@ services:
         condition: service_healthy
     restart: on-failure:10
     environment:
-      - DEBUG=files
-      - MONGO_URL=mongodb://mongo:27017/data-fair
-      - ES_HOST=elasticsearch:9200
+      - PORT=6222
+      - DEBUG=files,db
+      - MONGO_URL=mongodb://localhost:27017/data-fair
+      - ES_HOST=localhost:9200
       - DIRECTORY_URL=http://localhost:6218/simple-directory
-      - PRIVATE_DIRECTORY_URL=http://simple-directory:8080
+      # - PRIVATE_DIRECTORY_URL=http://simple-directory:8080
       - PUBLIC_URL=http://localhost:6218/data-fair
       - WS_PUBLIC_URL=ws://localhost:6218/data-fair
       - PROMETHEUS_ACTIVE=false
@@ -76,7 +80,7 @@ services:
       retries: 10
 
   mongo:
-    image: mongo:4.4
+    image: mongo:4.2
     ports:
       - 27017:27017
     volumes:
