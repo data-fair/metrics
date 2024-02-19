@@ -1,6 +1,6 @@
 ##########################
 # install root dev deps and build
-FROM node:20.10.0-alpine3.18 AS builder
+FROM node:20.11.1-alpine3.19 AS builder
 
 WORKDIR /app/
 
@@ -14,7 +14,7 @@ RUN npm run build-types-daemon
 
 ##########################
 # install daemon prod deps
-FROM node:20.10.0-alpine3.18 AS installer
+FROM node:20.11.1-alpine3.19 AS installer
 
 RUN apk add python3 make g++ git
 RUN npm i -g clean-modules@3.0.4
@@ -33,7 +33,7 @@ RUN test ! -d daemon/node_modules
 
 ##########################
 # copy deps and build and assemble actual dist
-FROM node:20.10.0-alpine3.18
+FROM node:20.11.1-alpine3.19
 
 ENV NODE_ENV production
 

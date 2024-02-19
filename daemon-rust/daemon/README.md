@@ -1,0 +1,1 @@
+**This daemon is not used. It is an attempt at writting a Rust version, kept around just in case.**

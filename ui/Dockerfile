@@ -1,4 +1,6 @@
-FROM node:20.10.0-alpine3.18 AS builder
+##########################
+# install root dev deps and build
+FROM node:20.11.1-alpine3.19 AS builder
 
 RUN npm i -g clean-modules@3.0.4
 
@@ -7,14 +9,14 @@ ADD /package.json .
 ADD /package-lock.json .
 ADD /ui/package.json ui/
 
-# install dev deps to run the "prepare" script, then prune them
 RUN npm -w ui --include-workspace-root ci --no-audit --no-fund
 ADD /ui/ ui/
 ADD /shared shared
 RUN npm -w ui run build
 
 ##########################
-FROM node:20.10.0-alpine3.18
+# copy built app and assemble actual dist
+FROM node:20.11.1-alpine3.19
 
 ENV NODE_ENV production
 ENV PORT 8080
