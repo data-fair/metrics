@@ -48,4 +48,5 @@ try {
   adminWS.close()
   await apiServer.stop()
   await daemonServer.stop()
+  process.exit(0)
 }

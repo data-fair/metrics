@@ -1,8 +1,13 @@
 module.exports = {
   socketPath: 'SOCKET_PATH',
-  mongoUrl: 'MONGO_URL',
-  prometheus: {
-    port: 'PROMETHEUS_PORT',
-    active: 'PROMETHEUS_ACTIVE'
+  mongo: {
+    url: 'MONGO_URL',
+    options: {
+      __name: 'MONGO_OPTIONS',
+      __format: 'json'
+    }
+  },
+  observer: {
+    active: 'OBSERVER_ACTIVE'
   }
 }

@@ -2,11 +2,9 @@
 
 ## Prerequisites
 
-Your IDE should ideally be [Visual Studio Code](https://code.visualstudio.com/) with the [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) extensions.
-
-The cornerstone of the dev environment is [Docker](https://docs.docker.com/engine/install/).
-
-Everything else can be done inside docker if you do not want to install too much stuff locally. But for the best DX it is better to install [Node.js v18+](https://nodejs.org/) (probably through [nvm](https://github.com/nvm-sh/nvm)) and [Rust](https://www.rust-lang.org/tools/install).
+  - A Javascript/Typescript IDE with [Vue.js](https://vuejs.org/)  and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) support.
+  - A recent [Docker](https://docs.docker.com/engine/install/) installation.
+  - [Node.js v20+](https://nodejs.org/)
 
 ## Install dependencies
 
@@ -73,14 +71,4 @@ Build images:
 docker build -f api/Dockerfile -t data-fair/metrics/api:dev .
 docker build -f ui/Dockerfile -t data-fair/metrics/ui:dev .
 docker build -f daemon/Dockerfile -t data-fair/metrics/daemon:dev .
-```
-
-```
-docker compose --profile build build
-```
-
-Run built images (access the UI here http://localhost:6218/metrics/):
-
-```
-docker compose --profile build build run
 ```

@@ -5,7 +5,7 @@
   "type": "object",
   "title": "Api config",
   "additionalProperties": false,
-  "required": ["port", "origin", "directoryUrl", "mongoUrl", "prometheus"],
+  "required": ["port", "origin", "directoryUrl", "mongo", "observer"],
   "properties": {
     "port": {
       "type": "number"
@@ -18,11 +18,21 @@
       "type": "string",
       "pattern": "^https?://"
     },
-    "mongoUrl": {
-      "type": "string"
-    },
-    "prometheus": {
+    "mongo": {
       "type": "object",
+      "required": ["url", "options"],
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object"
+        }
+      }
+    },
+    "observer": {
+      "type": "object",
+      "required": ["active"],
       "properties": {
         "active": {
           "type": "boolean"

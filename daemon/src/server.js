@@ -3,7 +3,7 @@ import config from './config.js'
 // @ts-ignore
 import unixDgram from 'unix-dgram'
 import mongo from '@data-fair/lib/node/mongo.js'
-import * as prometheus from '@data-fair/lib/node/prometheus.js'
+import { startObserver, stopObserver, internalError } from '@data-fair/lib/node/observer.js'
 import { pushLogLine, getBulk } from './service.js'
 
 // inspired by https://github.com/vadimdemedes/syslog-parse/blob/master/source/index.ts
@@ -36,13 +36,13 @@ const socket = unixDgram.createSocket('unix_dgram', (/** @type {Buffer} */data) 
     pushLogLine(parseLogLine(data.toString()))
   } catch (err) {
     console.error('Could not parse log line', err, data.toString())
-    prometheus.internalError('log-parse', 'could not parse log line', err, data.toString())
+    internalError('log-parse', 'could not parse log line', err, data.toString())
   }
 })
 
 export const start = async () => {
-  if (config.prometheus.active) await prometheus.start()
-  await mongo.connect(config.mongoUrl)
+  if (config.observer.active) await startObserver()
+  await mongo.connect(config.mongo.url, config.mongo.options)
 
   await mongo.configure({
     'daily-api-metrics': {
@@ -81,5 +81,6 @@ export const stop = async () => {
   socket.close()
   const bulk = getBulk()
   await bulk?.execute()
+  if (config.observer.active) await stopObserver()
   await mongo.client.close()
 }

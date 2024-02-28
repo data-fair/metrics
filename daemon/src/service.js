@@ -1,5 +1,5 @@
 import { Counter, Histogram, Gauge } from 'prom-client'
-import { globalRegistry } from '@data-fair/lib/node/prometheus.js'
+import { servicePromRegistry } from '@data-fair/lib/node/observer.js'
 import mongo from '@data-fair/lib/node/mongo.js'
 import equal from 'fast-deep-equal'
 import config from './config.js'
@@ -24,7 +24,7 @@ const requestsBytesCounter = new Counter({
 new Gauge({
   name: 'df_metrics_daily_api_metrics_total',
   help: 'Total number of daily api metrics',
-  registers: [globalRegistry],
+  registers: [servicePromRegistry],
   async collect () {
     this.set(await mongo.db.collection('daily-api-metrics').estimatedDocumentCount())
   }

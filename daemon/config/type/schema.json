@@ -5,17 +5,27 @@
   "type": "object",
   "title": "Daemon config",
   "additionalProperties": false,
-  "required": ["socketPath", "mongoUrl", "prometheus", "maxBulkSize", "maxDelayMS"],
+  "required": ["socketPath", "mongo", "observer", "maxBulkSize", "maxDelayMS"],
   "properties": {
     "socketPath": {
       "type": "string",
       "minLength": 1
     },
-    "mongoUrl": {
-      "type": "string"
-    },
-    "prometheus": {
+    "mongo": {
       "type": "object",
+      "required": ["url", "options"],
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object"
+        }
+      }
+    },
+    "observer": {
+      "type": "object",
+      "required": ["active"],
       "properties": {
         "active": {
           "type": "boolean"
