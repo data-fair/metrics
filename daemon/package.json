@@ -6,11 +6,6 @@
     "dev": "umask 0 && NODE_ENV=development node --watch ./index.js"
   },
   "dependencies": {
-    "@data-fair/lib": "^0.27.1",
-    "ajv": "^8.12.0",
-    "ajv-errors": "^3.0.0",
-    "ajv-formats": "^2.1.1",
-    "ajv-i18n": "^4.2.0",
     "config": "^3.3.9",
     "debug": "^4.3.4",
     "fast-deep-equal": "^3.1.3",
