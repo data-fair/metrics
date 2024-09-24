@@ -8,9 +8,8 @@ ADD /package.json .
 ADD /package-lock.json .
 RUN npm ci --workspaces=false --no-audit --no-fund --omit=optional
 
-ADD shared shared
 ADD api api
-RUN npm run build-types-api
+RUN npm run build-types
 
 ##########################
 # install api prod deps
@@ -38,7 +37,6 @@ ENV NODE_ENV production
 
 WORKDIR /app/
 
-COPY --from=builder /app/shared /app/shared
 COPY --from=builder /app/api /app/api
 COPY --from=installer /app/node_modules /app/node_modules
 

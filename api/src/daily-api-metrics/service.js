@@ -31,7 +31,7 @@ export const list = async (account) => {
 
 /**
  * @param {import('@data-fair/lib/express/index.js').Account} account
- * @param {import('../../../shared/agg-query/index.js').AggQuery} query
+ * @param {import('../../doc/agg-query/index.js').AggQuery} query
  * @returns
  */
 export const agg = async (account, query) => {
@@ -90,7 +90,7 @@ export const agg = async (account, query) => {
   ]
   const aggResult = await mongo.db.collection('daily-api-metrics').aggregate(pipeline).toArray()
   const items = aggResult.map((/** @type {any} */r) => ({ ...r._id, ...r, meanDuration: r.duration / r.nbRequests }))
-  /** @type {import('../../../shared/agg-result/index.js').AggResult} */
+  /** @type {import('../../doc/agg-result/index.js').AggResult} */
   const result = {
     series: [],
     nbRequests: 0,
