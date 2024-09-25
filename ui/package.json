@@ -5,7 +5,9 @@
     "dev": "nuxt dev --port 6220",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint-fix": "eslint --fix ."
   },
   "devDependencies": {
     "@mdi/font": "^7.4.47",
@@ -13,12 +15,6 @@
     "@nuxtjs/i18n": "^8.0.0-rc.11",
     "@types/debug": "^4.1.7",
     "@types/truncate-middle": "^1.0.1",
-    "nuxt": "^3.8.2",
-    "sass": "^1.69.5",
-    "upath": "^2.0.1",
-    "vite-plugin-vuetify": "^2.0.1"
-  },
-  "dependencies": {
     "chart.js": "^4.4.1",
     "dayjs": "^1.11.10",
     "debug": "^4.3.4",
@@ -27,6 +23,11 @@
     "truncate-middle": "^1.0.6",
     "universal-cookie": "^6.1.1",
     "vue": "^3.4.5",
-    "vuetify": "^3.4.9"
+    "vuetify": "^3.4.9",
+    "eslint-plugin-vuetify": "github:albanm/eslint-plugin-vuetify",
+    "nuxt": "^3.8.2",
+    "sass": "^1.69.5",
+    "upath": "^2.0.1",
+    "vite-plugin-vuetify": "^2.0.1"
   }
 }

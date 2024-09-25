@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node test-it/index.js",
-    "lint": "eslint --ext .js,.ts,.vue .",
-    "lint-fix": "eslint --fix --ext .js,.ts,.vue .",
+    "lint": "eslint . && npm -w ui run lint",
+    "lint-fix": "eslint --fix . && npm -w ui run lint-fix",
     "check-types": "tsc",
     "dev-deps": "docker compose up -d",
     "stop-dev-deps": "docker compose stop",
@@ -29,7 +29,6 @@
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
     "@data-fair/lib": "^0.47.1",
-    "@nuxtjs/eslint-config-typescript": "^12.1.0",
     "agentkeepalive": "^4.5.0",
     "ajv": "^8.17.1",
     "ajv-errors": "^3.0.0",
@@ -37,12 +36,10 @@
     "ajv-i18n": "^4.2.0",
     "axios": "^1.6.2",
     "cacheable-lookup": "^6.1.0",
-    "eslint": "^8.55.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-config-typescript": "^3.0.0",
-    "eslint-plugin-vue": "^9.19.2",
+    "eslint": "^9.10.0",
     "husky": "^8.0.3",
     "json-schema-to-typescript": "^11.0.5",
+    "neostandard": "^0.11.6",
     "typescript": "^5.3.3",
     "ws": "^8.16.0"
   }
