@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { camelCase } from 'camel-case'
 import dayjs from 'dayjs'
 import dayjsUtc from 'dayjs/plugin/utc.js'

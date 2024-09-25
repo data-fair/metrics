@@ -15,7 +15,7 @@ export type LogLine = [
   cache_status: string,
   resource: string,
   operation: string,
-  gzip_ratio: string,
+  gzip_ratio: string
 ]
 
 export type User = {
