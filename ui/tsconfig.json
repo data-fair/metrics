@@ -4,6 +4,10 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "paths": {
+      "#api/types": ["../api/types/index.ts"],
+      "#api/doc": ["../api/doc/index.ts"]
+    }
   }
 }

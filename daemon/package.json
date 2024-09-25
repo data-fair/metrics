@@ -5,6 +5,10 @@
   "scripts": {
     "dev": "umask 0 && NODE_ENV=development node --watch ./index.js"
   },
+  "imports": {
+    "#config": "./src/config.ts",
+    "#mongo": "./src/mongo.ts"
+  },
   "dependencies": {
     "config": "^3.3.9",
     "debug": "^4.3.4",

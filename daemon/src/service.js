@@ -1,8 +1,8 @@
 import { Counter, Histogram, Gauge } from 'prom-client'
 import { servicePromRegistry } from '@data-fair/lib/node/observer.js'
-import mongo from '@data-fair/lib/node/mongo.js'
+import mongo from '#mongo'
 import equal from 'fast-deep-equal'
-import config from './config.js'
+import config from '#config'
 import debug from 'debug'
 
 const debugPatches = debug('patches')

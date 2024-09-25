@@ -5,6 +5,13 @@
   "scripts": {
     "dev": "NODE_ENV=development node --watch ./index.js"
   },
+  "imports": {
+    "#config": "./src/config.ts",
+    "#mongo": "./src/mongo.ts",
+    "#doc": "./doc/index.ts",
+    "#types": "./types/index.ts",
+    "#types/*": "./types/*"
+  },
   "dependencies": {
     "ajv-formats": "^2.1.1",
     "ajv-i18n": "^4.2.0",

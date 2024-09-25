@@ -1,8 +1,8 @@
 import { unlink, chmod } from 'node:fs/promises'
-import config from './config.js'
+import config from '#config'
 // @ts-ignore
 import unixDgram from 'unix-dgram'
-import mongo from '@data-fair/lib/node/mongo.js'
+import mongo from '#mongo'
 import { startObserver, stopObserver, internalError } from '@data-fair/lib/node/observer.js'
 import { pushLogLine, getBulk } from './service.js'
 
@@ -42,29 +42,7 @@ const socket = unixDgram.createSocket('unix_dgram', (/** @type {Buffer} */data) 
 
 export const start = async () => {
   if (config.observer.active) await startObserver()
-  await mongo.connect(config.mongo.url, config.mongo.options)
-
-  await mongo.configure({
-    'daily-api-metrics': {
-      'main-keys': [
-        {
-          'owner.type': 1,
-          'owner.id': 1,
-          'owner.department': 1,
-          day: 1,
-          'resource.type': 1,
-          'resource.id': 1,
-          operationTrack: 1,
-          statusClass: 1,
-          userClass: 1,
-          refererDomain: 1,
-          refererApp: 1,
-          'processing._id': 1
-        },
-        { unique: true }
-      ]
-    }
-  })
+  await mongo.init()
 
   try {
     await unlink(config.socketPath)

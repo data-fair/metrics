@@ -1,15 +1,12 @@
+import type { ApiConfig } from '../config/type/index.js'
 import { assertValid } from '../config/type/index.js'
 import config from 'config'
 
 // we reload the config instead of using the singleton from the config module for testing purposes
 // @ts-ignore
 const apiConfig = process.env.NODE_ENV === 'test' ? config.util.loadFileConfigs(process.env.NODE_CONFIG_DIR, { skipConfigSources: true }) : config
-
-// @ts-ignore
-if (apiConfig.origin && !apiConfig.directoryUrl) apiConfig.directoryUrl = apiConfig.origin + '/simple-directory'
-
-assertValid(apiConfig, 'en', 'config', true)
+assertValid(apiConfig, { lang: 'en', name: 'config', internal: true })
 
 config.util.makeImmutable(apiConfig)
 
-export default /** @type {import('../config/type/index.js').ApiConfig} */(apiConfig)
+export default apiConfig as ApiConfig

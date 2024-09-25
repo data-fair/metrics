@@ -49,4 +49,4 @@ EXPOSE 8080
 
 USER node
 
-CMD ["node", "--max-http-header-size", "64000", "index.js"]
+CMD ["node", "--max-http-header-size", "64000", "--experimental-strip-types", "index.ts"]

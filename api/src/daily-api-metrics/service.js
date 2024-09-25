@@ -1,7 +1,7 @@
 import { camelCase } from 'camel-case'
 import dayjs from 'dayjs'
 import dayjsUtc from 'dayjs/plugin/utc.js'
-import mongo from '@data-fair/lib/node/mongo.js'
+import mongo from '#mongo'
 import equal from 'fast-deep-equal'
 
 dayjs.extend(dayjsUtc)
