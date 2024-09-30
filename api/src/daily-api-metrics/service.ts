@@ -1,3 +1,7 @@
+import type { Account } from '@data-fair/lib/shared/session.js'
+import type { DailyApiMetric } from '#types'
+import type { AggQuery, AggResult } from '#doc'
+
 import { camelCase } from 'camel-case'
 import dayjs from 'dayjs'
 import dayjsUtc from 'dayjs/plugin/utc.js'
@@ -6,36 +10,24 @@ import equal from 'fast-deep-equal'
 
 dayjs.extend(dayjsUtc)
 
-/**
- * @param {import('@data-fair/lib/express/index.js').Account} account
- * @returns {Promise<import('../../../shared/daily-api-metric/index.js').DailyApiMetric[]>}
- */
-export const list = async (account) => {
-  /** @type {Record<string, string>} */
-  const query = {
+export const list = async (account: Account) => {
+  const query: Record<string, string> = {
     'owner.type': account.type,
     'owner.id': account.id
   }
   if (account.department) {
     query['owner.department'] = account.department
   }
-  const results = (await mongo.db.collection('daily-api-metrics')
+  const results = (await mongo.dailyApiMetrics
     .find(query)
     .sort({ day: 1 })
     .limit(10000)
-    .toArray())
-  // @ts-ignore
-  return /** @type {import('../../../shared/daily-api-metric/index.js').DailyApiMetric[]} */(results)
+    .toArray()) as DailyApiMetric[]
+  return results
 }
 
-/**
- * @param {import('@data-fair/lib/express/index.js').Account} account
- * @param {import('../../doc/agg-query/index.js').AggQuery} query
- * @returns
- */
-export const agg = async (account, query) => {
-  /** @type {Record<string, any>} */
-  const $match = {
+export const agg = async (account: Account, query: AggQuery) => {
+  const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id
   }
@@ -52,8 +44,7 @@ export const agg = async (account, query) => {
   if (query.resourceId) $match['resource.id'] = query.resourceId
   if (query.processingId) $match['processing._id'] = query.resourceId
 
-  /** @type {Record<string, any>} */
-  const $group = {
+  const $group: Record<string, any> = {
     _id: {},
     count: { $sum: 1 },
     nbRequests: { $sum: '$nbRequests' },
@@ -87,10 +78,9 @@ export const agg = async (account, query) => {
     { $group },
     { $sort: { '_id.day': 1 } }
   ]
-  const aggResult = await mongo.db.collection('daily-api-metrics').aggregate(pipeline).toArray()
-  const items = aggResult.map((/** @type {any} */r) => ({ ...r._id, ...r, meanDuration: r.duration / r.nbRequests }))
-  /** @type {import('../../doc/agg-result/index.js').AggResult} */
-  const result = {
+  const aggResult = await mongo.dailyApiMetrics.aggregate(pipeline).toArray()
+  const items = aggResult.map((r) => ({ ...r._id, ...r, meanDuration: r.duration / r.nbRequests }))
+  const result: AggResult = {
     series: [],
     nbRequests: 0,
     bytes: 0
@@ -109,7 +99,7 @@ export const agg = async (account, query) => {
     }
   }
   for (const item of items) {
-    const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, /** @type {Record<String, string>} */({}))
+    const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {} as Record<string, string>)
     if (item.resource) key.resource = item.resource
     if (item.processing) key.processing = item.processing
     let serie = result.series.find((s) => equal(s.key, key))

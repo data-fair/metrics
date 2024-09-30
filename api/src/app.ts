@@ -1,6 +1,6 @@
 import express from 'express'
 import { session, errorHandler } from '@data-fair/lib/express/index.js'
-import dailyApiMetricsRouter from './daily-api-metrics/router.js'
+import dailyApiMetricsRouter from './daily-api-metrics/router.ts'
 
 export const app = express()
 

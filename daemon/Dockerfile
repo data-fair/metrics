@@ -50,5 +50,5 @@ WORKDIR /app/daemon
 
 # USER node
 
-CMD ["node", "index.ts"]
+CMD ["node", "--experimental-strip-types", "index.ts"]
 

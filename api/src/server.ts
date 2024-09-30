@@ -4,7 +4,7 @@ import mongo from '#mongo'
 import { session } from '@data-fair/lib/express/index.js'
 import { startObserver, stopObserver } from '@data-fair/lib/node/observer.js'
 import config from '#config'
-import { app } from './app.js'
+import { app } from './app.ts'
 
 const server = http.createServer(app)
 const httpTerminator = createHttpTerminator({ server })
