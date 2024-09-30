@@ -3,7 +3,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "umask 0 && NODE_ENV=development node --watch ./index.js"
+    "dev": "umask 0 && NODE_ENV=development node --watch --experimental-strip-types  ./index.ts"
   },
   "imports": {
     "#config": "./src/config.ts",

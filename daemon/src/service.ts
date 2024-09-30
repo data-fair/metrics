@@ -1,3 +1,5 @@
+import type { LogLine, User } from './types.ts'
+
 import { Counter, Histogram, Gauge } from 'prom-client'
 import { servicePromRegistry } from '@data-fair/lib/node/observer.js'
 import mongo from '#mongo'
@@ -30,7 +32,7 @@ new Gauge({
   }
 })
 
-const getStatusClass = (/** @type {number} */status) => {
+const getStatusClass = (status: number) => {
   if (status < 200) return 'info'
   else if (status < 300) return 'ok'
   else if (status < 400) return 'redirect'
@@ -38,25 +40,14 @@ const getStatusClass = (/** @type {number} */status) => {
   else return 'serverError'
 }
 
-/**
- * @param {import("./types.js").LogLine} line
- * @returns {import("./types.js").User | null}
- */
-const getUser = (line) => {
+const getUser = (line: LogLine) => {
   if (!line[6] || line[6].length < 2) return null
   const user = JSON.parse(Buffer.from(line[6].split('.')[1], 'base64url').toString())
   if (line[7]) user.organization = user.organizations.find((/** @type {any} */o) => o.id === line[7])
-  return user
+  return user as User
 }
 
-/**
- * @param {import("./types.js").LogLine} line
- * @param {import("./types.js").User | null} user
- * @param {string} ownerType
- * @param {string} ownerId
- * @returns {string}
- */
-const getUserClass = (line, user, ownerType, ownerId) => {
+const getUserClass = (line: LogLine, user: User | null, ownerType: string, ownerId: string) => {
   let userClass = ''
   if (!user) userClass = 'anonymous'
   else if (ownerType === 'user' && user.id === ownerId) userClass = 'owner'
@@ -68,11 +59,7 @@ const getUserClass = (line, user, ownerType, ownerId) => {
   return userClass
 }
 
-/**
- * @param {import("./types.js").LogLine} line
- * @returns {[string, string | undefined]}
- */
-const getRefererInfo = (line) => {
+const getRefererInfo = (line: LogLine): [string, string | undefined] => {
   if (line[1]) {
     try {
       const url = new URL(line[1])
@@ -100,15 +87,10 @@ const depPropRegexp = /"department":"((\\"|[^"])*)"/
 const typePropRegexp = /"type":"((\\"|[^"])*)"/
 const trackPropRegexp = /"track":"((\\"|[^"])*)"/
 
-/** @type {[Record<string, string>, any][]} */
-const patches = []
-/** @type {ReturnType<typeof setTimeout> | null} */
-let timeout = null
+const patches: [Record<string, string>, any][] = []
+let timeout: ReturnType<typeof setTimeout> | null = null
 
-/**
- * @param {import("./types.js").LogLine} line
- */
-export function pushLogLine (line) {
+export function pushLogLine (line: LogLine) {
   const date = new Date()
   const day = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
 
@@ -140,8 +122,7 @@ export function pushLogLine (line) {
   requestsBytesCounter.labels(line[11], operationId, statusClass, line[0]).inc(bytesSent)
 
   // manage mongo patches
-  /** @type {Record<string, string>} */
-  const patchKey = {
+  const patchKey: Record<string, string> = {
     'owner.type': ownerType,
     'owner.id': ownerId,
     day,
@@ -167,8 +148,7 @@ export function pushLogLine (line) {
     const processing = line[10] ? JSON.parse(line[10]) : undefined
     if (processing?.title) processing.title = decodeURIComponent(processing.title)
 
-    /** @type {Record<string, any>} */
-    const set = {
+    const set: Record<string, any> = {
       owner: JSON.parse(line[5]),
       day,
       resource,

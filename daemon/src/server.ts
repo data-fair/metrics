@@ -1,10 +1,12 @@
+import type { LogLine } from './types.ts'
+
 import { unlink, chmod } from 'node:fs/promises'
 import config from '#config'
 // @ts-ignore
 import unixDgram from 'unix-dgram'
 import mongo from '#mongo'
 import { startObserver, stopObserver, internalError } from '@data-fair/lib/node/observer.js'
-import { pushLogLine, getBulk } from './service.js'
+import { pushLogLine, getBulk } from './service.ts'
 
 // inspired by https://github.com/vadimdemedes/syslog-parse/blob/master/source/index.ts
 // but lighter and only capturing the message we need
@@ -20,18 +22,14 @@ import { pushLogLine, getBulk } from './service.js'
 ].join('')) */
 const logLineRegexp = /.*? df: (.*)/
 
-/**
- * @param {string} logLine
- * @returns {import('./types.js').LogLine}
- */
-export const parseLogLine = (logLine) => {
+export const parseLogLine = (logLine: string) => {
   // @test:spy("rawLine", logLine)
   const match = logLine.match(logLineRegexp)
   if (!match) throw new Error('regexp dit not match')
-  return JSON.parse(match[1])
+  return JSON.parse(match[1]) as LogLine
 }
 
-const socket = unixDgram.createSocket('unix_dgram', (/** @type {Buffer} */data) => {
+const socket = unixDgram.createSocket('unix_dgram', (data: Buffer) => {
   try {
     pushLogLine(parseLogLine(data.toString()))
   } catch (err) {

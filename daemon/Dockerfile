@@ -50,5 +50,5 @@ WORKDIR /app/daemon
 
 # USER node
 
-CMD ["node", "index.js"]
+CMD ["node", "index.ts"]
 
