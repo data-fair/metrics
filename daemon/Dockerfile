@@ -8,9 +8,8 @@ ADD /package.json .
 ADD /package-lock.json .
 RUN npm ci --workspaces=false --no-audit --no-fund --omit=optional
 
-ADD shared shared
 ADD daemon daemon
-RUN npm run build-types-daemon
+RUN npm run build-types
 
 ##########################
 # install daemon prod deps

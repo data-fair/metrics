@@ -11,7 +11,6 @@ ADD /ui/package.json ui/
 
 RUN npm -w ui --include-workspace-root ci --no-audit --no-fund
 ADD /ui/ ui/
-ADD /shared shared
 RUN npm -w ui run build
 
 ##########################
