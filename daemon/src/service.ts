@@ -1,4 +1,5 @@
-import type { LogLine, User } from './types.ts'
+import type { LogLine, User as UserRef } from './types.ts'
+import type { User } from '@data-fair/lib/shared/session.js'
 
 import { Counter, Histogram, Gauge } from 'prom-client'
 import { servicePromRegistry } from '@data-fair/lib/node/observer.js'
@@ -42,12 +43,13 @@ const getStatusClass = (status: number) => {
 
 const getUser = (line: LogLine) => {
   if (!line[6] || line[6].length < 2) return null
-  const user = JSON.parse(Buffer.from(line[6].split('.')[1], 'base64url').toString())
-  if (line[7]) user.organization = user.organizations.find((/** @type {any} */o) => o.id === line[7])
-  return user as User
+  const user = JSON.parse(Buffer.from(line[6].split('.')[1], 'base64url').toString()) as User
+  const userRef: UserRef = { id: user.id }
+  if (line[7]) userRef.organization = user.organizations.find((o) => o.id === line[7])
+  return userRef
 }
 
-const getUserClass = (line: LogLine, user: User | null, ownerType: string, ownerId: string) => {
+const getUserClass = (line: LogLine, user: UserRef | null, ownerType: string, ownerId: string) => {
   let userClass = ''
   if (!user) userClass = 'anonymous'
   else if (ownerType === 'user' && user.id === ownerId) userClass = 'owner'
