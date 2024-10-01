@@ -39,7 +39,6 @@ ENV NODE_ENV production
 
 WORKDIR /app/
 
-COPY --from=builder /app/shared /app/shared
 COPY --from=builder /app/daemon /app/daemon
 COPY --from=installer /app/node_modules /app/node_modules
 
