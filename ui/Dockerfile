@@ -25,8 +25,7 @@ WORKDIR /app/
 
 COPY --from=builder /app/ui/.output /app/ui/.output
 
-ADD README.md .
-ADD package.json .
+ADD README.md LICENSE package.json BUILD.json* ./
 
 WORKDIR /app/ui
 

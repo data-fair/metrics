@@ -40,8 +40,7 @@ WORKDIR /app/
 COPY --from=builder /app/api /app/api
 COPY --from=installer /app/node_modules /app/node_modules
 
-ADD README.md .
-ADD package.json .
+ADD README.md LICENSE package.json BUILD.json* ./
 
 WORKDIR /app/api
 
