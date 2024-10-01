@@ -15,8 +15,9 @@ router.get('', async (req, res) => {
 
 router.get('/_agg', async (req, res) => {
   const reqSession = await session.reqAuthenticated(req)
-  if (typeof req.query.split === 'string') req.query.split = req.query.split.split(',')
-  const query = doc.aggQuery.returnValid(req.query, { lang: reqSession.lang, name: 'query' })
+  const reqQuery = { ...req.query }
+  if (typeof reqQuery.split === 'string') reqQuery.split = reqQuery.split.split(',')
+  const query = doc.aggQuery.returnValid(reqQuery, { lang: reqSession.lang, name: 'query' })
   const result = await agg(reqSession.account, query)
   res.json(result)
 })

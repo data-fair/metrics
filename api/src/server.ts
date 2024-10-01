@@ -17,11 +17,12 @@ server.headersTimeout = (60 * 1000) + 2000
 
 export const start = async () => {
   if (config.observer.active) await startObserver()
-  await session.init(config.directoryUrl)
+  await session.init(config.privateDirectoryUrl)
   await mongo.init()
   server.listen(config.port)
   await new Promise(resolve => server.once('listening', resolve))
-  console.log(`Metrics API available on ${config.origin}/metrics/api/ (listening on port ${config.port})`)
+
+  console.log(`API server listening on port ${config.port}`)
 }
 
 export const stop = async () => {

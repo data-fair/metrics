@@ -5,16 +5,12 @@
   "type": "object",
   "title": "Api config",
   "additionalProperties": false,
-  "required": ["port", "origin", "directoryUrl", "mongo", "observer"],
+  "required": ["port", "privateDirectoryUrl", "mongo", "observer"],
   "properties": {
     "port": {
       "type": "number"
     },
-    "origin": {
-      "type": "string",
-      "pattern": "^https?://"
-    },
-    "directoryUrl": {
+    "privateDirectoryUrl": {
       "type": "string",
       "pattern": "^https?://"
     },
