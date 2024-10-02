@@ -2,9 +2,7 @@
   <v-menu
     v-model="menu"
     :close-on-content-click="false"
-    :nudge-right="40"
     transition="scale-transition"
-    offset-y
     min-width="auto"
   >
     <template #activator="{ props }">
@@ -22,7 +20,7 @@
     </template>
     <v-date-picker
       :model-value="date.parseISO(modelValue)"
-      @update:model-value="(v) => {menu = false; $emit('update:modelValue', date.toISO(v))}"
+      @update:model-value="(v) => { menu = false; $emit('update:modelValue', date.toISO(v)) }"
     />
   </v-menu>
 </template>

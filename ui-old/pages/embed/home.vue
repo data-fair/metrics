@@ -10,7 +10,7 @@
       :class="`mb-4 section-bar-${$vuetify.theme.current.dark ? 'dark' : 'light'}`"
     >
       <v-icon
-        x-large
+        size="x-large"
         color="primary"
         class="mx-4"
       >
@@ -28,21 +28,21 @@
         <chart-categories
           title="Téléchargements / jeu de données"
           category="resource"
-          :filter="{statusClass: 'ok', operationTrack: 'readDataFiles'}"
+          :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles' }"
           :periods="periods"
           @update:agg="v => aggResultDataFiles = v"
         />
         <chart-categories
           title="Appels API / jeu de données"
           category="resource"
-          :filter="{statusClass: 'ok', operationTrack: 'readDataAPI'}"
+          :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI' }"
           :periods="periods"
           @update:agg="v => aggResultDataAPI = v"
         />
         <chart-categories
           title="Ouvertures de visualisations"
           category="resource"
-          :filter="{statusClass: 'ok', operationTrack: 'openApplication'}"
+          :filter="{ statusClass: 'ok', operationTrack: 'openApplication' }"
           :periods="periods"
           @update:agg="v => aggResultOpenApp = v"
         />
@@ -54,7 +54,7 @@
         :class="`my-4 section-bar-${$vuetify.theme.current.dark ? 'dark' : 'light'}`"
       >
         <v-icon
-          x-large
+          size="x-large"
           color="primary"
           class="mx-4"
         >
@@ -92,12 +92,12 @@
       <v-row dense>
         <chart-date-histo
           title="Historique téléchargements"
-          :filter="{...baseFilter, operationTrack: 'readDataFiles'}"
+          :filter="{ ...baseFilter, operationTrack: 'readDataFiles' }"
           :periods="periods"
         />
         <chart-date-histo
           title="Historique appels API"
-          :filter="{...baseFilter, operationTrack: 'readDataAPI'}"
+          :filter="{ ...baseFilter, operationTrack: 'readDataAPI' }"
           :periods="periods"
         />
         <chart-categories

@@ -11,14 +11,13 @@
 import 'iframe-resizer/js/iframeResizer.contentWindow'
 
 if (typeof window !== 'undefined') {
-  // @ts-ignore
+  // @ts-expect-error iframe resizer extends the global window object
   window.iFrameResizer = {
     heightCalculationMethod: 'taggedElement'
   }
 }
 
 export default {}
-
 </script>
 
 <style lang="css">

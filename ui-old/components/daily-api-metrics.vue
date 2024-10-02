@@ -56,9 +56,7 @@ export default {
     const filters = reactive({ statusClass: 'ok', userClass: null })
     const split = ref('resource')
 
-    /** @type {import('vue').Ref<import('../../shared/index.js').aggResultType>} */
-    // @ts-ignore
-    const data = useFetch('api/v1/daily-api-metrics/_agg', { query: { split, ...filters } }).data
+    const data = /** @type {import('vue').Ref<import('#api/doc').AggResult>} */(useFetch('api/v1/daily-api-metrics/_agg', { query: { split, ...filters } }).data)
     return { split, filters, dayjs, aggResult: data }
   },
   data () {
@@ -97,17 +95,12 @@ export default {
       return {
         type: 'bar',
         data: {
-          // @ts-ignore
           labels: this.aggResult.days.map(day => this.dayjs(day).format('L')),
-          // @ts-ignore
           datasets: this.aggResult.series
-            // @ts-ignore
             .map(s => s)
-            // @ts-ignore
+            // @ts-expect-error this.metric is a string, we should type it more restrictively
             .sort((s1, s2) => s1[this.metric] - s2[this.metric])
-            // @ts-ignore
             .map((serie, i) => ({
-              // @ts-ignore
               label: {
                 // @ts-ignore
                 resource: key => decodeURIComponent(key.resource.title),

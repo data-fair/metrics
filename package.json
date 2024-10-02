@@ -28,10 +28,12 @@
     "ui",
     "daemon"
   ],
+  "dependencies": {
+    "@data-fair/lib": "^0.48.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
-    "@data-fair/lib": "^0.47.1",
     "agentkeepalive": "^4.5.0",
     "ajv": "^8.17.1",
     "ajv-errors": "^3.0.0",
@@ -40,10 +42,15 @@
     "axios": "^1.6.2",
     "cacheable-lookup": "^6.1.0",
     "eslint": "^9.10.0",
+    "eslint-plugin-vue": "^9.28.0",
+    "eslint-plugin-vuetify": "github:albanm/eslint-plugin-vuetify",
     "husky": "^8.0.3",
     "json-schema-to-typescript": "^11.0.5",
     "neostandard": "^0.11.6",
     "typescript": "^5.3.3",
     "ws": "^8.16.0"
+  },
+  "relativeDependencies": {
+    "@data-fair/lib": "../lib"
   }
 }

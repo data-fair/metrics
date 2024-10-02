@@ -28,7 +28,7 @@
     "aggResultSeries": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["key", "nbRequests", "bytes"],
+      "required": ["key", "nbRequests", "bytes", "days"],
       "properties": {
         "key": {
           "type": "object",

@@ -11,6 +11,8 @@ if (process.env.DIRECTORY_URL) apiConfig.privateDirectoryUrl = process.env.DIREC
 
 assertValid(apiConfig, { lang: 'en', name: 'config', internal: true })
 
-config.util.makeImmutable(apiConfig)
-
 export default apiConfig as ApiConfig
+
+export type UiConfig = {}
+
+export const uiConfig: UiConfig = {}
