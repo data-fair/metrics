@@ -13,8 +13,6 @@ declare global {
   const EffectScope: typeof import('vue')['EffectScope']
   const computed: typeof import('vue')['computed']
   const createApp: typeof import('vue')['createApp']
-  const createReactiveSearchParams: typeof import('@data-fair/lib/vue/reactive-search-params.js')['createReactiveSearchParams']
-  const createSession: typeof import('@data-fair/lib/vue/session.js')['createSession']
   const customRef: typeof import('vue')['customRef']
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']

@@ -30,8 +30,7 @@
     "checkJs": true,
   },
   "include": [
-    "./typed-router.d.ts",
-    "./auto-imports.d.ts",
+    "dts/*.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.vue"

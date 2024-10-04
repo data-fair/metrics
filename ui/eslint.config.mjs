@@ -5,8 +5,6 @@ import dfLibRecommended from '@data-fair/lib/eslint/recommended.js'
 // @ts-ignore
 import vuetify from 'eslint-plugin-vuetify/src/index.js'
 
-console.log('BIM')
-
 export default [
   ...dfLibRecommended,
   ...pluginVue.configs['flat/recommended'],
@@ -17,6 +15,11 @@ export default [
   },
   {
     files: ['**/*.vue'],
+    languageOptions: {
+      parserOptions: {
+        parser: '@typescript-eslint/parser'
+      }
+    },
     plugins: { vuetify },
     rules: {
       ...vuetify.configs.base.rules
@@ -28,5 +31,5 @@ export default [
       'no-undef': 'off' // typescript takes care of this with autoImport support
     }
   },
-  { ignores: ['dist/*'] },
+  { ignores: ['dist/*', 'dts/*'] },
 ]

@@ -4,7 +4,8 @@
   "description": "A service to help monitoring HTTP requests in the data-fair stack.     ",
   "type": "module",
   "scripts": {
-    "test": "node test-it/index.js",
+    "test": "NODE_ENV=test node --experimental-strip-types --test-force-exit --test-concurrency=1 --test test-it/*.ts",
+    "test-only": "NODE_ENV=test node --experimental-strip-types --test-force-exit --test-only --test-concurrency=1 --test test-it/*.ts",
     "lint": "eslint . && npm -w ui run lint",
     "lint-fix": "eslint --fix . && npm -w ui run lint-fix",
     "check-types": "tsc",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
+    "@types/debug": "^4.1.12",
     "agentkeepalive": "^4.5.0",
     "ajv": "^8.17.1",
     "ajv-errors": "^3.0.0",

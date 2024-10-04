@@ -18,12 +18,14 @@ export default defineConfig({
   },
   plugins: [
     VueRouter({
+      dts: './dts/typed-router.d.ts',
       exclude: process.env.NODE_ENV === 'development' ? [] : ['src/pages/dev.vue']
     }),
     Vue(),
     VueI18nPlugin(),
     Vuetify(),
     AutoImport({
+      dts: './dts/auto-imports.d.ts',
       imports: [
         'vue',
         'vue-i18n',
