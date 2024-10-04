@@ -7,6 +7,7 @@
     "dev": "NODE_CONFIG_DIR=../api/config/ vite --port 6220",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
+    "check-types": "vue-tsc",
     "lint": "eslint .",
     "lint-fix": "eslint --fix ."
   },

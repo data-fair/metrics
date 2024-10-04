@@ -4,17 +4,69 @@ on:
   workflow_call:
 
 jobs:
-  build-api:
-    uses: ./.github/workflows/reuse-build-image.yml
-    with:
-      workspace: api
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout git repository
+      uses: actions/checkout@v4
 
-  build-daemon:
-    uses: ./.github/workflows/reuse-build-image.yml
-    with:
-      workspace: daemon
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-  build-ui:
-    uses: ./.github/workflows/reuse-build-image.yml
-    with:
-      workspace: ui
+    - name: Login to Github container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Prepare BUILD.json
+      run: |
+        echo '{"version": "${{github.ref_name}}", "repository": "${{github.server_url}}/${{github.repository}}", "commit": "${{github.sha}}"}' > BUILD.json
+        cat BUILD.json
+
+    - name: Prepare docker tags for API image
+      id: docker_meta_api
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository }}/api
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+
+    - name: Build and push API image
+      id: docker_build_api
+      uses: docker/build-push-action@v5
+      with:
+        target: api
+        tags: ${{ steps.docker_meta_api.outputs.tags }}
+        platforms: linux/amd64
+        labels: ${{ steps.docker_meta_api.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Prepare docker tags for DAEMON image
+      id: docker_meta_daemon
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository }}/daemon
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+
+    - name: Build and push DAEMON image
+      id: docker_build_daemon
+      uses: docker/build-push-action@v5
+      with:
+        target: daemon
+        tags: ${{ steps.docker_meta_daemon.outputs.tags }}
+        platforms: linux/amd64
+        labels: ${{ steps.docker_meta_daemon.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

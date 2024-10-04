@@ -1,7 +1,7 @@
 {
   "name": "@data-fair/metrics",
   "version": "1.0.2",
-  "description": "A service to help monitoring HTTP requests in the data-fair stack.",
+  "description": "A service to help monitoring HTTP requests in the data-fair stack.     ",
   "type": "module",
   "scripts": {
     "test": "node test-it/index.js",
@@ -16,7 +16,7 @@
     "dev-zellij": "zellij --layout .zellij.kdl",
     "build-types": "df-build-types ./",
     "prepare": "husky install",
-    "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
+    "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm -w ui run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
   },
   "imports": {
     "#api/types": "./api/types/index.ts"

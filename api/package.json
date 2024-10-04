@@ -13,7 +13,7 @@
     "#types/*": "./types/*"
   },
   "dependencies": {
-    "ajv-formats": "^2.1.1",
+    "ajv-formats": "^3.0.1",
     "ajv-i18n": "^4.2.0",
     "camel-case": "^4.1.2",
     "config": "^3.3.9",

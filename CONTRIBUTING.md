@@ -68,7 +68,6 @@ npm run build-types
 Build images:
 
 ```
-docker build -f api/Dockerfile -t data-fair/metrics/api:dev .
-docker build -f ui/Dockerfile -t data-fair/metrics/ui:dev .
-docker build -f daemon/Dockerfile -t data-fair/metrics/daemon:dev .
+docker build --progress=plain --target=api -t data-fair/metrics/api:dev .
+docker build --progress=plain --target=daemon -t data-fair/metrics/daemon:dev .
 ```
