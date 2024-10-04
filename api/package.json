@@ -16,7 +16,6 @@
     "ajv-formats": "^3.0.1",
     "ajv-i18n": "^4.2.0",
     "camel-case": "^4.1.2",
-    "config": "^3.3.9",
     "dayjs": "^1.11.7",
     "express": "^5.0.0",
     "flatstr": "^1.0.12",
@@ -26,8 +25,5 @@
     "jwks-rsa": "^3.1.0",
     "mongodb": "^6.2.0",
     "prom-client": "^15.1.0"
-  },
-  "devDependencies": {
-    "@types/config": "^3.3.3"
   }
 }

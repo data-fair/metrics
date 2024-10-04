@@ -1,7 +1,7 @@
 {
   "name": "@data-fair/metrics",
   "version": "1.0.2",
-  "description": "A service to help monitoring HTTP requests in the data-fair stack.     ",
+  "description": "A service to help monitoring HTTP requests in the data-fair stack.",
   "type": "module",
   "scripts": {
     "test": "NODE_ENV=test node --experimental-strip-types --test-force-exit --test-concurrency=1 --test test-it/*.ts",
@@ -30,11 +30,13 @@
     "daemon"
   ],
   "dependencies": {
-    "@data-fair/lib": "^0.48.0"
+    "@data-fair/lib": "^0.48.0",
+    "config": "^3.3.12"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
+    "@types/config": "^3.3.5",
     "@types/debug": "^4.1.12",
     "agentkeepalive": "^4.5.0",
     "ajv": "^8.17.1",
