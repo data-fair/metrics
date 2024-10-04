@@ -43,10 +43,17 @@ export default defineConfig({
       name: 'inject-site-context',
       async transformIndexHtml (html) {
         // in production this injection will be performed by an express middleware
-        if (process.env.NODE_ENV !== 'development') return
+        if (process.env.NODE_ENV !== 'development') return html
         const { uiConfig } = await import('../api/src/config')
-        return microTemplate(html, { SITE_PATH: '""', UI_CONFIG: JSON.stringify(uiConfig) })
+        return microTemplate(html, { SITE_PATH: '', UI_CONFIG: JSON.stringify(uiConfig) })
       }
     }
   ],
+  experimental: {
+    renderBuiltUrl (filename, { hostType }) {
+      if (hostType === 'html') return '{SITE_PATH}/metrics/' + filename
+      return { relative: true }
+    }
+  },
+  server: { hmr: { port: 7200 } }
 })

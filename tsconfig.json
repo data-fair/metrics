@@ -13,6 +13,6 @@
       "#shared/*": ["./shared/*"]
     }
   },
-  "exclude": ["node_modules", "types", "ui-old", "dev"],
+  "exclude": ["node_modules", "types", "ui", "dev"],
   "types": ["vuetify"]
 }

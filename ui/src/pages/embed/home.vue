@@ -1,5 +1,5 @@
 <template>
-  <v-container
+  <!--<v-container
     class="home my-0"
     :fluid="$vuetify.display.lgAndDown"
     data-iframe-height
@@ -127,105 +127,106 @@
         />
       </v-row>
     </template>
-  </v-container>
+  </v-container>-->
+  Hello
 </template>
 
 <i18n lang="yaml">
 </i18n>
 
-<script>
-import formatBytes from '@data-fair/lib/format/bytes.js'
-import tutorialAlert from '@data-fair/lib/vuetify/tutorial-alert.vue'
-import safeDecodeUriComponent from '~/assets/safe-decode-uri-component.js'
+<script setup lang="ts">
+// import formatBytes from '@data-fair/lib/format/bytes.js'
+// import tutorialAlert from '@data-fair/lib/vuetify/tutorial-alert.vue'
+// import safeDecodeUriComponent from '~/assets/safe-decode-uri-component.js'
 
-export default {
-  components: {
-    tutorialAlert
-  },
-  data: () => ({
-    periods: null,
-    /** @type {any} */
-    aggResultDataFiles: null,
-    /** @type {any} */
-    aggResultDataAPI: null,
-    /** @type {any} */
-    aggResultOpenApp: null,
-    dataset: null
-  }),
-  computed: {
-    datasetItems () {
-      if (!this.aggResultDataAPI) return []
-      return this.aggResultDataAPI.current.series
-        .map(s => ({ title: safeDecodeUriComponent(s.key.resource.title), value: s.key.resource.id, serie: s }))
-    },
-    baseFilter () {
-      /** @type {any} */
-      const filter = { statusClass: 'ok' }
-      if (this.dataset) filter.resourceId = this.dataset
-      return filter
-    },
-    /** @returns {any} */
-    simpleMetricsSeries () {
-      if (!this.aggResultDataFiles || !this.aggResultDataAPI) return null
-      if (!this.dataset) return { dataFiles: this.aggResultDataFiles, dataAPI: this.aggResultDataAPI }
-      const dataFiles = {
-        previous: this.aggResultDataFiles.previous.series.find((/** @type {any} */s) => s.key.resource.id === this.dataset),
-        current: this.aggResultDataFiles.current.series.find((/** @type {any} */s) => s.key.resource.id === this.dataset)
-      }
-      const dataAPI = {
-        previous: this.aggResultDataAPI.previous.series.find((/** @type {any} */s) => s.key.resource.id === this.dataset),
-        current: this.aggResultDataAPI.current.series.find((/** @type {any} */s) => s.key.resource.id === this.dataset)
-      }
-      return { dataFiles, dataAPI }
-    },
-    simpleMetrics () {
-      if (!this.simpleMetricsSeries) return
-      /** @type {any[]} */
-      const simpleMetrics = []
-      for (const operationType of ['dataFiles', 'dataAPI']) {
-        for (const metricType of ['nbRequests', 'bytes']) {
-          if (operationType === 'dataAPI' && metricType === 'bytes') continue
-          if (operationType in this.simpleMetricsSeries) {
-            const current = this.simpleMetricsSeries[operationType].current
-            if (!current) continue
-            /** @type {any} */
-            const simpleMetric = { loading: false }
-            if (metricType === 'nbRequests') simpleMetric.value = current.nbRequests.toLocaleString()
-            else simpleMetric.value = formatBytes(current.bytes, this.$i18n.locale)
+// export default {
+//   components: {
+//     tutorialAlert
+//   },
+//   data: () => ({
+//     periods: null,
+//     /** @type {any} */
+//     aggResultDataFiles: null,
+//     /** @type {any} */
+//     aggResultDataAPI: null,
+//     /** @type {any} */
+//     aggResultOpenApp: null,
+//     dataset: null
+//   }),
+//   computed: {
+//     datasetItems () {
+//       if (!this.aggResultDataAPI) return []
+//       return this.aggResultDataAPI.current.series
+//         .map(s => ({ title: safeDecodeUriComponent(s.key.resource.title), value: s.key.resource.id, serie: s }))
+//     },
+//     baseFilter () {
+//       /** @type {any} */
+//       const filter = { statusClass: 'ok' }
+//       if (this.dataset) filter.resourceId = this.dataset
+//       return filter
+//     },
+//     /** @returns {any} */
+//     simpleMetricsSeries () {
+//       if (!this.aggResultDataFiles || !this.aggResultDataAPI) return null
+//       if (!this.dataset) return { dataFiles: this.aggResultDataFiles, dataAPI: this.aggResultDataAPI }
+//       const dataFiles = {
+//         previous: this.aggResultDataFiles.previous.series.find((/** @type {any} */s) => s.key.resource.id === this.dataset),
+//         current: this.aggResultDataFiles.current.series.find((/** @type {any} */s) => s.key.resource.id === this.dataset)
+//       }
+//       const dataAPI = {
+//         previous: this.aggResultDataAPI.previous.series.find((/** @type {any} */s) => s.key.resource.id === this.dataset),
+//         current: this.aggResultDataAPI.current.series.find((/** @type {any} */s) => s.key.resource.id === this.dataset)
+//       }
+//       return { dataFiles, dataAPI }
+//     },
+//     simpleMetrics () {
+//       if (!this.simpleMetricsSeries) return
+//       /** @type {any[]} */
+//       const simpleMetrics = []
+//       for (const operationType of ['dataFiles', 'dataAPI']) {
+//         for (const metricType of ['nbRequests', 'bytes']) {
+//           if (operationType === 'dataAPI' && metricType === 'bytes') continue
+//           if (operationType in this.simpleMetricsSeries) {
+//             const current = this.simpleMetricsSeries[operationType].current
+//             if (!current) continue
+//             /** @type {any} */
+//             const simpleMetric = { loading: false }
+//             if (metricType === 'nbRequests') simpleMetric.value = current.nbRequests.toLocaleString()
+//             else simpleMetric.value = formatBytes(current.bytes, this.$i18n.locale)
 
-            if (operationType === 'dataAPI') simpleMetric.title = `appel${current.nbRequests > 1 ? 's' : ''} d'API`
-            else simpleMetric.title = 'fichiers téléchargés'
+//             if (operationType === 'dataAPI') simpleMetric.title = `appel${current.nbRequests > 1 ? 's' : ''} d'API`
+//             else simpleMetric.title = 'fichiers téléchargés'
 
-            simpleMetric.subtitle = '0 sur période précédente'
-            const previous = this.simpleMetricsSeries[operationType].previous
-            if (previous) {
-              simpleMetric.subtitle = metricType === 'nbRequests' ? previous.nbRequests.toLocaleString() : formatBytes(previous.bytes, this.$i18n.locale)
-              simpleMetric.subtitle += ' sur période précédente'
-            }
-            simpleMetrics.push(simpleMetric)
-          } else {
-            simpleMetrics.push({ loading: true })
-          }
-        }
-      }
-      return simpleMetrics
-    },
-    appLabels () {
-      if (!this.aggResultOpenApp) return
-      /** @type {any} */
-      const labels = {}
-      this.aggResultOpenApp.previous.series.filter((/** @type {any} */item) => item.key.resource)
-        .forEach((/** @type {any} */item) => {
-          labels[item.key.resource.id] = item.key.resource.title
-        })
-      this.aggResultOpenApp.current.series.filter((/** @type {any} */item) => item.key.resource)
-        .forEach((/** @type {any} */item) => {
-          labels[item.key.resource.id] = item.key.resource.title
-        })
-      return labels
-    }
-  }
-}
+//             simpleMetric.subtitle = '0 sur période précédente'
+//             const previous = this.simpleMetricsSeries[operationType].previous
+//             if (previous) {
+//               simpleMetric.subtitle = metricType === 'nbRequests' ? previous.nbRequests.toLocaleString() : formatBytes(previous.bytes, this.$i18n.locale)
+//               simpleMetric.subtitle += ' sur période précédente'
+//             }
+//             simpleMetrics.push(simpleMetric)
+//           } else {
+//             simpleMetrics.push({ loading: true })
+//           }
+//         }
+//       }
+//       return simpleMetrics
+//     },
+//     appLabels () {
+//       if (!this.aggResultOpenApp) return
+//       /** @type {any} */
+//       const labels = {}
+//       this.aggResultOpenApp.previous.series.filter((/** @type {any} */item) => item.key.resource)
+//         .forEach((/** @type {any} */item) => {
+//           labels[item.key.resource.id] = item.key.resource.title
+//         })
+//       this.aggResultOpenApp.current.series.filter((/** @type {any} */item) => item.key.resource)
+//         .forEach((/** @type {any} */item) => {
+//           labels[item.key.resource.id] = item.key.resource.title
+//         })
+//       return labels
+//     }
+//   }
+// }
 </script>
 
 <style lang="css">
