@@ -51,6 +51,10 @@ RUN --mount=type=bind,from=installer,source=/app,target=/installer-app \
 COPY --from=types /app/api api
 # COPY --from=ui /app/ui/dist /app/ui/dist
 
+# artificially create a dependency to "daemon" target for better caching
+COPY --from=daemon /app/package.json /app/package.json
+
+
 EXPOSE 8080
 
 USER node
