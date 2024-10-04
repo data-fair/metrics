@@ -35,6 +35,28 @@ ADD /ui ui
 RUN npm -w ui run build
 
 ##########################
+FROM node:22.9.0-alpine3.19 AS daemon
+
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# reuse node_modules from installer and strip for production in a single layer
+RUN --mount=type=bind,from=installer,source=/app,target=/installer-app \
+    cp -rf /installer-app/* /app && \
+    rm -rf /app/api && \
+    rm -rf /app/ui && \
+    npm ci -w daemon --no-audit --no-fund --omit=optional --omit=dev --ignore-scripts
+
+ADD /daemon daemon
+
+EXPOSE 8080
+
+USER node
+
+CMD ["node", "--experimental-strip-types", "daemon/index.ts"]
+
+##########################
 FROM node:22.9.0-alpine3.19 AS api
 
 ENV NODE_ENV=production
@@ -60,25 +82,3 @@ EXPOSE 8080
 USER node
 
 CMD ["node", "--max-http-header-size", "64000", "--experimental-strip-types", "api/index.ts"]
-
-##########################
-FROM node:22.9.0-alpine3.19 AS daemon
-
-ENV NODE_ENV=production
-
-WORKDIR /app
-
-# reuse node_modules from installer and strip for production in a single layer
-RUN --mount=type=bind,from=installer,source=/app,target=/installer-app \
-    cp -rf /installer-app/* /app && \
-    rm -rf /app/api && \
-    rm -rf /app/ui && \
-    npm ci -w daemon --no-audit --no-fund --omit=optional --omit=dev --ignore-scripts
-
-ADD /daemon daemon
-
-EXPOSE 8080
-
-USER node
-
-CMD ["node", "--experimental-strip-types", "daemon/index.ts"]
