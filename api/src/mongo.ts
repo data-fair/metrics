@@ -1,6 +1,6 @@
 import type { DailyApiMetric } from '#types'
 
-import mongo from '@data-fair/lib/node/mongo.js'
+import mongo from '@data-fair/lib-node/mongo.js'
 import config from '#config'
 
 export class MetricsMongo {

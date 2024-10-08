@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import { readFile } from 'node:fs/promises'
 import { Router } from 'express'
-import { session } from '@data-fair/lib/express/index.js'
+import { session } from '@data-fair/lib-express/index.js'
 
 const router = Router()
 export default router

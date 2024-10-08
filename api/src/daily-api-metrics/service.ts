@@ -1,4 +1,4 @@
-import type { Account } from '@data-fair/lib/shared/session.js'
+import type { Account } from '@data-fair/lib-express/session.js'
 import type { DailyApiMetric } from '#types'
 import type { AggQuery, AggResult } from '#doc'
 

@@ -13,17 +13,16 @@
     "#types/*": "./types/*"
   },
   "dependencies": {
-    "ajv-formats": "^3.0.1",
-    "ajv-i18n": "^4.2.0",
+    "@data-fair/lib-express": "^1.0.0",
+    "@data-fair/lib-node": "^1.0.0",
+    "@data-fair/lib-utils": "^1.0.0",
     "camel-case": "^4.1.2",
+    "config": "^3.3.12",
     "dayjs": "^1.11.7",
     "express": "^5.0.0",
-    "flatstr": "^1.0.12",
-    "http-errors": "^2.0.0",
     "http-terminator": "^3.2.0",
-    "jsonwebtoken": "^9.0.2",
-    "jwks-rsa": "^3.1.0",
     "mongodb": "^6.2.0",
-    "prom-client": "^15.1.0"
+    "prom-client": "^15.1.0",
+    "ws": "^8.18.0"
   }
 }

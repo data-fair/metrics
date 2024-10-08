@@ -1,7 +1,7 @@
 import { describe, it, before, after, beforeEach } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { DataFairWsClient } from '@data-fair/lib/node/ws.js'
-import * as testSpies from '@data-fair/lib/node/test-spies.js'
+import { DataFairWsClient } from '@data-fair/lib-node/ws-client.js'
+import * as testSpies from '@data-fair/lib-node/test-spies.js'
 import { axiosAuth, clean, startApiServer, stopApiServer, startDaemonServer, stopDaemonServer } from './utils/index.ts'
 
 testSpies.registerModuleHooks()
@@ -27,7 +27,7 @@ describe('daily api metrics', () => {
     await adminWS.waitForJournal(dataset.id, 'finalize-end')
     const [rawLine, [day, parsedLine]] = await Promise.all([
       testSpies.waitFor('rawLine'),
-      testSpies.waitFor('parsedLine'),
+      testSpies.waitFor<[string, string]>('parsedLine'),
       adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
     ])
     assert.ok(rawLine)

@@ -1,6 +1,6 @@
 import neostandard from 'neostandard'
 import pluginVue from 'eslint-plugin-vue'
-import dfLibRecommended from '@data-fair/lib/eslint/recommended.js'
+import dfLibRecommended from '@data-fair/lib-utils/eslint/recommended.js'
 // cf https://github.com/vuetifyjs/eslint-plugin-vuetify/pull/98
 // @ts-ignore
 import vuetify from 'eslint-plugin-vuetify/src/index.js'

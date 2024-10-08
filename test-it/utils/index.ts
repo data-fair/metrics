@@ -1,8 +1,8 @@
 import childProcess from 'node:child_process'
-import type { AxiosAuthOpts } from '@data-fair/lib/node/axios-auth.js'
-import { axiosBuilder } from '@data-fair/lib/node/axios.js'
-import { axiosAuth as _axiosAuth } from '@data-fair/lib/node/axios-auth.js'
-import mongo from '@data-fair/lib/node/mongo.js'
+import type { AxiosAuthOptions } from '@data-fair/lib-node/axios-auth.js'
+import { axiosBuilder } from '@data-fair/lib-node/axios.js'
+import { axiosAuth as _axiosAuth } from '@data-fair/lib-node/axios-auth.js'
+import mongo from '@data-fair/lib-node/mongo.js'
 
 const directoryUrl = 'http://localhost:6218/simple-directory'
 
@@ -10,7 +10,7 @@ const axiosOpts = { baseURL: 'http://localhost:6218' }
 
 export const axios = (opts = {}) => axiosBuilder({ ...axiosOpts, ...opts })
 
-export const axiosAuth = (opts: string | Omit<AxiosAuthOpts, 'directoryUrl' | 'axiosOpts' | 'password'>) => {
+export const axiosAuth = (opts: string | Omit<AxiosAuthOptions, 'directoryUrl' | 'axiosOpts' | 'password'>) => {
   opts = typeof opts === 'string' ? { email: opts } : opts
   const password = opts.email === 'superadmin@test.com' ? 'superpasswd' : 'passwd'
   return _axiosAuth({ ...opts, password, axiosOpts, directoryUrl })

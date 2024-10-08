@@ -1,8 +1,8 @@
 import type { LogLine, User as UserRef } from './types.ts'
-import type { User } from '@data-fair/lib/shared/session.js'
+import type { User } from '@data-fair/lib-express/session.js'
 
 import { Counter, Histogram, Gauge } from 'prom-client'
-import { servicePromRegistry } from '@data-fair/lib/node/observer.js'
+import { servicePromRegistry } from '@data-fair/lib-node/observer.js'
 import mongo from '#mongo'
 import equal from 'fast-deep-equal'
 import config from '#config'

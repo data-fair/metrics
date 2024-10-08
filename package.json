@@ -29,34 +29,22 @@
     "ui",
     "daemon"
   ],
-  "dependencies": {
-    "@data-fair/lib": "^0.49.0",
-    "config": "^3.3.12"
-  },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
-    "@npmcli/arborist": "^8.0.0",
+    "@data-fair/lib-types-builder": "^1.0.0",
+    "@data-fair/lib-utils": "^1.0.0",
     "@types/config": "^3.3.5",
     "@types/debug": "^4.1.12",
-    "@types/npmcli__arborist": "^5.6.11",
-    "agentkeepalive": "^4.5.0",
-    "ajv": "^8.17.1",
-    "ajv-errors": "^3.0.0",
-    "ajv-formats": "^3.0.1",
-    "ajv-i18n": "^4.2.0",
-    "axios": "^1.6.2",
-    "cacheable-lookup": "^6.1.0",
     "eslint": "^9.10.0",
     "eslint-plugin-vue": "^9.28.0",
     "eslint-plugin-vuetify": "github:albanm/eslint-plugin-vuetify",
     "husky": "^9.1.6",
-    "json-schema-to-typescript": "^11.0.5",
     "neostandard": "^0.11.6",
-    "typescript": "^5.3.3",
-    "ws": "^8.16.0"
+    "typescript": "^5.3.3"
   },
   "relativeDependencies": {
-    "@data-fair/lib": "../lib"
+    "@data-fair/lib-node": "../lib/packages/node",
+    "@data-fair/lib-vuetify": "../lib/packages/vuetify"
   }
 }

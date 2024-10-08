@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import express from 'express'
-import { session, errorHandler, createSiteMiddleware, createSpaMiddleware } from '@data-fair/lib/express/index.js'
+import { session, errorHandler, createSiteMiddleware, createSpaMiddleware } from '@data-fair/lib-express/index.js'
 import dailyApiMetricsRouter from './daily-api-metrics/router.ts'
 import adminRouter from './admin.ts'
 import { uiConfig } from '#config'

@@ -5,7 +5,7 @@ import VueRouter from 'unplugin-vue-router/vite'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Vuetify from 'vite-plugin-vuetify'
-import microTemplate from '@data-fair/lib/micro-template.js'
+import microTemplate from '@data-fair/lib-utils/micro-template.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -30,8 +30,8 @@ export default defineConfig({
         'vue',
         'vue-i18n',
         {
-          '@data-fair/lib/vue/session.js': ['useSession'],
-          '@data-fair/lib/vue/reactive-search-params.js': ['useReactiveSearchParams'],
+          '@data-fair/lib-vue/session.js': ['useSession'],
+          '@data-fair/lib-vue/reactive-search-params.js': ['useReactiveSearchParams'],
           ofetch: [['ofetch', '$fetch']],
           '~/context': [['uiConfig', '$uiConfig'], ['sitePath', '$sitePath'], ['apiPath', '$apiPath']]
         }

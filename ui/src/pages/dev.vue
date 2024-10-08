@@ -21,8 +21,7 @@
 </template>
 
 <script setup lang="ts">
-// @ts-expect-error lib does not properly export types for vue components yet
-import personalMenu from '@data-fair/lib/vuetivy/personal-menu.vue'
+import personalMenu from '@data-fair/lib-vuetify/personal-menu.vue'
 
 const session = useSession()
 

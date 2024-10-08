@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { session } from '@data-fair/lib/express/index.js'
+import { session } from '@data-fair/lib-express/index.js'
 import doc from '../../doc/index.ts'
 
 import { list, agg } from './service.ts'

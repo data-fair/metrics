@@ -5,7 +5,7 @@ import config from '#config'
 // @ts-ignore
 import unixDgram from 'unix-dgram'
 import mongo from '#mongo'
-import { startObserver, stopObserver, internalError } from '@data-fair/lib/node/observer.js'
+import { startObserver, stopObserver, internalError } from '@data-fair/lib-node/observer.js'
 import { pushLogLine, getBulk } from './service.ts'
 
 // inspired by https://github.com/vadimdemedes/syslog-parse/blob/master/source/index.ts

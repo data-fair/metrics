@@ -1,8 +1,8 @@
 import http from 'http'
 import { createHttpTerminator } from 'http-terminator'
 import mongo from '#mongo'
-import { session } from '@data-fair/lib/express/index.js'
-import { startObserver, stopObserver } from '@data-fair/lib/node/observer.js'
+import { session } from '@data-fair/lib-express/index.js'
+import { startObserver, stopObserver } from '@data-fair/lib-node/observer.js'
 import config from '#config'
 import { app } from './app.ts'
 
