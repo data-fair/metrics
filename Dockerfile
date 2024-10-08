@@ -23,7 +23,9 @@ COPY --from=package-strip /app/package-lock.json package-lock.json
 ADD ui/package.json ui/package.json
 ADD api/package.json api/package.json
 ADD daemon/package.json daemon/package.json
-RUN npm ci --include=dev --omit=optional --omit=peer --no-audit --no-fund
+# full deps install used for types and ui building
+# also used to fill the npm cache for faster install api and daemon deps
+RUN npm ci --omit=dev --omit=optional --omit=peer --no-audit --no-fund
 
 ##########################
 FROM installer AS types
@@ -43,29 +45,28 @@ RUN npm -w ui run build
 ##########################
 FROM installer AS daemon-installer
 
-# remove other workspaces and reinstall, otherwise we can get rig have some peer dependencies from other workspaces
-RUN jq '.workspaces=["daemon"]' package.json | sponge package.json
-RUN npm i --prefer-offline --omit=optional --omit=dev --omit=peer --no-audit --no-fund && \
+RUN npm ci -w daemon --prefer-offline --omit=dev --omit=optional --omit=peer --no-audit --no-fund && \
     npx clean-modules --yes
 RUN mkdir -p /app/daemon/node_modules
+RUN du -sh .
 
 ##########################
 FROM base AS daemon
 
 COPY --from=daemon-installer /app/node_modules node_modules
-COPY --from=daemon-installer /app/daemon/node_modules daemon/node_modules
 ADD /daemon daemon
+COPY --from=daemon-installer /app/daemon/node_modules daemon/node_modules
 ADD package.json README.md LICENSE BUILD.json* ./
 EXPOSE 9090
 USER node
-CMD ["node", "--experimental-strip-types", "daemon/index.ts"]
+WORKDIR /app/daemon
+CMD ["node", "--experimental-strip-types", "index.ts"]
 
 ##########################
 FROM installer AS api-installer
 
 # remove other workspaces and reinstall, otherwise we can get rig have some peer dependencies from other workspaces
-RUN jq '.workspaces=["api"]' package.json | sponge package.json
-RUN npm i --prefer-offline --omit=optional --omit=dev --omit=peer --no-audit --no-fund && \
+RUN npm ci -w api --prefer-offline --omit=dev --omit=optional --omit=peer --no-audit --no-fund && \
     npx clean-modules --yes
 RUN mkdir -p /app/api/node_modules
 
@@ -73,8 +74,8 @@ RUN mkdir -p /app/api/node_modules
 FROM base AS api
 
 COPY --from=api-installer /app/node_modules node_modules
-COPY --from=api-installer /app/api/node_modules api/node_modules
 COPY --from=types /app/api api
+COPY --from=api-installer /app/api/node_modules api/node_modules
 COPY --from=ui /app/ui/dist ui/dist
 ADD package.json README.md LICENSE BUILD.json* ./
 # artificially create a dependency to "daemon" target for better caching in github ci
@@ -82,4 +83,5 @@ COPY --from=daemon /app/package.json package.json
 EXPOSE 8080
 EXPOSE 9090
 USER node
-CMD ["node", "--max-http-header-size", "64000", "--experimental-strip-types", "api/index.ts"]
+WORKDIR /app/api
+CMD ["node", "--max-http-header-size", "64000", "--experimental-strip-types", "index.ts"]

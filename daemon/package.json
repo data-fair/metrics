@@ -10,7 +10,7 @@
     "#mongo": "./src/mongo.ts"
   },
   "dependencies": {
-    "@data-fair/lib-node": "^1.0.0",
+    "@data-fair/lib-node": "^1.0.1",
     "@data-fair/lib-utils": "^1.0.0",
     "config": "^3.3.12",
     "debug": "^4.3.4",

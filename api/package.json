@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@data-fair/lib-express": "^1.0.0",
-    "@data-fair/lib-node": "^1.0.0",
+    "@data-fair/lib-node": "^1.0.1",
     "@data-fair/lib-utils": "^1.0.0",
     "camel-case": "^4.1.2",
     "config": "^3.3.12",
