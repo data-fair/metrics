@@ -4,6 +4,7 @@ import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'unplugin-vue-router/vite'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import AutoImport from 'unplugin-auto-import/vite'
+import Unfonts from 'unplugin-fonts/vite'
 import Vuetify from 'vite-plugin-vuetify'
 import microTemplate from '@data-fair/lib-utils/micro-template.js'
 
@@ -24,6 +25,7 @@ export default defineConfig({
     Vue(),
     VueI18nPlugin(),
     Vuetify(),
+    Unfonts({ google: { families: [{ name: 'Nunito', styles: 'ital,wght@0,200..1000;1,200..1000' }] } }),
     AutoImport({
       dts: './dts/auto-imports.d.ts',
       imports: [
@@ -32,13 +34,14 @@ export default defineConfig({
         {
           '@data-fair/lib-vue/session.js': ['useSession'],
           '@data-fair/lib-vue/reactive-search-params.js': ['useReactiveSearchParams'],
-          ofetch: [['ofetch', '$fetch']],
-          '~/context': [['uiConfig', '$uiConfig'], ['sitePath', '$sitePath'], ['apiPath', '$apiPath']]
+          '@data-fair/lib-vue/locale-dayjs.js': ['useLocaleDayjs'],
+          '~/context': ['$uiConfig', '$sitePath', '$apiPath', '$fetch']
         }
       ],
       dirs: [
+        'src/utils',
         'src/composables',
-        'src/components',
+        'src/components/**',
       ]
     }),
     {

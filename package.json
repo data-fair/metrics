@@ -36,6 +36,7 @@
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
     "@data-fair/lib-utils": "^1.0.0",
+    "@types/chart.js": "^2.9.41",
     "@types/config": "^3.3.5",
     "@types/debug": "^4.1.12",
     "eslint": "^9.10.0",
@@ -47,6 +48,7 @@
   },
   "relativeDependencies": {
     "@data-fair/lib-node": "../lib/packages/node",
+    "@data-fair/lib-vue": "../lib/packages/vue",
     "@data-fair/lib-vuetify": "../lib/packages/vuetify"
   }
 }

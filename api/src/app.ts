@@ -14,8 +14,8 @@ app.use(createSiteMiddleware('metrics'))
 
 app.use(session.middleware())
 
-app.use('/api/v1/daily-api-metrics', dailyApiMetricsRouter)
-app.use('/api/v1/admin', adminRouter)
+app.use('/api/daily-api-metrics', dailyApiMetricsRouter)
+app.use('/api/admin', adminRouter)
 
 app.use(await createSpaMiddleware(resolve(import.meta.dirname, '../../ui/dist'), uiConfig))
 
