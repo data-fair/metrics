@@ -63,7 +63,7 @@ COPY --from=types /app/daemon/config daemon/config
 COPY --from=daemon-installer /app/daemon/node_modules daemon/node_modules
 ADD package.json README.md LICENSE BUILD.json* ./
 EXPOSE 9090
-USER node
+# USER node
 WORKDIR /app/daemon
 CMD ["node", "--experimental-strip-types", "index.ts"]
 
@@ -90,6 +90,6 @@ ADD package.json README.md LICENSE BUILD.json* ./
 COPY --from=daemon /app/package.json package.json
 EXPOSE 8080
 EXPOSE 9090
-# USER node
+USER node
 WORKDIR /app/api
 CMD ["node", "--max-http-header-size", "64000", "--experimental-strip-types", "index.ts"]
