@@ -25,11 +25,11 @@ jobs:
         echo '{"version": "${{github.ref_name}}", "repository": "${{github.server_url}}/${{github.repository}}", "commit": "${{github.sha}}"}' > BUILD.json
         cat BUILD.json
 
-    - name: Prepare docker tags for API image
-      id: docker_meta_api
+    - name: Prepare docker tags for main image
+      id: docker_meta_main
       uses: docker/metadata-action@v5
       with:
-        images: ghcr.io/${{ github.repository }}/api
+        images: ghcr.io/${{ github.repository }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -37,18 +37,18 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}}
 
-    - name: Build and push API image
-      id: docker_build_api
+    - name: Build and push main image
+      id: docker_build_main
       uses: docker/build-push-action@v5
       with:
-        target: api
-        tags: ${{ steps.docker_meta_api.outputs.tags }}
+        target: main
+        tags: ${{ steps.docker_meta_main.outputs.tags }}
         platforms: linux/amd64
-        labels: ${{ steps.docker_meta_api.outputs.labels }}
+        labels: ${{ steps.docker_meta_main.outputs.labels }}
         cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/buildcache
         cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/buildcache,mode=max
 
-    - name: Prepare docker tags for DAEMON image
+    - name: Prepare docker tags for secondary daemon image
       id: docker_meta_daemon
       uses: docker/metadata-action@v5
       with:
