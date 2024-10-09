@@ -41,6 +41,7 @@ jobs:
       id: docker_build_main
       uses: docker/build-push-action@v5
       with:
+        push: true
         target: main
         tags: ${{ steps.docker_meta_main.outputs.tags }}
         platforms: linux/amd64
@@ -60,10 +61,11 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}}
 
-    - name: Build and push DAEMON image
+    - name: Build and push secondary daemon image
       id: docker_build_daemon
       uses: docker/build-push-action@v5
       with:
+        push: true
         target: daemon
         tags: ${{ steps.docker_meta_daemon.outputs.tags }}
         platforms: linux/amd64
