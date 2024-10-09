@@ -46,6 +46,7 @@ export const start = async () => {
   try {
     await unlink(config.socketPath)
   } catch (err) {
+    console.log('unlink failure', err)
     // nothing to do, the socket probably does not exist
   }
   console.log(`attempt to bind socket ${config.socketPath}`)
