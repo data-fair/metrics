@@ -36,7 +36,7 @@
     </v-row>
     <div
       class="chart-container"
-      data-iframe-size
+      data-iframe-height
     >
       <canvas id="chart" />
     </div>
