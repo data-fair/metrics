@@ -30,7 +30,10 @@ RUN npm ci --omit=dev --omit=optional --omit=peer --no-audit --no-fund
 ##########################
 FROM installer AS types
 
-ADD api api
+ADD api/types api/types
+ADD api/doc api/doc
+ADD api/config api/config
+ADD daemon/config daemon/config
 RUN npm run build-types
 
 ##########################
@@ -38,7 +41,7 @@ FROM installer AS ui
 
 RUN npm i --no-save @rollup/rollup-linux-x64-musl
 COPY --from=types /app/api/config api/config
-COPY --from=types /app/api/src/config.ts api/src/config.ts
+ADD /api/src/config.ts api/src/config.ts
 ADD /ui ui
 RUN npm -w ui run build
 
@@ -55,6 +58,8 @@ FROM base AS daemon
 
 COPY --from=daemon-installer /app/node_modules node_modules
 ADD /daemon daemon
+COPY --from=types /app/api/types api/types
+COPY --from=types /app/daemon/config daemon/config
 COPY --from=daemon-installer /app/daemon/node_modules daemon/node_modules
 ADD package.json README.md LICENSE BUILD.json* ./
 EXPOSE 9090
@@ -74,7 +79,10 @@ RUN mkdir -p /app/api/node_modules
 FROM base AS main
 
 COPY --from=api-installer /app/node_modules node_modules
-COPY --from=types /app/api api
+ADD /api api
+COPY --from=types /app/api/types api/types
+COPY --from=types /app/api/doc api/doc
+COPY --from=types /app/api/config api/config
 COPY --from=api-installer /app/api/node_modules api/node_modules
 COPY --from=ui /app/ui/dist ui/dist
 ADD package.json README.md LICENSE BUILD.json* ./
