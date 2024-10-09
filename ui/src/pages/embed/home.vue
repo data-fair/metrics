@@ -2,7 +2,7 @@
   <v-container
     class="home my-0"
     :fluid="$vuetify.display.lgAndDown"
-    data-iframe-height
+    data-iframe-size
   >
     <v-toolbar
       variant="tonal"
