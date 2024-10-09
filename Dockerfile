@@ -90,6 +90,6 @@ ADD package.json README.md LICENSE BUILD.json* ./
 COPY --from=daemon /app/package.json package.json
 EXPOSE 8080
 EXPOSE 9090
-USER node
+# USER node
 WORKDIR /app/api
 CMD ["node", "--max-http-header-size", "64000", "--experimental-strip-types", "index.ts"]
