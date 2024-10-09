@@ -42,12 +42,15 @@ export const start = async () => {
   if (config.observer.active) await startObserver()
   await mongo.init()
 
+  console.log(`attempt to unlink socket ${config.socketPath}`)
   try {
     await unlink(config.socketPath)
   } catch (err) {
     // nothing to do, the socket probably does not exist
   }
+  console.log(`attempt to bind socket ${config.socketPath}`)
   socket.bind(config.socketPath)
+  console.log(`attempt to chmod socket ${config.socketPath}`)
   await chmod(config.socketPath, '662')
 
   console.log(`Metrics daemon listening on ${config.socketPath}`)
