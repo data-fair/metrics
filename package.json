@@ -39,6 +39,7 @@
     "@types/chart.js": "^2.9.41",
     "@types/config": "^3.3.5",
     "@types/debug": "^4.1.12",
+    "@types/truncate-middle": "^1.0.4",
     "eslint": "^9.10.0",
     "eslint-plugin-vue": "^9.28.0",
     "eslint-plugin-vuetify": "github:albanm/eslint-plugin-vuetify",

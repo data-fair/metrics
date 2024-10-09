@@ -13,9 +13,8 @@
         size="x-large"
         color="primary"
         class="mx-4"
-      >
-        mdi-calendar-range
-      </v-icon>
+        :icon="mdiCalendarRange"
+      />
       <filter-period @update:model-value="(v: any) => periods = v" />
     </v-toolbar>
     <tutorial-alert id="metrics-gzip">
@@ -57,9 +56,8 @@
           size="x-large"
           color="primary"
           class="mx-4"
-        >
-          mdi-database
-        </v-icon>
+          :icon="mdiDatabase"
+        />
         <v-autocomplete
           v-model="dataset"
           :loading="!aggResultDataAPI"
@@ -150,7 +148,9 @@ export default {
     aggResultDataFiles: null as any,
     aggResultDataAPI: null as any,
     aggResultOpenApp: null as any,
-    dataset: null
+    dataset: null,
+    mdiCalendarRange,
+    mdiDatabase
   }),
   computed: {
     datasetItems () {

@@ -1,4 +1,4 @@
-export default (text) => {
+export default (text: string) => {
   try {
     return decodeURIComponent(text)
   } catch (err) {

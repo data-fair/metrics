@@ -25,7 +25,7 @@
   </v-menu>
 </template>
 
-<script>
+<script lang="ts">
 import { useDate } from 'vuetify'
 
 export default {

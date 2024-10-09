@@ -11,6 +11,7 @@
 </template>
 
 <script>
+// @ts-nocheck
 import truncateMiddle from 'truncate-middle'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 

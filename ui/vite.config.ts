@@ -31,11 +31,13 @@ export default defineConfig({
       imports: [
         'vue',
         'vue-i18n',
+        'vue-router',
         {
           '@data-fair/lib-vue/session.js': ['useSession'],
           '@data-fair/lib-vue/reactive-search-params.js': ['useReactiveSearchParams'],
           '@data-fair/lib-vue/locale-dayjs.js': ['useLocaleDayjs'],
-          '~/context': ['$uiConfig', '$sitePath', '$apiPath', '$fetch']
+          '~/context': ['$uiConfig', '$sitePath', '$apiPath', '$fetch'],
+          '@mdi/js': ['mdiCalendarRange', 'mdiDatabase', 'mdiImageSizeSelectSmall']
         }
       ],
       dirs: [

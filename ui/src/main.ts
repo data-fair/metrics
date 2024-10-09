@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
 import { createVuetify } from 'vuetify'
+import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
 import { defaultOptions } from '@data-fair/lib-vuetify'
 import { createReactiveSearchParams } from '@data-fair/lib-vue/reactive-search-params.js'
 import { createLocaleDayjs } from '@data-fair/lib-vue/locale-dayjs.js'
@@ -15,7 +16,16 @@ import './main.scss'
   const reactiveSearchParams = createReactiveSearchParams(router)
   const session = await createSession({ directoryUrl: $sitePath + '/simple-directory' })
   const localeDayjs = createLocaleDayjs(session.state.lang)
-  const vuetify = createVuetify(defaultOptions(reactiveSearchParams.value, session.state.dark))
+  const vuetify = createVuetify({
+    ...defaultOptions(reactiveSearchParams.value, session.state.dark),
+    icons: {
+      defaultSet: 'mdi',
+      aliases,
+      sets: {
+        mdi,
+      }
+    }
+  })
   const i18n = createI18n({ locale: session.state.lang })
 
   createApp(App)

@@ -25,7 +25,7 @@
   </v-row>
 </template>
 
-<script>
+<script lang="ts">
 import { useLocaleDayjs } from '@data-fair/lib-vue/locale-dayjs.js'
 
 export default {
@@ -91,7 +91,7 @@ export default {
     this.input()
   },
   methods: {
-    setPeriod (value) {
+    setPeriod (value: any) {
       if (value) {
         this.period = { ...value }
         this.input()

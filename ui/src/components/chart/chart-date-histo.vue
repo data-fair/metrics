@@ -8,7 +8,8 @@
   </layout-resizable-card>
 </template>
 
-<script lang="ts">
+<script>
+// @ts-nocheck
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useLocaleDayjs } from '@data-fair/lib-vue/locale-dayjs.js'
 

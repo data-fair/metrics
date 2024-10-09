@@ -20,7 +20,7 @@
           :title="large ? 'réduire' : 'agrandir'"
           @click="toggle"
         >
-          <v-icon>mdi-image-size-select-small</v-icon>
+          <v-icon :icon="mdiImageSizeSelectSmall" />
         </v-btn>
       </v-card-title>
       <v-card-text>
@@ -38,7 +38,8 @@
   </v-col>
 </template>
 
-<script>
+<script lang="ts">
+
 export default {
   props: {
     title: { type: String, required: true },
@@ -49,7 +50,11 @@ export default {
   },
   emits: ['update:modelValue'],
   data () {
-    return { large: false, hover: false }
+    return {
+      large: false,
+      hover: false,
+      mdiImageSizeSelectSmall
+    }
   },
   methods: {
     toggle () {

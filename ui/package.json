@@ -15,6 +15,7 @@
     "@data-fair/lib-vue": "^1.0.1",
     "@data-fair/lib-vuetify": "^1.0.1",
     "@intlify/unplugin-vue-i18n": "^5.2.0",
+    "@mdi/js": "^7.4.47",
     "@types/config": "^3.3.5",
     "@vitejs/plugin-vue": "^5.1.2",
     "chart.js": "^4.4.4",

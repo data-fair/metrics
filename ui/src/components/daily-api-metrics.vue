@@ -44,6 +44,7 @@
 </template>
 
 <script>
+// @ts-nocheck
 import { ref, reactive } from 'vue'
 import { useLocaleDayjs } from '@data-fair/lib/vue/locale-dayjs.js'
 import formatBytes from '@data-fair/lib/format/bytes.js'
