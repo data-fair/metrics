@@ -50,7 +50,7 @@ export default {
   },
   emits: ['update:agg'],
   setup () {
-
+    return { uiNotif: useUiNotif() }
   },
   data () {
     return {
@@ -196,15 +196,19 @@ export default {
     },
     async fetchPeriod (period) {
       /** @type {import('../../../shared/index.js').aggResultType} */
-      const aggResult = await $fetch('daily-api-metrics/_agg', {
-        query: {
-          split: this.category,
-          ...this.filter,
-          start: period.start,
-          end: period.end
-        }
-      })
-      return aggResult
+      try {
+        const aggResult = await $fetch('daily-api-metrics/_agg', {
+          query: {
+            split: this.category,
+            ...this.filter,
+            start: period.start,
+            end: period.end
+          }
+        })
+        return aggResult
+      } catch (error) {
+        this.uiNotif.sendUiNotif({ msg: 'Erreur pendant la récupération des métriques', error })
+      }
     }
   }
 }

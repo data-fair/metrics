@@ -9,6 +9,7 @@
     "#config": "./src/config.ts",
     "#mongo": "./src/mongo.ts",
     "#doc": "./doc/index.ts",
+    "#doc/*": "./doc/*",
     "#types": "./types/index.ts",
     "#types/*": "./types/*"
   },

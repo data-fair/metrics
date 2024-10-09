@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { session } from '@data-fair/lib-express/index.js'
-import doc from '../../doc/index.ts'
+import * as aggQuery from '#doc/agg-query/index.ts'
 
 import { list, agg } from './service.ts'
 
@@ -15,9 +15,9 @@ router.get('', async (req, res) => {
 
 router.get('/_agg', async (req, res) => {
   const reqSession = await session.reqAuthenticated(req)
-  const reqQuery = { ...req.query }
-  if (typeof reqQuery.split === 'string') reqQuery.split = reqQuery.split.split(',')
-  const query = doc.aggQuery.returnValid(reqQuery, { lang: reqSession.lang, name: 'query' })
+  const query = { ...req.query } // better not to mutate req.query
+  if (typeof query.split === 'string') query.split = query.split.split(',')
+  aggQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
   const result = await agg(reqSession.account, query)
   res.json(result)
 })

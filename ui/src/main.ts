@@ -4,27 +4,23 @@ import { routes } from 'vue-router/auto-routes'
 import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
 import { defaultOptions } from '@data-fair/lib-vuetify'
+import '@data-fair/lib-vuetify/default.scss'
 import { createReactiveSearchParams } from '@data-fair/lib-vue/reactive-search-params.js'
 import { createLocaleDayjs } from '@data-fair/lib-vue/locale-dayjs.js'
 import { createSession } from '@data-fair/lib-vue/session.js'
+import { createUiNotif } from '@data-fair/lib-vue/ui-notif.js'
 import { createI18n } from 'vue-i18n'
 import App from './App.vue'
-import './main.scss'
 
 (async function () {
   const router = createRouter({ history: createWebHistory($sitePath + '/metrics/'), routes })
   const reactiveSearchParams = createReactiveSearchParams(router)
   const session = await createSession({ directoryUrl: $sitePath + '/simple-directory' })
   const localeDayjs = createLocaleDayjs(session.state.lang)
+  const uiNotif = createUiNotif()
   const vuetify = createVuetify({
-    ...defaultOptions(reactiveSearchParams.value, session.state.dark),
-    icons: {
-      defaultSet: 'mdi',
-      aliases,
-      sets: {
-        mdi,
-      }
-    }
+    ...defaultOptions(reactiveSearchParams.state, session.state.dark),
+    icons: { defaultSet: 'mdi', aliases, sets: { mdi, } }
   })
   const i18n = createI18n({ locale: session.state.lang })
 
@@ -33,6 +29,7 @@ import './main.scss'
     .use(reactiveSearchParams)
     .use(session)
     .use(localeDayjs)
+    .use(uiNotif)
     .use(vuetify)
     .use(i18n)
     .mount('#app')

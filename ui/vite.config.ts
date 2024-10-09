@@ -7,6 +7,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Unfonts from 'unplugin-fonts/vite'
 import Vuetify from 'vite-plugin-vuetify'
 import microTemplate from '@data-fair/lib-utils/micro-template.js'
+import { autoImports } from '@data-fair/lib-vuetify/vite.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -29,13 +30,8 @@ export default defineConfig({
     AutoImport({
       dts: './dts/auto-imports.d.ts',
       imports: [
-        'vue',
-        'vue-i18n',
-        'vue-router',
+        ...(autoImports as any),
         {
-          '@data-fair/lib-vue/session.js': ['useSession'],
-          '@data-fair/lib-vue/reactive-search-params.js': ['useReactiveSearchParams'],
-          '@data-fair/lib-vue/locale-dayjs.js': ['useLocaleDayjs'],
           '~/context': ['$uiConfig', '$sitePath', '$apiPath', '$fetch'],
           '@mdi/js': ['mdiCalendarRange', 'mdiDatabase', 'mdiImageSizeSelectSmall']
         }

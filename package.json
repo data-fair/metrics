@@ -30,7 +30,7 @@
     "daemon"
   ],
   "dependencies": {
-    "@data-fair/lib-types-builder": "^1.0.0"
+    "@data-fair/lib-types-builder": "^1.0.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
