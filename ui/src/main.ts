@@ -11,10 +11,10 @@ import { createSession } from '@data-fair/lib-vue/session.js'
 import { createUiNotif } from '@data-fair/lib-vue/ui-notif.js'
 import { createI18n } from 'vue-i18n'
 import App from './App.vue'
-import '@iframe-resizer/child'
 import '@koumoul/v-iframe/content-window'
-// import 'iframe-resizer/js/iframeResizer.contentWindow.js'
-// (window as any).iFrameResizer = { heightCalculationMethod: 'taggedElement' };
+import 'iframe-resizer/js/iframeResizer.contentWindow.js'
+
+(window as any).iFrameResizer = { heightCalculationMethod: 'taggedElement' };
 
 (async function () {
   const router = createRouter({ history: createWebHistory($sitePath + '/metrics/'), routes })
