@@ -25,4 +25,4 @@ jobs:
 
     - name: Docker logs in case of failure
       if: failure()
-      run: docker compose logs
+      run: docker compose logs data-fair
