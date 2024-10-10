@@ -17,7 +17,7 @@
     "dev-zellij": "zellij --layout .zellij.kdl",
     "build-types": "df-build-types ./",
     "prepare": "husky || true",
-    "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm -w ui run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
+    "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm -w ui run build && npm run test && npm audit --omit=dev --audit-level=critical"
   },
   "imports": {
     "#api/types": "./api/types/index.ts"
