@@ -22,3 +22,7 @@ jobs:
 
     - name: Run quality checks
       run: npm run quality
+
+    - name: Docker logs in case of failure
+      if: failure()
+      run: docker compose logs
