@@ -9,7 +9,7 @@
     "lint": "eslint . && npm -w ui run lint",
     "lint-fix": "eslint --fix . && npm -w ui run lint-fix",
     "check-types": "tsc",
-    "dev-deps": "docker compose up -d",
+    "dev-deps": "docker compose up -d --wait",
     "stop-dev-deps": "docker compose stop",
     "dev-ui": "npm -w ui run dev",
     "dev-api": "npm -w api run dev",
