@@ -1,7 +1,6 @@
 module.exports = {
   port: 'PORT',
-  origin: 'ORIGIN',
-  directoryUrl: 'DIRECTORY_URL',
+  privateDirectoryUrl: 'PRIVATE_DIRECTORY_URL',
   mongo: {
     url: 'MONGO_URL',
     options: {

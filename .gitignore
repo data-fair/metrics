@@ -2,3 +2,4 @@
 .type
 node_modules
 dev/data
+*.tsbuildinfo

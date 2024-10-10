@@ -1,24 +1,26 @@
 {
   "name": "@data-fair/metrics",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "A service to help monitoring HTTP requests in the data-fair stack.",
   "type": "module",
   "scripts": {
-    "test": "node test-it/index.js",
-    "lint": "eslint --ext .js,.ts,.vue .",
-    "lint-fix": "eslint --fix --ext .js,.ts,.vue .",
+    "test": "NODE_ENV=test node --experimental-strip-types --test-force-exit --test-concurrency=1 --test --test-reporter=spec test-it/*.ts",
+    "test-only": "NODE_ENV=test node --experimental-strip-types --test-force-exit --test-only --test-concurrency=1 --test test-it/*.ts",
+    "lint": "eslint . && npm -w ui run lint",
+    "lint-fix": "eslint --fix . && npm -w ui run lint-fix",
     "check-types": "tsc",
-    "dev-deps": "docker compose up -d",
+    "dev-deps": "docker compose up -d --wait",
     "stop-dev-deps": "docker compose stop",
     "dev-ui": "npm -w ui run dev",
     "dev-api": "npm -w api run dev",
     "dev-daemon": "npm -w daemon run dev",
     "dev-zellij": "zellij --layout .zellij.kdl",
-    "build-types": "df-build-types shared && df-build-types api && df-build-types daemon",
-    "build-types-api": "df-build-types shared && df-build-types api",
-    "build-types-daemon": "df-build-types shared && df-build-types daemon",
-    "prepare": "husky install",
-    "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
+    "build-types": "df-build-types ./",
+    "prepare": "husky || true",
+    "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm -w ui run build && npm run test && npm audit --omit=dev --audit-level=critical"
+  },
+  "imports": {
+    "#api/types": "./api/types/index.ts"
   },
   "author": "Alban Mouton <alban.mouton@koumoul.com>",
   "license": "AGPL-3.0-only",
@@ -27,24 +29,27 @@
     "ui",
     "daemon"
   ],
+  "dependencies": {
+    "@data-fair/lib-types-builder": "^1.0.2"
+  },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
-    "@data-fair/lib": "^0.27.1",
-    "@nuxtjs/eslint-config-typescript": "^12.1.0",
-    "agentkeepalive": "^4.5.0",
-    "ajv-errors": "^3.0.0",
-    "ajv-formats": "^2.1.1",
-    "ajv-i18n": "^4.2.0",
-    "axios": "^1.6.2",
-    "cacheable-lookup": "^6.1.0",
-    "eslint": "^8.55.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-config-typescript": "^3.0.0",
-    "eslint-plugin-vue": "^9.19.2",
-    "husky": "^8.0.3",
-    "json-schema-to-typescript": "^11.0.5",
-    "typescript": "^5.3.3",
-    "ws": "^8.16.0"
+    "@data-fair/lib-utils": "^1.0.0",
+    "@types/chart.js": "^2.9.41",
+    "@types/config": "^3.3.5",
+    "@types/debug": "^4.1.12",
+    "@types/truncate-middle": "^1.0.4",
+    "eslint": "^9.10.0",
+    "eslint-plugin-vue": "^9.28.0",
+    "eslint-plugin-vuetify": "github:albanm/eslint-plugin-vuetify",
+    "husky": "^9.1.6",
+    "neostandard": "^0.11.6",
+    "typescript": "^5.3.3"
+  },
+  "relativeDependencies": {
+    "@data-fair/lib-node": "../lib/packages/node",
+    "@data-fair/lib-vue": "../lib/packages/vue",
+    "@data-fair/lib-vuetify": "../lib/packages/vuetify"
   }
 }

@@ -3,12 +3,11 @@ layout {
       split_direction "vertical"
       pane name="metrics" borderless=true {
         command "bash"
-        args "-ic" "nvm use && bash"
+        args "-ic" "nvm use > /dev/null 2>&1 && echo \"Service available on http://localhost:6218\" && bash"
       }
       pane name="deps" {
         command "bash"
-        args "-ic" "dc up"
-        args "-ic" "npm run dev-deps && docker compose logs -f"
+        args "-ic" "npm run dev-deps && watch -n 4 docker compose ps"
       }
     }
     pane {

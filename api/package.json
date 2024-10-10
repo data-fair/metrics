@@ -3,25 +3,27 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development node --watch ./index.js"
+    "dev": "NODE_ENV=development node --watch --experimental-strip-types ./index.ts"
+  },
+  "imports": {
+    "#config": "./src/config.ts",
+    "#mongo": "./src/mongo.ts",
+    "#doc": "./doc/index.ts",
+    "#doc/*": "./doc/*",
+    "#types": "./types/index.ts",
+    "#types/*": "./types/*"
   },
   "dependencies": {
-    "@data-fair/lib": "^0.27.1",
-    "ajv-formats": "^2.1.1",
-    "ajv-i18n": "^4.2.0",
+    "@data-fair/lib-express": "^1.0.2",
+    "@data-fair/lib-node": "^1.0.1",
+    "@data-fair/lib-utils": "^1.0.0",
     "camel-case": "^4.1.2",
-    "config": "^3.3.9",
+    "config": "^3.3.12",
     "dayjs": "^1.11.7",
-    "express": "^4.18.2",
-    "flatstr": "^1.0.12",
-    "http-errors": "^2.0.0",
+    "express": "^5.0.0",
     "http-terminator": "^3.2.0",
-    "jsonwebtoken": "^9.0.2",
-    "jwks-rsa": "^3.1.0",
     "mongodb": "^6.2.0",
-    "prom-client": "^15.1.0"
-  },
-  "devDependencies": {
-    "@types/config": "^3.3.3"
+    "prom-client": "^15.1.0",
+    "ws": "^8.18.0"
   }
 }
