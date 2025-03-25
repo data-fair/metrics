@@ -1,4 +1,3 @@
-version: '3'
 services:
 
   #####
@@ -19,23 +18,18 @@ services:
   simple-directory:
     image: ghcr.io/data-fair/simple-directory:master
     network_mode: host
-    # ports:
-    #   - 6221:8080
-    #   - 1080:1080
-    #   - 1025:1025
     depends_on:
       - mongo
     environment:
+      - PUBLIC_URL=http://localhost:5600/simple-directory
+      - OBSERVER_ACTIVE=false
+      - CIPHER_PASSWORD=dev
+      - CONTACT=contact@test.com
+      - MONGO_URL=mongodb://localhost:27017/simple-directory
       - PORT=6221
       - DEBUG=session
       - ADMINS=["superadmin@test.com"]
-      - PUBLIC_URL=http://localhost:6218/simple-directory
-      - MAILDEV_ACTIVE=true
       - STORAGE_TYPE=file
-      - ROLES_DEFAULTS=["admin", "contrib", "user"]
-      - PROMETHEUS_ACTIVE=false
-      - OBSERVER_ACTIVE=false
-      - NO_UI=${NO_UI}
     volumes:
       - ./dev/resources/users.json:/webapp/data/users.json
       - ./dev/resources/organizations.json:/webapp/data/organizations.json
@@ -43,8 +37,6 @@ services:
   data-fair:
     image: ghcr.io/data-fair/data-fair:master
     network_mode: host
-    #ports:
-    #  - 6222:8080
     depends_on:
       mongo:
         condition: service_started
@@ -53,14 +45,11 @@ services:
     restart: on-failure:10
     environment:
       - PORT=6222
-      - DEBUG=files,db
+      - DEBUG=files
       - MONGO_URL=mongodb://localhost:27017/data-fair
-      - ES_HOST=localhost:9200
-      - DIRECTORY_URL=http://localhost:6218/simple-directory
-      # - PRIVATE_DIRECTORY_URL=http://simple-directory:8080
-      - PUBLIC_URL=http://localhost:6218/data-fair
-      - WS_PUBLIC_URL=ws://localhost:6218/data-fair
-      - PROMETHEUS_ACTIVE=false
+      - DIRECTORY_URL=http://localhost:5600/simple-directory
+      - PUBLIC_URL=http://localhost:5600/data-fair
+      - WS_PUBLIC_URL=ws://localhost:5600/data-fair
       - OBSERVER_ACTIVE=false
 
   #####
@@ -68,18 +57,20 @@ services:
   #####
 
   elasticsearch:
-    image: ghcr.io/data-fair/elasticsearch:7.17.12
+    image: ghcr.io/data-fair/elasticsearch:7.x
     ports:
       - 9200:9200
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
     environment:
       - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms128m -Xmx128m"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200"]
       timeout: 10s
-      interval: 10s
-      retries: 10
+      interval: 2s
+      retries: 50
 
   mongo:
     image: mongo:4.2

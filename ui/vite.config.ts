@@ -33,7 +33,14 @@ export default defineConfig({
         ...(autoImports as any),
         {
           '~/context': ['$uiConfig', '$sitePath', '$apiPath', '$fetch'],
-          '@mdi/js': ['mdiCalendarRange', 'mdiDatabase', 'mdiImageSizeSelectSmall']
+          '@mdi/js': [
+            'mdiTrendingUp',
+            'mdiTrendingDown',
+            'mdiTrendingNeutral',
+            'mdiCalendarRange',
+            'mdiDatabase',
+            'mdiImageSizeSelectSmall'
+          ]
         }
       ],
       dirs: [

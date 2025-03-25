@@ -41,7 +41,6 @@ export default {
     },
     chartConfig () {
       if (!this.aggResult) return
-      console.log(this.aggResult)
       const days = this.aggResult.days.map((day) => {
         const serieItem = this.aggResult.series[0].days[day]
         return {
