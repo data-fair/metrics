@@ -125,21 +125,23 @@ export const agg = async (account: Account, query: AggQuery) => {
 }
 
 export const getHistory = async (account: Account, query: {
-  start?: string
-  end?: string
+  start: string
+  end: string
   statusClass?: string
   groupBy?: string
 }) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
-    'owner.id': account.id
+    'owner.id': account.id,
+    day: {
+      $gte: query.start,
+      $lte: query.end
+    }
   }
   if (account.department) {
     $match['owner.department'] = account.department
   }
 
-  if (query.start) $match.day = { $gte: query.start }
-  if (query.end) $match.day = { ...$match.day, $lte: query.end }
   if (query.statusClass) $match.statusClass = query.statusClass
   if (query.groupBy === 'datasets') { $match['resource.type'] = 'datasets' }
 

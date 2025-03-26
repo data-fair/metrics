@@ -1,5 +1,6 @@
 import type { Account } from '@data-fair/lib-express'
 import type { Response } from 'express'
+import type { ExportQuery } from '#doc'
 
 import Excel from 'exceljs'
 import { agg, getHistory } from './service.ts'
@@ -15,7 +16,7 @@ const userClasses = {
   externalProcessing: 'Utilisateur externe (traitement)'
 }
 
-const generate = async (account: Account, query: any, res: Response) => {
+const generate = async (account: Account, query: ExportQuery, res: Response) => {
   const workbook = new Excel.stream.xlsx.WorkbookWriter({
     stream: res,
     useStyles: true,
@@ -26,54 +27,18 @@ const generate = async (account: Account, query: any, res: Response) => {
 
   const global = workbook.addWorksheet('Global')
 
-  const generatePeriodSentence = (start: string, end: string) => {
-    let period = ''
-
-    if (!start && !end) {
-      period = 'depuis toujours'
-    } else if (start && !end) {
-      period = `à partir du ${start}`
-    } else if (!start && end) {
-      period = `depuis toujours jusqu'au ${end}`
-    } else {
-      period = `du ${start} au ${end}`
-    }
-
-    return period
-  }
-
-  const rqByUserClass = await agg(account, {
-    start: query.start,
-    end: query.end,
-    split: ['userClass'],
-    statusClass: 'ok'
-  })
-
-  global.getColumn(1).width = 40
-  global.addRow(['Période sélectionnée :', generatePeriodSentence(query.start, query.end)])
-  global.addRow(['Nombre de fichiers téléchargés'])
-  global.addRow(['Nombre d\'appels API', rqByUserClass.nbRequests])
-  global.addRow([])
-  global.addRow(['Nombre d\'appels API par catégorie d\'utilisateur'])
-
-  for (const item of rqByUserClass.series) {
-    global.addRow([userClasses[item.key.userClass!] || item.key.userClass, item.nbRequests])
-  }
-
   const historyData = await getHistory(account, {
     start: query.start,
     end: query.end,
     statusClass: 'ok',
     groupBy: 'day'
   })
-
   const history = workbook.addWorksheet('Historique')
   history.columns = [
     { header: 'Date', key: 'day', width: 15 },
     { header: 'Nombre d\'appels API', key: 'nbRequests', width: 20 },
     { header: 'Nombre de fichiers téléchargés', key: 'nbFiles', width: 25 }
   ]
-
   for (const item of historyData) {
     history.addRow([item._id, item.nbRequests, item.nbFiles])
   }
@@ -85,14 +50,12 @@ const generate = async (account: Account, query: any, res: Response) => {
     { header: 'Nombre d\'appels API', key: 'nbRequests', width: 20 },
     { header: 'Nombre de fichiers téléchargés', key: 'nbFiles', width: 25 }
   ]
-
   const rqByDataset = await getHistory(account, {
     start: query.start,
     end: query.end,
     groupBy: 'datasets',
     statusClass: 'ok',
   })
-
   for (const item of rqByDataset) {
     JDD.addRow([item._id, item.resource?.title, item.nbRequests, item.nbFiles])
   }
@@ -102,14 +65,12 @@ const generate = async (account: Account, query: any, res: Response) => {
     { header: 'Origine', key: 'origin', width: 30 },
     { header: 'Nombre d\'appels API', key: 'nbRequests', width: 20 }
   ]
-
   const rqByOriginData = await agg(account, {
     start: query.start,
     end: query.end,
     split: ['refererDomain'],
     statusClass: 'ok'
   })
-
   for (const item of rqByOriginData.series) {
     origin.addRow([item.key.refererDomain === 'none' ? 'Inconnu' : item.key.refererDomain, item.nbRequests])
   }
@@ -120,7 +81,6 @@ const generate = async (account: Account, query: any, res: Response) => {
     { header: 'Titre', key: 'title', width: 40 },
     { header: 'Nombre d\'ouvertures', key: 'nbRequests', width: 20 }
   ]
-
   const rqByVisuData = await agg(account, {
     start: query.start,
     end: query.end,
@@ -128,9 +88,25 @@ const generate = async (account: Account, query: any, res: Response) => {
     statusClass: 'ok',
     operationTrack: 'openApplication'
   })
-
   for (const item of rqByVisuData.series) {
     visu.addRow([item.key.resource?.id, item.key.resource?.title, item.nbRequests])
+  }
+
+  const rqByUserClass = await agg(account, {
+    start: query.start,
+    end: query.end,
+    split: ['userClass'],
+    statusClass: 'ok'
+  })
+
+  global.getColumn(1).width = 40
+  global.addRow([`Période du ${query.start} au ${query.end}`])
+  global.addRow(['Nombre d\'appels API', rqByUserClass.nbRequests])
+  global.addRow(['Nombre de fichiers téléchargés', rqByDataset.reduce((acc, item) => acc + item.nbFiles, 0)])
+  global.addRow([])
+  global.addRow(['Nombre d\'appels API par catégorie d\'utilisateur'])
+  for (const item of rqByUserClass.series) {
+    global.addRow([userClasses[item.key.userClass!] || item.key.userClass, item.nbRequests])
   }
 
   await workbook.commit()
