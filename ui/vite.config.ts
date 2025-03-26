@@ -34,12 +34,13 @@ export default defineConfig({
         {
           '~/context': ['$uiConfig', '$sitePath', '$apiPath', '$fetch'],
           '@mdi/js': [
-            'mdiTrendingUp',
-            'mdiTrendingDown',
-            'mdiTrendingNeutral',
             'mdiCalendarRange',
             'mdiDatabase',
-            'mdiImageSizeSelectSmall'
+            'mdiMicrosoftExcel',
+            'mdiImageSizeSelectSmall',
+            'mdiTrendingDown',
+            'mdiTrendingNeutral',
+            'mdiTrendingUp'
           ]
         }
       ],

@@ -20,6 +20,7 @@
     "camel-case": "^4.1.2",
     "config": "^3.3.12",
     "dayjs": "^1.11.7",
+    "exceljs": "^4.4.0",
     "express": "^5.0.0",
     "http-terminator": "^3.2.0",
     "mongodb": "^6.15.0",
