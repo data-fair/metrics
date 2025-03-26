@@ -41,7 +41,7 @@ pub async fn listen_socket(
     bulk_ref: &RefCell<Vec<MongoRequest>>,
 ) -> Result<(), Box<dyn Error>> {
     let token_verifier = RemoteJwksVerifier::new(
-        "http://localhost:6218/jwks".into(),
+        "http://localhost:5600/jwks".into(),
         None,
         Duration::from_secs(600),
     );

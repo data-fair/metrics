@@ -83,6 +83,7 @@
             :title="metric.title"
             :subtitle="metric.subtitle"
             :loading="metric.loading"
+            :trend="metric.trend"
           />
         </v-col>
       </v-row>
@@ -197,6 +198,16 @@ export default {
             if (previous) {
               simpleMetric.subtitle = metricType === 'nbRequests' ? previous.nbRequests.toLocaleString() : formatBytes(previous.bytes, this.$i18n.locale)
               simpleMetric.subtitle += ' sur période précédente'
+              // Determine trend
+              if (metricType === 'nbRequests') {
+                if (current.nbRequests > previous.nbRequests) simpleMetric.trend = 'up'
+                else if (current.nbRequests < previous.nbRequests) simpleMetric.trend = 'down'
+                else simpleMetric.trend = 'neutral'
+              } else {
+                if (current.bytes > previous.bytes) simpleMetric.trend = 'up'
+                else if (current.bytes < previous.bytes) simpleMetric.trend = 'down'
+                else simpleMetric.trend = 'neutral'
+              }
             }
             simpleMetrics.push(simpleMetric)
           } else {

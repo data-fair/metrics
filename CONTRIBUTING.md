@@ -4,7 +4,7 @@
 
   - A Javascript/Typescript IDE with [Vue.js](https://vuejs.org/)  and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) support.
   - A recent [Docker](https://docs.docker.com/engine/install/) installation.
-  - [Node.js v20+](https://nodejs.org/)
+  - [Node.js v22+](https://nodejs.org/)
 
 ## Install dependencies
 
@@ -29,7 +29,7 @@ npm run dev-deps
 
 The UI is a [nuxt](https://nuxt.com/) project.
 
-Run a development server (access it here http://localhost:6218/metrics/):
+Run a development server (access it here http://localhost:5600/metrics/):
 
 ```
 npm run dev-ui
@@ -39,7 +39,7 @@ npm run dev-ui
 
 The API is a small [https://expressjs.com](Express) server.
 
-Run a development server (access it here http://localhost:6218/metrics/api/):
+Run a development server (access it here http://localhost:5600/metrics/api/):
 
 ```
 npm run dev-api

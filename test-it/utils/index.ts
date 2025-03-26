@@ -4,9 +4,9 @@ import { axiosBuilder } from '@data-fair/lib-node/axios.js'
 import { axiosAuth as _axiosAuth } from '@data-fair/lib-node/axios-auth.js'
 import mongo from '@data-fair/lib-node/mongo.js'
 
-const directoryUrl = 'http://localhost:6218/simple-directory'
+const directoryUrl = 'http://localhost:5600/simple-directory'
 
-const axiosOpts = { baseURL: 'http://localhost:6218' }
+const axiosOpts = { baseURL: 'http://localhost:5600' }
 
 export const axios = (opts = {}) => axiosBuilder({ ...axiosOpts, ...opts })
 

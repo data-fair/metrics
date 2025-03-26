@@ -14,7 +14,7 @@
     "dev-ui": "npm -w ui run dev",
     "dev-api": "npm -w api run dev",
     "dev-daemon": "npm -w daemon run dev",
-    "dev-zellij": "zellij --layout .zellij.kdl",
+    "dev-zellij": "export DEV_SHELL=$(basename \"$SHELL\") && zellij --layout .zellij.kdl && rm data/zellij-deps-ready",
     "build-types": "df-build-types ./",
     "prepare": "husky || true",
     "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm -w ui run build && npm run test && npm audit --omit=dev --audit-level=critical"
@@ -30,26 +30,23 @@
     "daemon"
   ],
   "dependencies": {
-    "@data-fair/lib-types-builder": "^1.0.2"
+    "@data-fair/lib-node": "^2.5.1",
+    "@data-fair/lib-types-builder": "^1.7.0",
+    "tough-cookie": "^5.1.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^18.4.3",
-    "@commitlint/config-conventional": "^18.4.3",
-    "@data-fair/lib-utils": "^1.0.0",
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "@data-fair/lib-utils": "^1.5.0",
     "@types/chart.js": "^2.9.41",
     "@types/config": "^3.3.5",
     "@types/debug": "^4.1.12",
     "@types/truncate-middle": "^1.0.4",
-    "eslint": "^9.10.0",
+    "eslint": "^9.23.0",
     "eslint-plugin-vue": "^9.28.0",
     "eslint-plugin-vuetify": "github:albanm/eslint-plugin-vuetify",
     "husky": "^9.1.6",
-    "neostandard": "^0.11.6",
-    "typescript": "^5.3.3"
-  },
-  "relativeDependencies": {
-    "@data-fair/lib-node": "../lib/packages/node",
-    "@data-fair/lib-vue": "../lib/packages/vue",
-    "@data-fair/lib-vuetify": "../lib/packages/vuetify"
+    "neostandard": "^0.12.1",
+    "typescript": "^5.8.2"
   }
 }

@@ -17,7 +17,7 @@ describe('daily api metrics', () => {
   beforeEach(clean)
 
   it('daily metrics should be collected by daemon', async () => {
-    const dataset = (await adminAx.post('http://localhost:6218/data-fair/api/v1/datasets', {
+    const dataset = (await adminAx.post('http://localhost:5600/data-fair/api/v1/datasets', {
       isRest: true,
       title: 'd1',
       schema: [{ key: 'prop1', type: 'string' }]
