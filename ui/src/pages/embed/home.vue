@@ -20,6 +20,8 @@
       <v-btn
         :prepend-icon="mdiMicrosoftExcel"
         class="mr-4"
+        color="primary"
+        variant="elevated"
         :href="exportUrl"
       >
         Exporter
