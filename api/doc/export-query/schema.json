@@ -1,0 +1,18 @@
+{
+  "$id": "https://github.com/data-fair/metrics/export-query",
+  "x-exports": ["types", "validate"],
+  "title": "export query",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["start", "end"],
+  "properties": {
+    "start": {
+      "type": "string",
+      "format": "date"
+    },
+    "end": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+} 

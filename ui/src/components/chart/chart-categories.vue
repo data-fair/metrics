@@ -16,13 +16,14 @@ import truncateMiddle from 'truncate-middle'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 
 const userClasses = {
-  anonymous: 'anonyme',
-  owner: 'propriétaire',
-  external: 'utilisateur externe',
-  ownerAPIKey: 'propriétaire (clé d\'API)',
-  externalAPIKey: 'utilisateur externe (clé d\'API)',
-  ownerProcessing: 'propriétaire (traitement)',
-  externalProcessing: 'utilisateur externe (traitement)'
+  anonymous: 'Anonyme',
+  owner: 'Propriétaire',
+  user: 'Utilisateur',
+  external: 'Utilisateur externe',
+  ownerAPIKey: 'Propriétaire (clé d\'API)',
+  externalAPIKey: 'Utilisateur externe (clé d\'API)',
+  ownerProcessing: 'Propriétaire (traitement)',
+  externalProcessing: 'Utilisateur externe (traitement)'
 }
 
 const getLabel = (serie, category, labels) => {
@@ -30,8 +31,8 @@ const getLabel = (serie, category, labels) => {
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (category === 'processing') return safeDecodeUriComponent(serie.key.processing.title)
   if (category === 'userClass') return userClasses[serie.key.userClass] || serie.key.userClass
-  if (serie.key[category] === 'none') return 'inconnu'
-  if (serie.key[category] === null || serie.key[category] === undefined) return 'aucune'
+  if (serie.key[category] === 'none') return 'Inconnu'
+  if (serie.key[category] === null || serie.key[category] === undefined) return 'Aucune'
   if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
   return serie.key[category]
 }

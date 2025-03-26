@@ -47,6 +47,7 @@ declare global {
   const mdiCalendarRange: typeof import('@mdi/js')['mdiCalendarRange']
   const mdiDatabase: typeof import('@mdi/js')['mdiDatabase']
   const mdiImageSizeSelectSmall: typeof import('@mdi/js')['mdiImageSizeSelectSmall']
+  const mdiMicrosoftExcel: typeof import('@mdi/js')['mdiMicrosoftExcel']
   const mdiTrendingDown: typeof import('@mdi/js')['mdiTrendingDown']
   const mdiTrendingNeutral: typeof import('@mdi/js')['mdiTrendingNeutral']
   const mdiTrendingUp: typeof import('@mdi/js')['mdiTrendingUp']

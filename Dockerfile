@@ -72,7 +72,7 @@ FROM installer AS api-installer
 
 # remove other workspaces and reinstall, otherwise we can get rig have some peer dependencies from other workspaces
 RUN npm ci -w api --prefer-offline --omit=dev --omit=optional --omit=peer --no-audit --no-fund && \
-    npx clean-modules --yes
+    npx clean-modules --yes "!exceljs/lib/doc/"
 RUN mkdir -p /app/api/node_modules
 
 ##########################

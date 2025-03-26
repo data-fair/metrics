@@ -123,3 +123,52 @@ export const agg = async (account: Account, query: AggQuery) => {
   result.series.sort((s1, s2) => s2.nbRequests - s1.nbRequests)
   return result
 }
+
+export const getHistory = async (account: Account, query: {
+  start: string
+  end: string
+  statusClass?: string
+  groupBy?: string
+}) => {
+  const $match: Record<string, any> = {
+    'owner.type': account.type,
+    'owner.id': account.id,
+    day: {
+      $gte: query.start,
+      $lte: query.end
+    }
+  }
+  if (account.department) {
+    $match['owner.department'] = account.department
+  }
+
+  if (query.statusClass) $match.statusClass = query.statusClass
+  if (query.groupBy === 'datasets') { $match['resource.type'] = 'datasets' }
+
+  const $group: Record<string, any> = {
+    _id: query.groupBy === 'datasets'
+      ? '$resource.id'
+      : '$day',
+    nbFiles: {
+      $sum: {
+        $cond: [{ $eq: ['$operationTrack', 'readDataFiles'] }, '$nbRequests', 0]
+      }
+    },
+    nbRequests: {
+      $sum: {
+        $cond: [{ $eq: ['$operationTrack', 'readDataAPI'] }, '$nbRequests', 0]
+      }
+    }
+  }
+  if (query.groupBy === 'datasets') {
+    $group.resource = { $last: '$resource' }
+  }
+
+  const result = (await mongo.db.collection('daily-api-metrics').aggregate([
+    { $match },
+    { $group },
+    { $sort: { _id: 1 } }
+  ]).toArray()) as { _id: string, nbFiles: number, nbRequests: number, resource?: { type: string, id: string, title: string } }[]
+
+  return result
+}

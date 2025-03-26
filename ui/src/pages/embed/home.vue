@@ -16,6 +16,16 @@
         :icon="mdiCalendarRange"
       />
       <filter-period @update:model-value="(v: any) => periods = v" />
+      <v-spacer />
+      <v-btn
+        :prepend-icon="mdiMicrosoftExcel"
+        class="mr-4"
+        color="primary"
+        variant="elevated"
+        :href="exportUrl"
+      >
+        Exporter
+      </v-btn>
     </v-toolbar>
     <tutorial-alert id="metrics-gzip">
       À partir de la 2e moitié de janvier 2024 la manière de compter les volumes de données téléchargés a changé.
@@ -145,13 +155,14 @@ export default {
     filterPeriod
   },
   data: () => ({
-    periods: null,
+    periods: null as any,
     aggResultDataFiles: null as any,
     aggResultDataAPI: null as any,
     aggResultOpenApp: null as any,
     dataset: null,
     mdiCalendarRange,
-    mdiDatabase
+    mdiDatabase,
+    mdiMicrosoftExcel
   }),
   computed: {
     datasetItems () {
@@ -229,6 +240,10 @@ export default {
           labels[item.key.resource.id] = item.key.resource.title
         })
       return labels
+    },
+    exportUrl () {
+      if (!this.periods) return undefined
+      return `${$apiPath}/daily-api-metrics/_export?start=${this.periods.current.start}&end=${this.periods.current.end}`
     }
   }
 }
