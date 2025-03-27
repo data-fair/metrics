@@ -21,6 +21,21 @@ const formatDate = (date: string) => dayjs(date).format('DD/MM/YYYY')
 const generate = async (account: Account, query: ExportQuery, datasetsRes: { id: string; title: string; topics: { id: string; title: string }[] }[], applicationsRes: { id: string; title: string }[], topics: { id: string; title: string }[], baseUrl: string, res: Response) => {
   const datasetIds = datasetsRes.map((dataset: any) => dataset.id)
   const applicationIds = applicationsRes.map((application: any) => application.id)
+  const topicsStats = topics.reduce((acc, topic) => {
+    acc[topic.id] = {
+      id: topic.id,
+      title: topic.title,
+      nbRequests: 0,
+      nbFiles: 0,
+      nbRequestsAnonymous: 0,
+      nbRequestsOwner: 0,
+      nbRequestsUser: 0,
+      nbRequestsExternal: 0,
+      nbRequestsOwnerAPIKey: 0,
+      nbRequestsExternalAPIKey: 0
+    }
+    return acc
+  }, {} as Record<string, any>)
 
   const workbook = new Excel.stream.xlsx.WorkbookWriter({
     stream: res,
@@ -108,22 +123,6 @@ const generate = async (account: Account, query: ExportQuery, datasetsRes: { id:
     }
   })
 
-  const topicsStats = topics.reduce((acc, topic) => {
-    acc[topic.id] = {
-      id: topic.id,
-      title: topic.title,
-      nbRequests: 0,
-      nbFiles: 0,
-      nbRequestsAnonymous: 0,
-      nbRequestsOwner: 0,
-      nbRequestsUser: 0,
-      nbRequestsExternal: 0,
-      nbRequestsOwnerAPIKey: 0,
-      nbRequestsExternalAPIKey: 0
-    }
-    return acc
-  }, {} as Record<string, any>)
-
   dataset.columns = [
     { header: 'Identifiant', key: 'id', width: 10 },
     { header: 'Url', key: 'link', width: 20 },
@@ -140,6 +139,16 @@ const generate = async (account: Account, query: ExportQuery, datasetsRes: { id:
     { header: 'Nombre de fichiers téléchargés par propriétaire', key: 'nbFilesOwner', width: 30 },
     { header: 'Nombre de fichiers téléchargés par utilisateur', key: 'nbFilesUser', width: 30 },
     { header: 'Nombre de fichiers téléchargés par utilisateur externe', key: 'nbFilesExternal', width: 30 }
+  ]
+  topic.columns = [
+    { header: 'Thématique', key: 'topic', width: 30 },
+    { header: 'Nombre total des appels API', key: 'nbRequests', width: 20 },
+    { header: 'Nombre d\'appels API par anonyme', key: 'nbRequestsAnonymous', width: 30 },
+    { header: 'Nombre d\'appels API par propriétaire', key: 'nbRequestsOwner', width: 30 },
+    { header: 'Nombre d\'appels API par utilisateur', key: 'nbRequestsUser', width: 30 },
+    { header: 'Nombre d\'appels API par utilisateur externe', key: 'nbRequestsExternal', width: 30 },
+    { header: 'Nombre d\'appels API par propriétaire (clé d\'API)', key: 'nbRequestsOwnerAPIKey', width: 30 },
+    { header: 'Nombre d\'appels API par utilisateur externe (clé d\'API)', key: 'nbRequestsExternalAPIKey', width: 30 }
   ]
   await getDataset(account, query, datasetIds).then((results) => {
     const sortedDatasets = datasetsRes.sort((a, b) => {
@@ -182,31 +191,21 @@ const generate = async (account: Account, query: ExportQuery, datasetsRes: { id:
         topicsStats[topicId].nbRequestsExternalAPIKey += item.nbRequestsExternalAPIKey
       }
     }
-  })
 
-  topic.columns = [
-    { header: 'Thématique', key: 'topic', width: 30 },
-    { header: 'Nombre total des appels API', key: 'nbRequests', width: 20 },
-    { header: 'Nombre d\'appels API par anonyme', key: 'nbRequestsAnonymous', width: 30 },
-    { header: 'Nombre d\'appels API par propriétaire', key: 'nbRequestsOwner', width: 30 },
-    { header: 'Nombre d\'appels API par utilisateur', key: 'nbRequestsUser', width: 30 },
-    { header: 'Nombre d\'appels API par utilisateur externe', key: 'nbRequestsExternal', width: 30 },
-    { header: 'Nombre d\'appels API par propriétaire (clé d\'API)', key: 'nbRequestsOwnerAPIKey', width: 30 },
-    { header: 'Nombre d\'appels API par utilisateur externe (clé d\'API)', key: 'nbRequestsExternalAPIKey', width: 30 }
-  ]
-  Object.values(topicsStats).sort((a, b) => b.nbRequests - a.nbRequests)
-  for (const item of Object.values(topicsStats)) {
-    topic.addRow([
-      item.title,
-      item.nbRequests,
-      item.nbRequestsAnonymous,
-      item.nbRequestsOwner,
-      item.nbRequestsUser,
-      item.nbRequestsExternal,
-      item.nbRequestsOwnerAPIKey,
-      item.nbRequestsExternalAPIKey
-    ])
-  }
+    const sortedTopics = Object.values(topicsStats).sort((a, b) => b.nbRequests - a.nbRequests)
+    for (const item of sortedTopics) {
+      topic.addRow([
+        item.title,
+        item.nbRequests,
+        item.nbRequestsAnonymous,
+        item.nbRequestsOwner,
+        item.nbRequestsUser,
+        item.nbRequestsExternal,
+        item.nbRequestsOwnerAPIKey,
+        item.nbRequestsExternalAPIKey
+      ])
+    }
+  })
 
   origin.columns = [
     { header: 'Origine', key: 'origin', width: 30 },
