@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { session } from '@data-fair/lib-express/index.js'
+import { session, reqOrigin } from '@data-fair/lib-express/index.js'
+import axios from '@data-fair/lib-node/axios.js'
 import * as aggQuery from '#doc/agg-query/index.ts'
 import * as exportQuery from '#doc/export-query/index.ts'
 import generate from './export.ts'
@@ -30,7 +31,46 @@ router.get('/_export', async (req, res) => {
   exportQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-  res.setHeader('Content-Disposition', `attachment; filename=${query.start}_${query.end}.xlsx`)
+  res.setHeader('Content-Disposition', `attachment; filename=Audience_${query.start}_${query.end}.xlsx`)
 
-  await generate(reqSession.account, query, res)
+  const datasets = (await axios.get(
+    new URL('/data-fair/api/v1/datasets', reqOrigin(req)).toString(),
+    {
+      params: {
+        mine: true,
+        raw: true,
+        select: 'id,topics,title',
+        size: 10000
+      },
+      headers: {
+        Cookie: req.headers.cookie
+      }
+    }
+  )).data.results || []
+
+  const applications = (await axios.get(
+    new URL('/data-fair/api/v1/applications', reqOrigin(req)).toString(),
+    {
+      params: {
+        mine: true,
+        raw: true,
+        select: 'id,title',
+        size: 10000
+      },
+      headers: {
+        Cookie: req.headers.cookie
+      }
+    }
+  )).data.results || []
+
+  const topics = (await axios.get(
+    new URL(`/data-fair/api/v1/settings/${reqSession.account.type}/${reqSession.account.id}/topics`, reqOrigin(req)).toString(),
+    {
+      headers: {
+        Cookie: req.headers.cookie
+      }
+    }
+  )).data || []
+
+  await generate(reqSession.account, query, datasets, applications, topics, reqOrigin(req), res)
 })

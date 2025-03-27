@@ -36,8 +36,8 @@ export default defineConfig({
           '@mdi/js': [
             'mdiCalendarRange',
             'mdiDatabase',
-            'mdiMicrosoftExcel',
             'mdiImageSizeSelectSmall',
+            'mdiTableArrowDown',
             'mdiTrendingDown',
             'mdiTrendingNeutral',
             'mdiTrendingUp'

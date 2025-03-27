@@ -3,20 +3,14 @@
     variant="text"
     :loading="loading"
   >
-    <v-card-title class="text-accent-darken-2 text-h3 mt-2 pb-0 justify-center text-center">
-      <v-badge
-        v-if="trend !== 'neutral'"
-        floating
-        location="right"
-        offset-x="-8"
-        :color="trend === 'up' ? 'success' : 'error'"
-        :icon="trend === 'up' ? mdiTrendingUp : mdiTrendingDown"
-      >
-        {{ value }}
-      </v-badge>
-      <template v-else>
-        {{ value }}
-      </template>
+    <v-card-title class="text-accent-darken-2 text-h3 mt-2 pb-0 justify-center text-center d-flex align-center">
+      {{ value }}
+      <v-icon
+        :color="trend === 'up' ? 'success' : trend === 'down' ? 'error' : 'primary'"
+        :icon="trend === 'up' ? mdiTrendingUp : trend === 'down' ? mdiTrendingDown : mdiTrendingNeutral"
+        size="x-small"
+        class="ml-1"
+      />
     </v-card-title>
 
     <v-card-title class="text-accent-darken-2 text-h6 pt-0 pb-0 justify-center text-center">

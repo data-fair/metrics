@@ -18,7 +18,7 @@
       <filter-period @update:model-value="(v: any) => periods = v" />
       <v-spacer />
       <v-btn
-        :prepend-icon="mdiMicrosoftExcel"
+        :prepend-icon="mdiTableArrowDown"
         class="mr-4"
         color="primary"
         variant="elevated"
@@ -162,7 +162,7 @@ export default {
     dataset: null,
     mdiCalendarRange,
     mdiDatabase,
-    mdiMicrosoftExcel
+    mdiTableArrowDown
   }),
   computed: {
     datasetItems () {
