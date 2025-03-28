@@ -30,13 +30,6 @@ export default {
     title: { type: String, default: '' },
     subtitle: { type: String, default: '' },
     trend: { type: String, default: 'neutral' },
-  },
-  data () {
-    return {
-      mdiTrendingUp,
-      mdiTrendingDown,
-      mdiTrendingNeutral
-    }
   }
 }
 </script>

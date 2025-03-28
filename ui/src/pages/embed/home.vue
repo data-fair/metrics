@@ -158,166 +158,152 @@
 <i18n lang="yaml">
 </i18n>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from 'vue'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import tutorialAlert from '@data-fair/lib-vuetify/tutorial-alert.vue'
 
-export default {
-  components: {
-    tutorialAlert,
-    chartSimpleMetric,
-    chartCategories,
-    chartDateHisto,
-    filterPeriod
-  },
-  setup () {
-    const session = useSessionAuthenticated()
-    const topics = useFetch<{ id: string, title: string, icon?: string }[]>(`/data-fair/api/v1/settings/${session.state.account.type}/${session.state.account.id}/topics`)
-    const datasets = useFetch<{ results: { id: string, topics: { id: string, title: string }[] }[] }>('/data-fair/api/v1/datasets?mine=true&raw=true&select=id,topics&size=10000')
-    return {
-      topics,
-      datasets
+const session = useSessionAuthenticated()
+const topics = useFetch<{ id: string, title: string, icon?: string }[]>(`/data-fair/api/v1/settings/${session.state.account.type}/${session.state.account.id}/topics`)
+
+const topic = ref(null)
+const filteredDatasetUrl = computed(() => `/data-fair/api/v1/datasets?mine=true&raw=true&select=id&size=10000&topics=${topic.value}`)
+const filteredDataset = useFetch<{ results: { id: string }[] }>(filteredDatasetUrl)
+
+const periods = ref<any>(null)
+const aggResultDataFiles = ref<any>(null)
+const aggResultDataAPI = ref<any>(null)
+const aggResultOpenApp = ref<any>(null)
+const dataset = ref(null)
+
+const datasetItems = computed(() => {
+  if (!aggResultDataAPI.value) return []
+  return aggResultDataAPI.value.current.series
+    .map((s: any) => ({ title: safeDecodeUriComponent(s.key.resource.title), value: s.key.resource.id, serie: s }))
+})
+
+const baseFilter = computed(() => {
+  const filter: any = { statusClass: 'ok' }
+  if (dataset.value) filter.resourceId = dataset.value
+  if (topic.value) filter.topicId = topic.value
+  return filter
+})
+
+const simpleMetricsSeries = computed(() => {
+  if (!aggResultDataFiles.value || !aggResultDataAPI.value) return null
+
+  if (dataset.value) {
+    const dataFiles = {
+      previous: aggResultDataFiles.value.previous.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0, bytes: 0 },
+      current: aggResultDataFiles.value.current.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0, bytes: 0 }
     }
-  },
-  data: () => ({
-    periods: null as any,
-    aggResultDataFiles: null as any,
-    aggResultDataAPI: null as any,
-    aggResultOpenApp: null as any,
-    dataset: null,
-    topic: null,
-    mdiCalendarRange,
-    mdiDatabase,
-    mdiTableArrowDown
-  }),
-  computed: {
-    datasetItems () {
-      if (!this.aggResultDataAPI) return []
-      return this.aggResultDataAPI.current.series
-        .map((s: any) => ({ title: safeDecodeUriComponent(s.key.resource.title), value: s.key.resource.id, serie: s }))
-    },
-    baseFilter () {
-      const filter: any = { statusClass: 'ok' }
-      if (this.dataset) filter.resourceId = this.dataset
-      if (this.topic) filter.topicId = this.topic
-      return filter
-    },
-    simpleMetricsSeries () {
-      if (!this.aggResultDataFiles || !this.aggResultDataAPI) return null
+    const dataAPI = {
+      previous: aggResultDataAPI.value.previous.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0 },
+      current: aggResultDataAPI.value.current.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0 }
+    }
 
-      if (this.dataset) {
-        const dataFiles = {
-          previous: this.aggResultDataFiles.previous.series.find((s: any) => s.key.resource.id === this.dataset) || { nbRequests: 0, bytes: 0 },
-          current: this.aggResultDataFiles.current.series.find((s: any) => s.key.resource.id === this.dataset) || { nbRequests: 0, bytes: 0 }
-        }
-        const dataAPI = {
-          previous: this.aggResultDataAPI.previous.series.find((s: any) => s.key.resource.id === this.dataset) || { nbRequests: 0 },
-          current: this.aggResultDataAPI.current.series.find((s: any) => s.key.resource.id === this.dataset) || { nbRequests: 0 }
-        }
+    return { dataFiles, dataAPI }
+  }
 
-        return { dataFiles, dataAPI }
+  if (topic.value) {
+    const filteredDatasetIds = filteredDataset.data.value?.results.map(dataset => dataset.id) || []
+
+    const aggResultDataFilesFiltered = {
+      previous: aggResultDataFiles.value.previous.series.filter((s: any) => filteredDatasetIds.includes(s.key.resource.id)),
+      current: aggResultDataFiles.value.current.series.filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
+    }
+
+    const dataFiles = {
+      previous: {
+        nbRequests: aggResultDataFilesFiltered.previous
+          .reduce((sum: number, s: any) => sum + s.nbRequests, 0),
+        bytes: aggResultDataFilesFiltered.previous
+          .reduce((sum: number, s: any) => sum + s.bytes, 0)
+      },
+      current: {
+        nbRequests: aggResultDataFilesFiltered.current
+          .reduce((sum: number, s: any) => sum + s.nbRequests, 0),
+        bytes: aggResultDataFilesFiltered.current
+          .reduce((sum: number, s: any) => sum + s.bytes, 0)
       }
-
-      if (this.topic) {
-        const filteredDatasetIds = this.datasets.data.value?.results.filter(dataset =>
-          dataset.topics?.some(topic => topic.id === this.topic)
-        ).map(dataset => dataset.id) || []
-
-        const aggResultDataFilesFiltered = {
-          previous: this.aggResultDataFiles.previous.series.filter((s: any) => filteredDatasetIds.includes(s.key.resource.id)),
-          current: this.aggResultDataFiles.current.series.filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
-        }
-
-        const dataFiles = {
-          previous: {
-            nbRequests: aggResultDataFilesFiltered.previous
-              .reduce((sum: number, s: any) => sum + s.nbRequests, 0),
-            bytes: aggResultDataFilesFiltered.previous
-              .reduce((sum: number, s: any) => sum + s.bytes, 0)
-          },
-          current: {
-            nbRequests: aggResultDataFilesFiltered.current
-              .reduce((sum: number, s: any) => sum + s.nbRequests, 0),
-            bytes: aggResultDataFilesFiltered.current
-              .reduce((sum: number, s: any) => sum + s.bytes, 0)
-          }
-        }
-        const dataAPI = {
-          previous: {
-            nbRequests: this.aggResultDataAPI.previous.series
-              .filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
-              .reduce((sum: number, s: any) => sum + s.nbRequests, 0)
-          },
-          current: {
-            nbRequests: this.aggResultDataAPI.current.series
-              .filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
-              .reduce((sum: number, s: any) => sum + s.nbRequests, 0)
-          }
-        }
-
-        return { dataFiles, dataAPI }
+    }
+    const dataAPI = {
+      previous: {
+        nbRequests: aggResultDataAPI.value.previous.series
+          .filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
+          .reduce((sum: number, s: any) => sum + s.nbRequests, 0)
+      },
+      current: {
+        nbRequests: aggResultDataAPI.value.current.series
+          .filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
+          .reduce((sum: number, s: any) => sum + s.nbRequests, 0)
       }
+    }
 
-      // If no dataset or topic selected, show all data
-      return { dataFiles: this.aggResultDataFiles, dataAPI: this.aggResultDataAPI }
-    },
-    simpleMetrics () {
-      if (!this.simpleMetricsSeries) return
-      const simpleMetrics: any[] = []
-      for (const operationType of ['dataFiles', 'dataAPI'] as const) {
-        for (const metricType of ['nbRequests', 'bytes']) {
-          if (operationType === 'dataAPI' && metricType === 'bytes') continue
-          if (operationType in this.simpleMetricsSeries) {
-            const current = this.simpleMetricsSeries[operationType].current
-            if (!current) continue
-            const simpleMetric: any = { loading: false }
-            if (metricType === 'nbRequests') simpleMetric.value = current.nbRequests.toLocaleString()
-            else simpleMetric.value = formatBytes(current.bytes, this.$i18n.locale)
+    return { dataFiles, dataAPI }
+  }
 
-            if (operationType === 'dataAPI') simpleMetric.title = `appel${current.nbRequests > 1 ? 's' : ''} d'API`
-            else simpleMetric.title = 'fichiers téléchargés'
+  return { dataFiles: aggResultDataFiles.value, dataAPI: aggResultDataAPI.value }
+})
 
-            simpleMetric.subtitle = '0 sur période précédente'
-            const previous = this.simpleMetricsSeries[operationType].previous
-            if (previous) {
-              simpleMetric.subtitle = metricType === 'nbRequests' ? previous.nbRequests.toLocaleString() : formatBytes(previous.bytes, this.$i18n.locale)
-              simpleMetric.subtitle += ' sur période précédente'
-              // Determine trend
-              if (metricType === 'nbRequests') {
-                if (current.nbRequests > previous.nbRequests) simpleMetric.trend = 'up'
-                else if (current.nbRequests < previous.nbRequests) simpleMetric.trend = 'down'
-                else simpleMetric.trend = 'neutral'
-              } else {
-                if (current.bytes > previous.bytes) simpleMetric.trend = 'up'
-                else if (current.bytes < previous.bytes) simpleMetric.trend = 'down'
-                else simpleMetric.trend = 'neutral'
-              }
-            }
-            simpleMetrics.push(simpleMetric)
+const simpleMetrics = computed(() => {
+  if (!simpleMetricsSeries.value) return
+  const simpleMetrics: any[] = []
+  for (const operationType of ['dataFiles', 'dataAPI'] as const) {
+    for (const metricType of ['nbRequests', 'bytes']) {
+      if (operationType === 'dataAPI' && metricType === 'bytes') continue
+      if (operationType in simpleMetricsSeries.value) {
+        const current = simpleMetricsSeries.value[operationType].current
+        if (!current) continue
+        const simpleMetric: any = { loading: false }
+        if (metricType === 'nbRequests') simpleMetric.value = current.nbRequests.toLocaleString()
+        else simpleMetric.value = formatBytes(current.bytes)
+
+        if (operationType === 'dataAPI') simpleMetric.title = `appel${current.nbRequests > 1 ? 's' : ''} d'API`
+        else simpleMetric.title = 'fichiers téléchargés'
+
+        simpleMetric.subtitle = '0 sur période précédente'
+        const previous = simpleMetricsSeries.value[operationType].previous
+        if (previous) {
+          simpleMetric.subtitle = metricType === 'nbRequests' ? previous.nbRequests.toLocaleString() : formatBytes(previous.bytes)
+          simpleMetric.subtitle += ' sur période précédente'
+          // Determine trend
+          if (metricType === 'nbRequests') {
+            if (current.nbRequests > previous.nbRequests) simpleMetric.trend = 'up'
+            else if (current.nbRequests < previous.nbRequests) simpleMetric.trend = 'down'
+            else simpleMetric.trend = 'neutral'
           } else {
-            simpleMetrics.push({ loading: true })
+            if (current.bytes > previous.bytes) simpleMetric.trend = 'up'
+            else if (current.bytes < previous.bytes) simpleMetric.trend = 'down'
+            else simpleMetric.trend = 'neutral'
           }
         }
+        simpleMetrics.push(simpleMetric)
+      } else {
+        simpleMetrics.push({ loading: true })
       }
-      return simpleMetrics
-    },
-    appLabels () {
-      if (!this.aggResultOpenApp) return
-      const labels: any = {}
-      this.aggResultOpenApp.previous.series.filter((item: any) => item.key.resource)
-        .forEach((item: any) => {
-          labels[item.key.resource.id] = item.key.resource.title
-        })
-      this.aggResultOpenApp.current.series.filter((item: any) => item.key.resource)
-        .forEach((item: any) => {
-          labels[item.key.resource.id] = item.key.resource.title
-        })
-      return labels
-    },
-    exportUrl () {
-      if (!this.periods) return undefined
-      return `${$apiPath}/daily-api-metrics/_export?start=${this.periods.current.start}&end=${this.periods.current.end}`
     }
   }
-}
+  return simpleMetrics
+})
+
+const appLabels = computed(() => {
+  if (!aggResultOpenApp.value) return
+  const labels: any = {}
+  aggResultOpenApp.value.previous.series.filter((item: any) => item.key.resource)
+    .forEach((item: any) => {
+      labels[item.key.resource.id] = item.key.resource.title
+    })
+  aggResultOpenApp.value.current.series.filter((item: any) => item.key.resource)
+    .forEach((item: any) => {
+      labels[item.key.resource.id] = item.key.resource.title
+    })
+  return labels
+})
+
+const exportUrl = computed(() => {
+  if (!periods.value) return undefined
+  return `${$apiPath}/daily-api-metrics/_export?start=${periods.value.current.start}&end=${periods.value.current.end}`
+})
+
 </script>
