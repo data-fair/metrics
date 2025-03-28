@@ -70,14 +70,30 @@
         />
         <v-autocomplete
           v-model="dataset"
+          :disabled="!!topic"
           :loading="!aggResultDataAPI"
           :items="datasetItems"
-          hide-details
           variant="outlined"
           density="compact"
+          label="Cibler un jeu de données"
+          max-width="500"
+          hide-details
           clearable
-          label="ciblez un jeu de données"
-          style="max-width: 500px;"
+        />
+        <v-autocomplete
+          v-model="topic"
+          :disabled="!!dataset"
+          :loading="topics.loading.value || !topics.initialized.value"
+          :items="topics.data.value || []"
+          item-value="id"
+          item-title="title"
+          variant="outlined"
+          density="compact"
+          label="Cibler une thématique"
+          max-width="500"
+          class="ml-4"
+          hide-details
+          clearable
         />
       </v-toolbar>
 
@@ -154,12 +170,22 @@ export default {
     chartDateHisto,
     filterPeriod
   },
+  setup () {
+    const session = useSessionAuthenticated()
+    const topics = useFetch<{ id: string, title: string, icon?: string }[]>(`/data-fair/api/v1/settings/${session.state.account.type}/${session.state.account.id}/topics`)
+    const datasets = useFetch<{ results: { id: string, topics: { id: string, title: string }[] }[] }>('/data-fair/api/v1/datasets?mine=true&raw=true&select=id,topics&size=10000')
+    return {
+      topics,
+      datasets
+    }
+  },
   data: () => ({
     periods: null as any,
     aggResultDataFiles: null as any,
     aggResultDataAPI: null as any,
     aggResultOpenApp: null as any,
     dataset: null,
+    topic: null,
     mdiCalendarRange,
     mdiDatabase,
     mdiTableArrowDown
@@ -173,25 +199,72 @@ export default {
     baseFilter () {
       const filter: any = { statusClass: 'ok' }
       if (this.dataset) filter.resourceId = this.dataset
+      if (this.topic) filter.topicId = this.topic
       return filter
     },
-    simpleMetricsSeries (): any {
+    simpleMetricsSeries () {
       if (!this.aggResultDataFiles || !this.aggResultDataAPI) return null
-      if (!this.dataset) return { dataFiles: this.aggResultDataFiles, dataAPI: this.aggResultDataAPI }
-      const dataFiles = {
-        previous: this.aggResultDataFiles.previous.series.find((s: any) => s.key.resource.id === this.dataset),
-        current: this.aggResultDataFiles.current.series.find((s: any) => s.key.resource.id === this.dataset)
+
+      if (this.dataset) {
+        const dataFiles = {
+          previous: this.aggResultDataFiles.previous.series.find((s: any) => s.key.resource.id === this.dataset) || { nbRequests: 0, bytes: 0 },
+          current: this.aggResultDataFiles.current.series.find((s: any) => s.key.resource.id === this.dataset) || { nbRequests: 0, bytes: 0 }
+        }
+        const dataAPI = {
+          previous: this.aggResultDataAPI.previous.series.find((s: any) => s.key.resource.id === this.dataset) || { nbRequests: 0 },
+          current: this.aggResultDataAPI.current.series.find((s: any) => s.key.resource.id === this.dataset) || { nbRequests: 0 }
+        }
+
+        return { dataFiles, dataAPI }
       }
-      const dataAPI = {
-        previous: this.aggResultDataAPI.previous.series.find((s: any) => s.key.resource.id === this.dataset),
-        current: this.aggResultDataAPI.current.series.find((s: any) => s.key.resource.id === this.dataset)
+
+      if (this.topic) {
+        const filteredDatasetIds = this.datasets.data.value?.results.filter(dataset =>
+          dataset.topics?.some(topic => topic.id === this.topic)
+        ).map(dataset => dataset.id) || []
+
+        const aggResultDataFilesFiltered = {
+          previous: this.aggResultDataFiles.previous.series.filter((s: any) => filteredDatasetIds.includes(s.key.resource.id)),
+          current: this.aggResultDataFiles.current.series.filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
+        }
+
+        const dataFiles = {
+          previous: {
+            nbRequests: aggResultDataFilesFiltered.previous
+              .reduce((sum: number, s: any) => sum + s.nbRequests, 0),
+            bytes: aggResultDataFilesFiltered.previous
+              .reduce((sum: number, s: any) => sum + s.bytes, 0)
+          },
+          current: {
+            nbRequests: aggResultDataFilesFiltered.current
+              .reduce((sum: number, s: any) => sum + s.nbRequests, 0),
+            bytes: aggResultDataFilesFiltered.current
+              .reduce((sum: number, s: any) => sum + s.bytes, 0)
+          }
+        }
+        const dataAPI = {
+          previous: {
+            nbRequests: this.aggResultDataAPI.previous.series
+              .filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
+              .reduce((sum: number, s: any) => sum + s.nbRequests, 0)
+          },
+          current: {
+            nbRequests: this.aggResultDataAPI.current.series
+              .filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
+              .reduce((sum: number, s: any) => sum + s.nbRequests, 0)
+          }
+        }
+
+        return { dataFiles, dataAPI }
       }
-      return { dataFiles, dataAPI }
+
+      // If no dataset or topic selected, show all data
+      return { dataFiles: this.aggResultDataFiles, dataAPI: this.aggResultDataAPI }
     },
     simpleMetrics () {
       if (!this.simpleMetricsSeries) return
       const simpleMetrics: any[] = []
-      for (const operationType of ['dataFiles', 'dataAPI']) {
+      for (const operationType of ['dataFiles', 'dataAPI'] as const) {
         for (const metricType of ['nbRequests', 'bytes']) {
           if (operationType === 'dataAPI' && metricType === 'bytes') continue
           if (operationType in this.simpleMetricsSeries) {
@@ -248,9 +321,3 @@ export default {
   }
 }
 </script>
-
-<style lang="css">
-.section-bar-light{
-  background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(245,245,245,1) 30%);
-}
-</style>

@@ -26,7 +26,7 @@ export const list = async (account: Account) => {
   return results
 }
 
-export const agg = async (account: Account, query: AggQuery) => {
+export const agg = async (account: Account, query: AggQuery, filteredDatasetIds: string[] | null) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id
@@ -42,6 +42,7 @@ export const agg = async (account: Account, query: AggQuery) => {
   if (query.operationTrack) $match.operationTrack = query.operationTrack
   if (query.resourceType) $match['resource.type'] = query.resourceType
   if (query.resourceId) $match['resource.id'] = query.resourceId
+  else if (query.topicId && filteredDatasetIds) $match['resource.id'] = { $in: filteredDatasetIds }
   if (query.processingId) $match['processing._id'] = query.resourceId
 
   const $group: Record<string, any> = {

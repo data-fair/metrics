@@ -21,7 +21,28 @@ router.get('/_agg', async (req, res) => {
   const query = { ...req.query } // better not to mutate req.query
   if (typeof query.split === 'string') query.split = query.split.split(',')
   aggQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
-  const result = await agg(reqSession.account, query)
+  let filteredDatasetIds: string[] | null = null
+  if (query.topicId) {
+    const datasets: { id: string, topics?: { id: string, name: string }[] }[] = (await axios.get(
+      new URL('/data-fair/api/v1/datasets', reqOrigin(req)).toString(),
+      {
+        params: {
+          mine: true,
+          raw: true,
+          select: 'id,topics',
+          size: 10000
+        },
+        headers: {
+          Cookie: req.headers.cookie
+        }
+      }
+    )).data.results || []
+
+    filteredDatasetIds = datasets.filter(dataset =>
+      dataset.topics?.some(topic => topic.id === query.topicId)
+    ).map(dataset => dataset.id)
+  }
+  const result = await agg(reqSession.account, query, filteredDatasetIds)
   res.json(result)
 })
 

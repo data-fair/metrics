@@ -16,43 +16,35 @@ const userClasses = {
   ownerProcessing: 'Propriétaire (traitement)',
   externalProcessing: 'Utilisateur externe (traitement)'
 }
+
 const formatDate = (date: string) => dayjs(date).format('DD/MM/YYYY')
 
-const generate = async (account: Account, query: ExportQuery, datasetsRes: { id: string; title: string; topics: { id: string; title: string }[] }[], applicationsRes: { id: string; title: string }[], topics: { id: string; title: string }[], baseUrl: string, res: Response) => {
-  const datasetIds = datasetsRes.map((dataset: any) => dataset.id)
-  const applicationIds = applicationsRes.map((application: any) => application.id)
-  const topicsStats = topics.reduce((acc, topic) => {
-    acc[topic.id] = {
-      id: topic.id,
-      title: topic.title,
-      nbRequests: 0,
-      nbFiles: 0,
-      nbRequestsAnonymous: 0,
-      nbRequestsOwner: 0,
-      nbRequestsUser: 0,
-      nbRequestsExternal: 0,
-      nbRequestsOwnerAPIKey: 0,
-      nbRequestsExternalAPIKey: 0
-    }
-    return acc
-  }, {} as Record<string, any>)
+// Types for better readability
+type Dataset = { id: string; title: string; topics: { id: string; title: string }[] }
+type Application = { id: string; title: string }
+type Topic = { id: string; title: string }
+type TopicStats = {
+  id: string
+  title: string
+  nbRequests: number
+  nbFiles: number
+  nbRequestsAnonymous: number
+  nbRequestsOwner: number
+  nbRequestsUser: number
+  nbRequestsExternal: number
+  nbRequestsOwnerAPIKey: number
+  nbRequestsExternalAPIKey: number
+}
 
-  const workbook = new Excel.stream.xlsx.WorkbookWriter({
-    stream: res,
-    useStyles: true,
-    useSharedStrings: true
-  })
+// Helper functions for worksheet setup
+const setupWorksheets = (workbook: Excel.stream.xlsx.WorkbookWriter) => {
   workbook.creator = 'Data-Fair'
   workbook.created = new Date()
 
   const global = workbook.addWorksheet('Global')
-  const history = workbook.addWorksheet('Historique')
-  const dataset = workbook.addWorksheet('Jeu de données')
-  const topic = workbook.addWorksheet('Thématiques')
-  const origin = workbook.addWorksheet('Origine')
-  const app = workbook.addWorksheet('Visualisation')
-
   global.getColumn(1).width = 40
+
+  const history = workbook.addWorksheet('Historique')
   history.columns = [
     { header: 'Date', key: 'day', width: 15 },
     { header: 'Nombre total des appels API', key: 'nbRequests', width: 20 },
@@ -68,61 +60,8 @@ const generate = async (account: Account, query: ExportQuery, datasetsRes: { id:
     { header: 'Nombre de fichiers téléchargés par utilisateur', key: 'nbFilesUser', width: 30 },
     { header: 'Nombre de fichiers téléchargés par utilisateur externe', key: 'nbFilesExternal', width: 30 }
   ]
-  await getHistory(account, query).then((results) => {
-    const historyDates = new Set(results.map(item => item.day))
-    const formattedResults = []
 
-    let lastDate = results.length > 0 ? new Date(results[0].day) : null
-
-    for (const item of results) {
-      const currentDate = new Date(item.day)
-
-      // eslint-disable-next-line no-unmodified-loop-condition
-      while (lastDate && lastDate > currentDate) {
-        lastDate.setDate(lastDate.getDate() - 1)
-        const missingDate = lastDate.toISOString().split('T')[0]
-        if (!historyDates.has(missingDate)) {
-          formattedResults.push({
-            day: missingDate,
-            nbRequests: 0,
-            nbFiles: 0,
-            nbRequestsAnonymous: 0,
-            nbRequestsOwner: 0,
-            nbRequestsUser: 0,
-            nbRequestsExternal: 0,
-            nbRequestsOwnerAPIKey: 0,
-            nbRequestsExternalAPIKey: 0,
-            nbFilesAnonymous: 0,
-            nbFilesOwner: 0,
-            nbFilesUser: 0,
-            nbFilesExternal: 0
-          })
-        }
-      }
-
-      formattedResults.push(item)
-      lastDate = new Date(item.day)
-    }
-
-    for (const item of formattedResults) {
-      history.addRow([
-        formatDate(item.day),
-        item.nbRequests,
-        item.nbFiles,
-        item.nbRequestsAnonymous,
-        item.nbRequestsOwner,
-        item.nbRequestsUser,
-        item.nbRequestsExternal,
-        item.nbRequestsOwnerAPIKey,
-        item.nbRequestsExternalAPIKey,
-        item.nbFilesAnonymous,
-        item.nbFilesOwner,
-        item.nbFilesUser,
-        item.nbFilesExternal
-      ])
-    }
-  })
-
+  const dataset = workbook.addWorksheet('Jeu de données')
   dataset.columns = [
     { header: 'Identifiant', key: 'id', width: 10 },
     { header: 'Url', key: 'link', width: 20 },
@@ -140,6 +79,8 @@ const generate = async (account: Account, query: ExportQuery, datasetsRes: { id:
     { header: 'Nombre de fichiers téléchargés par utilisateur', key: 'nbFilesUser', width: 30 },
     { header: 'Nombre de fichiers téléchargés par utilisateur externe', key: 'nbFilesExternal', width: 30 }
   ]
+
+  const topic = workbook.addWorksheet('Thématiques')
   topic.columns = [
     { header: 'Thématique', key: 'topic', width: 30 },
     { header: 'Nombre total des appels API', key: 'nbRequests', width: 20 },
@@ -150,63 +91,8 @@ const generate = async (account: Account, query: ExportQuery, datasetsRes: { id:
     { header: 'Nombre d\'appels API par propriétaire (clé d\'API)', key: 'nbRequestsOwnerAPIKey', width: 30 },
     { header: 'Nombre d\'appels API par utilisateur externe (clé d\'API)', key: 'nbRequestsExternalAPIKey', width: 30 }
   ]
-  await getDataset(account, query, datasetIds).then((results) => {
-    const sortedDatasets = datasetsRes.sort((a, b) => {
-      const aRequests = results.get(a.id)?.nbRequests || 0
-      const bRequests = results.get(b.id)?.nbRequests || 0
-      return bRequests - aRequests
-    })
 
-    for (const datasetRes of sortedDatasets) {
-      const item = results.get(datasetRes.id)
-      dataset.addRow([
-        datasetRes.id,
-        `${baseUrl}/data-fair/dataset/${datasetRes.id}`,
-        datasetRes.title,
-        item?.nbRequests || 0,
-        item?.nbFiles || 0,
-        item?.nbRequestsAnonymous || 0,
-        item?.nbRequestsOwner || 0,
-        item?.nbRequestsUser || 0,
-        item?.nbRequestsExternal || 0,
-        item?.nbRequestsOwnerAPIKey || 0,
-        item?.nbRequestsExternalAPIKey || 0,
-        item?.nbFilesAnonymous || 0,
-        item?.nbFilesOwner || 0,
-        item?.nbFilesUser || 0,
-        item?.nbFilesExternal || 0
-      ])
-
-      if (!item || !datasetRes.topics) continue
-      for (const topicId of datasetRes.topics.map(topic => topic.id)) {
-        if (!topicsStats[topicId]) continue // Ignore unknown topics
-
-        topicsStats[topicId].nbRequests += item.nbRequests
-        topicsStats[topicId].nbFiles += item.nbFiles
-        topicsStats[topicId].nbRequestsAnonymous += item.nbRequestsAnonymous
-        topicsStats[topicId].nbRequestsOwner += item.nbRequestsOwner
-        topicsStats[topicId].nbRequestsUser += item.nbRequestsUser
-        topicsStats[topicId].nbRequestsExternal += item.nbRequestsExternal
-        topicsStats[topicId].nbRequestsOwnerAPIKey += item.nbRequestsOwnerAPIKey
-        topicsStats[topicId].nbRequestsExternalAPIKey += item.nbRequestsExternalAPIKey
-      }
-    }
-
-    const sortedTopics = Object.values(topicsStats).sort((a, b) => b.nbRequests - a.nbRequests)
-    for (const item of sortedTopics) {
-      topic.addRow([
-        item.title,
-        item.nbRequests,
-        item.nbRequestsAnonymous,
-        item.nbRequestsOwner,
-        item.nbRequestsUser,
-        item.nbRequestsExternal,
-        item.nbRequestsOwnerAPIKey,
-        item.nbRequestsExternalAPIKey
-      ])
-    }
-  })
-
+  const origin = workbook.addWorksheet('Origine')
   origin.columns = [
     { header: 'Origine', key: 'origin', width: 30 },
     { header: 'Nombre total des appels API', key: 'nbRequests', width: 20 },
@@ -217,21 +103,8 @@ const generate = async (account: Account, query: ExportQuery, datasetsRes: { id:
     { header: 'Nombre d\'appels API par propriétaire (clé d\'API)', key: 'nbRequestsOwnerAPIKey', width: 30 },
     { header: 'Nombre d\'appels API par utilisateur externe (clé d\'API)', key: 'nbRequestsExternalAPIKey', width: 30 }
   ]
-  await getOrigin(account, query).then((results) => {
-    for (const item of results) {
-      origin.addRow([
-        item.origin === 'none' ? 'Inconnu' : item.origin,
-        item.nbRequests,
-        item.nbRequestsAnonymous,
-        item.nbRequestsOwner,
-        item.nbRequestsUser,
-        item.nbRequestsExternal,
-        item.nbRequestsOwnerAPIKey,
-        item.nbRequestsExternalAPIKey
-      ])
-    }
-  })
 
+  const app = workbook.addWorksheet('Visualisation')
   app.columns = [
     { header: 'Identifiant', key: 'id', width: 10 },
     { header: 'Url', key: 'link', width: 20 },
@@ -242,42 +115,234 @@ const generate = async (account: Account, query: ExportQuery, datasetsRes: { id:
     { header: 'Nombre d\'ouvertures par utilisateur', key: 'nbRequestsUser', width: 30 },
     { header: 'Nombre d\'ouvertures par utilisateur externe', key: 'nbRequestsExternal', width: 30 }
   ]
-  await getApp(account, query, applicationIds).then((results) => {
-    const sortedApplications = applicationsRes.sort((a, b) => {
-      const aRequests = results.get(a.id)?.nbRequests || 0
-      const bRequests = results.get(b.id)?.nbRequests || 0
-      return bRequests - aRequests
-    })
 
-    for (const application of sortedApplications) {
-      const item = results.get(application.id)
-      app.addRow([
-        application.id,
-        `${baseUrl}/data-fair/application/${application.id}`,
-        application.title || 0,
-        item?.nbRequests || 0,
-        item?.nbRequestsAnonymous || 0,
-        item?.nbRequestsOwner || 0,
-        item?.nbRequestsUser || 0,
-        item?.nbRequestsExternal || 0
-      ])
+  return { global, history, dataset, topic, origin, app }
+}
+
+// Process history data to fill gaps
+const processHistoryData = (historyData: any[]) => {
+  if (historyData.length === 0) return []
+
+  const historyDates = new Set(historyData.map(item => item.day))
+  const formattedResults = []
+  let lastDate = new Date(historyData[0].day)
+
+  for (const item of historyData) {
+    const currentDate = new Date(item.day)
+
+    // Fill gaps in dates
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (lastDate > currentDate) {
+      lastDate.setDate(lastDate.getDate() - 1)
+      const missingDate = lastDate.toISOString().split('T')[0]
+
+      if (!historyDates.has(missingDate)) {
+        formattedResults.push({
+          day: missingDate,
+          nbRequests: 0,
+          nbFiles: 0,
+          nbRequestsAnonymous: 0,
+          nbRequestsOwner: 0,
+          nbRequestsUser: 0,
+          nbRequestsExternal: 0,
+          nbRequestsOwnerAPIKey: 0,
+          nbRequestsExternalAPIKey: 0,
+          nbFilesAnonymous: 0,
+          nbFilesOwner: 0,
+          nbFilesUser: 0,
+          nbFilesExternal: 0
+        })
+      }
     }
+
+    formattedResults.push(item)
+    lastDate = new Date(item.day)
+  }
+
+  return formattedResults
+}
+
+// Update topic stats based on dataset metrics
+const updateTopicStats = (topicsStats: Record<string, TopicStats>, dataset: Dataset, datasetMetrics: any) => {
+  if (!datasetMetrics || !dataset.topics) return
+
+  for (const topic of dataset.topics) {
+    const topicId = topic.id
+    if (!topicsStats[topicId]) continue // Skip unknown topics
+
+    const stats = topicsStats[topicId]
+    stats.nbRequests += datasetMetrics.nbRequests || 0
+    stats.nbFiles += datasetMetrics.nbFiles || 0
+    stats.nbRequestsAnonymous += datasetMetrics.nbRequestsAnonymous || 0
+    stats.nbRequestsOwner += datasetMetrics.nbRequestsOwner || 0
+    stats.nbRequestsUser += datasetMetrics.nbRequestsUser || 0
+    stats.nbRequestsExternal += datasetMetrics.nbRequestsExternal || 0
+    stats.nbRequestsOwnerAPIKey += datasetMetrics.nbRequestsOwnerAPIKey || 0
+    stats.nbRequestsExternalAPIKey += datasetMetrics.nbRequestsExternalAPIKey || 0
+  }
+}
+
+const generate = async (
+  account: Account,
+  query: ExportQuery,
+  datasetsRes: Dataset[],
+  applicationsRes: Application[],
+  topics: Topic[],
+  baseUrl: string,
+  res: Response
+) => {
+  const datasetIds = datasetsRes.map(dataset => dataset.id)
+  const applicationIds = applicationsRes.map(application => application.id)
+
+  // Setup Excel workbook and sheets
+  const workbook = new Excel.stream.xlsx.WorkbookWriter({
+    stream: res,
+    useStyles: true,
+    useSharedStrings: true
   })
 
-  await getTotal(account, query).then((result) => {
-    global.addRow([`Période du ${formatDate(query.start)} au ${formatDate(query.end)}`])
-    global.addRow(['Nombre total d\'appels API', result.readDataAPI])
-    global.addRow(['Nombre total de fichiers téléchargés', result.readDataFiles])
-    global.addRow(['Nombre total d\'ouvertures', result.openApplication])
-    global.addRow([])
-  })
-
-  await getUserClass(account, query).then((results) => {
-    global.addRow(['Nombre d\'appels API par catégorie d\'utilisateur'])
-    for (const item of results) {
-      global.addRow([userClasses[item._id as keyof typeof userClasses], item.nbRequests])
+  const { global, history, dataset, topic, origin, app } = setupWorksheets(workbook)
+  const topicsStats = topics.reduce((acc, topic) => {
+    acc[topic.id] = {
+      id: topic.id,
+      title: topic.title,
+      nbRequests: 0,
+      nbFiles: 0,
+      nbRequestsAnonymous: 0,
+      nbRequestsOwner: 0,
+      nbRequestsUser: 0,
+      nbRequestsExternal: 0,
+      nbRequestsOwnerAPIKey: 0,
+      nbRequestsExternalAPIKey: 0
     }
+    return acc
+  }, {} as Record<string, TopicStats>)
+
+  // Fetch all data in parallel for better performance
+  const [historyData, datasetResults, originResults, appResults, totalResults, userClassResults] = await Promise.all([
+    getHistory(account, query),
+    getDataset(account, query, datasetIds),
+    getOrigin(account, query),
+    getApp(account, query, applicationIds),
+    getTotal(account, query),
+    getUserClass(account, query)
+  ])
+
+  // Process history data
+  const processedHistoryData = processHistoryData(historyData)
+  for (const item of processedHistoryData) {
+    history.addRow([
+      formatDate(item.day),
+      item.nbRequests,
+      item.nbFiles,
+      item.nbRequestsAnonymous,
+      item.nbRequestsOwner,
+      item.nbRequestsUser,
+      item.nbRequestsExternal,
+      item.nbRequestsOwnerAPIKey,
+      item.nbRequestsExternalAPIKey,
+      item.nbFilesAnonymous,
+      item.nbFilesOwner,
+      item.nbFilesUser,
+      item.nbFilesExternal
+    ])
+  }
+
+  // Sort datasets by request count for more meaningful presentation
+  const sortedDatasets = [...datasetsRes].sort((a, b) => {
+    const aRequests = datasetResults.get(a.id)?.nbRequests || 0
+    const bRequests = datasetResults.get(b.id)?.nbRequests || 0
+    return bRequests - aRequests
   })
+
+  // Process dataset data and update topic stats
+  for (const datasetRes of sortedDatasets) {
+    const item = datasetResults.get(datasetRes.id)
+    dataset.addRow([
+      datasetRes.id,
+      `${baseUrl}/data-fair/dataset/${datasetRes.id}`,
+      datasetRes.title,
+      item?.nbRequests || 0,
+      item?.nbFiles || 0,
+      item?.nbRequestsAnonymous || 0,
+      item?.nbRequestsOwner || 0,
+      item?.nbRequestsUser || 0,
+      item?.nbRequestsExternal || 0,
+      item?.nbRequestsOwnerAPIKey || 0,
+      item?.nbRequestsExternalAPIKey || 0,
+      item?.nbFilesAnonymous || 0,
+      item?.nbFilesOwner || 0,
+      item?.nbFilesUser || 0,
+      item?.nbFilesExternal || 0
+    ])
+
+    updateTopicStats(topicsStats, datasetRes, item)
+  }
+
+  // Process topics data
+  const sortedTopics = Object.values(topicsStats).sort((a, b) => b.nbRequests - a.nbRequests)
+  for (const item of sortedTopics) {
+    topic.addRow([
+      item.title,
+      item.nbRequests,
+      item.nbRequestsAnonymous,
+      item.nbRequestsOwner,
+      item.nbRequestsUser,
+      item.nbRequestsExternal,
+      item.nbRequestsOwnerAPIKey,
+      item.nbRequestsExternalAPIKey
+    ])
+  }
+
+  // Process origin data
+  for (const item of originResults) {
+    origin.addRow([
+      item.origin === 'none' ? 'Inconnu' : item.origin,
+      item.nbRequests,
+      item.nbRequestsAnonymous,
+      item.nbRequestsOwner,
+      item.nbRequestsUser,
+      item.nbRequestsExternal,
+      item.nbRequestsOwnerAPIKey,
+      item.nbRequestsExternalAPIKey
+    ])
+  }
+
+  // Sort applications by request count
+  const sortedApplications = [...applicationsRes].sort((a, b) => {
+    const aRequests = appResults.get(a.id)?.nbRequests || 0
+    const bRequests = appResults.get(b.id)?.nbRequests || 0
+    return bRequests - aRequests
+  })
+
+  // Process application data
+  for (const application of sortedApplications) {
+    const item = appResults.get(application.id)
+    app.addRow([
+      application.id,
+      `${baseUrl}/data-fair/application/${application.id}`,
+      application.title || '',
+      item?.nbRequests || 0,
+      item?.nbRequestsAnonymous || 0,
+      item?.nbRequestsOwner || 0,
+      item?.nbRequestsUser || 0,
+      item?.nbRequestsExternal || 0
+    ])
+  }
+
+  // Add global stats
+  global.addRow([`Période du ${formatDate(query.start)} au ${formatDate(query.end)}`])
+  global.addRow(['Nombre total d\'appels API', totalResults.readDataAPI || 0])
+  global.addRow(['Nombre total de fichiers téléchargés', totalResults.readDataFiles || 0])
+  global.addRow(['Nombre total d\'ouvertures', totalResults.openApplication || 0])
+  global.addRow([])
+
+  // Add user class stats
+  global.addRow(['Nombre d\'appels API par catégorie d\'utilisateur'])
+  for (const item of userClassResults) {
+    const className = userClasses[item._id as keyof typeof userClasses]
+    global.addRow([className, item.nbRequests])
+  }
 
   await workbook.commit()
 }
