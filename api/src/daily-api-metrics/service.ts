@@ -26,7 +26,7 @@ export const list = async (account: Account) => {
   return results
 }
 
-export const agg = async (account: Account, query: AggQuery) => {
+export const agg = async (account: Account, query: AggQuery, filteredDatasetIds: string[] | null) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id
@@ -42,6 +42,7 @@ export const agg = async (account: Account, query: AggQuery) => {
   if (query.operationTrack) $match.operationTrack = query.operationTrack
   if (query.resourceType) $match['resource.type'] = query.resourceType
   if (query.resourceId) $match['resource.id'] = query.resourceId
+  else if (query.topicId && filteredDatasetIds) $match['resource.id'] = { $in: filteredDatasetIds }
   if (query.processingId) $match['processing._id'] = query.resourceId
 
   const $group: Record<string, any> = {
@@ -127,8 +128,299 @@ export const agg = async (account: Account, query: AggQuery) => {
 export const getHistory = async (account: Account, query: {
   start: string
   end: string
-  statusClass?: string
-  groupBy?: string
+}) => {
+  const $match: Record<string, any> = {
+    'owner.type': account.type,
+    'owner.id': account.id,
+    statusClass: 'ok',
+    day: {
+      $gte: query.start,
+      $lte: query.end
+    },
+    operationTrack: { $in: ['readDataAPI', 'readDataFiles'] }
+  }
+  if (account.department) $match['owner.department'] = account.department
+
+  const aggregate = [
+    { $match },
+    {
+      $group: {
+        _id: {
+          day: '$day',
+          userClass: '$userClass'
+        },
+        nbRequests: { $sum: { $cond: [{ $eq: ['$operationTrack', 'readDataAPI'] }, '$nbRequests', 0] } },
+        nbFiles: { $sum: { $cond: [{ $eq: ['$operationTrack', 'readDataFiles'] }, '$nbRequests', 0] } }
+      }
+    },
+    {
+      $group: {
+        _id: '$_id.day',
+        nbRequests: { $sum: '$nbRequests' },
+        nbFiles: { $sum: '$nbFiles' },
+        nbRequestsAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbRequests', 0] } },
+        nbRequestsOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbRequests', 0] } },
+        nbRequestsUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbRequests', 0] } },
+        nbRequestsExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbRequests', 0] } },
+        nbRequestsOwnerAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'ownerAPIKey'] }, '$nbRequests', 0] } },
+        nbRequestsExternalAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'externalAPIKey'] }, '$nbRequests', 0] } },
+        nbFilesAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbFiles', 0] } },
+        nbFilesOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbFiles', 0] } },
+        nbFilesUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbFiles', 0] } },
+        nbFilesExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbFiles', 0] } }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        day: '$_id',
+        nbRequests: 1,
+        nbFiles: 1,
+        nbRequestsAnonymous: 1,
+        nbRequestsOwner: 1,
+        nbRequestsUser: 1,
+        nbRequestsExternal: 1,
+        nbRequestsOwnerAPIKey: 1,
+        nbRequestsExternalAPIKey: 1,
+        nbFilesAnonymous: 1,
+        nbFilesOwner: 1,
+        nbFilesUser: 1,
+        nbFilesExternal: 1
+      }
+    },
+    { $sort: { day: -1 } }
+  ]
+
+  return await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
+}
+
+export const getDataset = async (account: Account, query: {
+  start: string;
+  end: string;
+}, datasetsId: string[]) => {
+  const $match: Record<string, any> = {
+    'owner.type': account.type,
+    'owner.id': account.id,
+    statusClass: 'ok',
+    day: {
+      $gte: query.start,
+      $lte: query.end
+    },
+    operationTrack: { $in: ['readDataAPI', 'readDataFiles'] },
+    'resource.type': 'datasets',
+    'resource.id': { $in: datasetsId }
+  }
+
+  if (account.department) $match['owner.department'] = account.department
+
+  const aggregate = [
+    { $match },
+    {
+      $group: {
+        _id: {
+          datasetId: '$resource.id',
+          userClass: '$userClass'
+        },
+        nbRequests: { $sum: { $cond: [{ $eq: ['$operationTrack', 'readDataAPI'] }, '$nbRequests', 0] } },
+        nbFiles: { $sum: { $cond: [{ $eq: ['$operationTrack', 'readDataFiles'] }, '$nbRequests', 0] } },
+        title: { $last: '$resource.title' }
+      }
+    },
+    {
+      $group: {
+        _id: '$_id.datasetId',
+        title: { $last: '$title' },
+        nbRequests: { $sum: '$nbRequests' },
+        nbFiles: { $sum: '$nbFiles' },
+        nbRequestsAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbRequests', 0] } },
+        nbRequestsOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbRequests', 0] } },
+        nbRequestsUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbRequests', 0] } },
+        nbRequestsExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbRequests', 0] } },
+        nbRequestsOwnerAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'ownerAPIKey'] }, '$nbRequests', 0] } },
+        nbRequestsExternalAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'externalAPIKey'] }, '$nbRequests', 0] } },
+        nbFilesAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbFiles', 0] } },
+        nbFilesOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbFiles', 0] } },
+        nbFilesUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbFiles', 0] } },
+        nbFilesExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbFiles', 0] } }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        id: '$_id',
+        title: 1,
+        nbRequests: 1,
+        nbFiles: 1,
+        nbRequestsAnonymous: 1,
+        nbRequestsOwner: 1,
+        nbRequestsUser: 1,
+        nbRequestsExternal: 1,
+        nbRequestsOwnerAPIKey: 1,
+        nbRequestsExternalAPIKey: 1,
+        nbFilesAnonymous: 1,
+        nbFilesOwner: 1,
+        nbFilesUser: 1,
+        nbFilesExternal: 1
+      }
+    },
+    { $sort: { nbRequests: -1 } }
+  ]
+
+  const results = await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
+  return new Map(results.map(item => [item.id, item]))
+}
+
+export const getOrigin = async (account: Account, query: {
+  start: string
+  end: string
+}) => {
+  const $match: Record<string, any> = {
+    'owner.type': account.type,
+    'owner.id': account.id,
+    statusClass: 'ok',
+    day: {
+      $gte: query.start,
+      $lte: query.end
+    }
+  }
+  if (account.department) $match['owner.department'] = account.department
+
+  const aggregate = [
+    { $match },
+    {
+      $group: {
+        _id: {
+          origin: '$refererDomain',
+          userClass: '$userClass'
+        },
+        nbRequests: { $sum: '$nbRequests' },
+      }
+    },
+    {
+      $group: {
+        _id: '$_id.origin',
+        nbRequests: { $sum: '$nbRequests' },
+        nbRequestsAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbRequests', 0] } },
+        nbRequestsOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbRequests', 0] } },
+        nbRequestsUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbRequests', 0] } },
+        nbRequestsExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbRequests', 0] } },
+        nbRequestsOwnerAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'ownerAPIKey'] }, '$nbRequests', 0] } },
+        nbRequestsExternalAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'externalAPIKey'] }, '$nbRequests', 0] } },
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        origin: '$_id',
+        nbRequests: 1,
+        nbFiles: 1,
+        nbRequestsAnonymous: 1,
+        nbRequestsOwner: 1,
+        nbRequestsUser: 1,
+        nbRequestsExternal: 1,
+        nbRequestsOwnerAPIKey: 1,
+        nbRequestsExternalAPIKey: 1
+      }
+    },
+    { $sort: { nbRequests: -1 } }
+  ]
+
+  return await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
+}
+
+export const getApp = async (account: Account, query: {
+  start: string
+  end: string
+}, applicationsId: string[]) => {
+  const $match: Record<string, any> = {
+    'owner.type': account.type,
+    'owner.id': account.id,
+    statusClass: 'ok',
+    day: {
+      $gte: query.start,
+      $lte: query.end
+    },
+    operationTrack: { $eq: 'openApplication' },
+    'resource.type': 'applications',
+    'resource.id': { $in: applicationsId }
+  }
+  if (account.department) $match['owner.department'] = account.department
+
+  const aggregate = [
+    { $match },
+    {
+      $group: {
+        _id: {
+          app: '$resource.id',
+          userClass: '$userClass'
+        },
+        nbRequests: { $sum: '$nbRequests' },
+        title: { $last: '$resource.title' }
+      }
+    },
+    {
+      $group: {
+        _id: '$_id.app',
+        title: { $last: '$title' },
+        nbRequests: { $sum: '$nbRequests' },
+        nbRequestsAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbRequests', 0] } },
+        nbRequestsOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbRequests', 0] } },
+        nbRequestsUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbRequests', 0] } },
+        nbRequestsExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbRequests', 0] } }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        id: '$_id',
+        title: 1,
+        nbRequests: 1,
+        nbFiles: 1,
+        nbRequestsAnonymous: 1,
+        nbRequestsOwner: 1,
+        nbRequestsUser: 1,
+        nbRequestsExternal: 1
+      }
+    },
+    { $sort: { nbRequests: -1 } }
+  ]
+
+  const results = await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
+  return new Map(results.map(item => [item.id, item]))
+}
+
+export const getUserClass = async (account: Account, query: {
+  start: string
+  end: string
+}) => {
+  const $match: Record<string, any> = {
+    'owner.type': account.type,
+    'owner.id': account.id,
+    statusClass: 'ok',
+    day: {
+      $gte: query.start,
+      $lte: query.end
+    }
+  }
+  if (account.department) $match['owner.department'] = account.department
+
+  const aggregate = [
+    { $match },
+    {
+      $group: {
+        _id: '$userClass',
+        nbRequests: { $sum: '$nbRequests' }
+      }
+    },
+    { $sort: { nbRequests: -1 } }
+  ]
+
+  return await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray() as { _id: string, nbRequests: number }[]
+}
+
+export const getTotal = async (account: Account, query: {
+  start: string
+  end: string
 }) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
@@ -136,39 +428,21 @@ export const getHistory = async (account: Account, query: {
     day: {
       $gte: query.start,
       $lte: query.end
-    }
-  }
-  if (account.department) {
-    $match['owner.department'] = account.department
-  }
-
-  if (query.statusClass) $match.statusClass = query.statusClass
-  if (query.groupBy === 'datasets') { $match['resource.type'] = 'datasets' }
-
-  const $group: Record<string, any> = {
-    _id: query.groupBy === 'datasets'
-      ? '$resource.id'
-      : '$day',
-    nbFiles: {
-      $sum: {
-        $cond: [{ $eq: ['$operationTrack', 'readDataFiles'] }, '$nbRequests', 0]
-      }
     },
-    nbRequests: {
-      $sum: {
-        $cond: [{ $eq: ['$operationTrack', 'readDataAPI'] }, '$nbRequests', 0]
+    statusClass: 'ok'
+  }
+  if (account.department) $match['owner.department'] = account.department
+
+  const aggregate = [
+    { $match },
+    {
+      $group: {
+        _id: '$operationTrack',
+        nbRequests: { $sum: '$nbRequests' }
       }
     }
-  }
-  if (query.groupBy === 'datasets') {
-    $group.resource = { $last: '$resource' }
-  }
+  ]
 
-  const result = (await mongo.db.collection('daily-api-metrics').aggregate([
-    { $match },
-    { $group },
-    { $sort: { _id: 1 } }
-  ]).toArray()) as { _id: string, nbFiles: number, nbRequests: number, resource?: { type: string, id: string, title: string } }[]
-
-  return result
+  const result = await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
+  return Object.fromEntries(result.map(({ _id, nbRequests }) => [_id, nbRequests]))
 }

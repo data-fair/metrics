@@ -38,9 +38,6 @@ const getLabel = (serie, category, labels) => {
 }
 
 export default {
-  components: {
-    layoutResizableCard
-  },
   props: {
     title: { type: String, required: true },
     category: { type: String, default: 'resource' },

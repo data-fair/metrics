@@ -19,6 +19,7 @@
     "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"},
     "resourceType": {"type": "string"},
     "resourceId": {"type": "string"},
+    "topicId": {"type": "string"},
     "processingId": {"type": "string"},
     "split": {
       "type": "array",

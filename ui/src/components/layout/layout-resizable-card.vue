@@ -52,8 +52,7 @@ export default {
   data () {
     return {
       large: false,
-      hover: false,
-      mdiImageSizeSelectSmall
+      hover: false
     }
   },
   methods: {

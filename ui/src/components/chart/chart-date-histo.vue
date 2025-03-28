@@ -14,9 +14,6 @@ import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useLocaleDayjs } from '@data-fair/lib-vue/locale-dayjs.js'
 
 export default {
-  components: {
-    layoutResizableCard
-  },
   props: {
     title: { type: String, required: true },
     filter: { type: Object, required: true },

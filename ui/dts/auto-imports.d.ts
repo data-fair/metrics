@@ -10,26 +10,17 @@ declare global {
   const $fetch: typeof import('~/context')['$fetch']
   const $sitePath: typeof import('~/context')['$sitePath']
   const $uiConfig: typeof import('~/context')['$uiConfig']
-  const Chart: typeof import('../src/utils/Chart.js')['default']
-  const ChartSimpleMetric: typeof import('../src/components/chart/ChartSimpleMetric.vue')['default']
   const EffectScope: typeof import('vue')['EffectScope']
   const chart: typeof import('../src/utils/chart.js')['default']
-  const chartCategories: typeof import('../src/components/chart/chart-categories.vue')['default']
-  const chartDateHisto: typeof import('../src/components/chart/chart-date-histo.vue')['default']
-  const chartLegend: typeof import('../src/components/chart/chart-legend.vue')['default']
-  const chartSimpleMetric: typeof import('../src/components/chart/chart-simple-metric.vue')['default']
   const computed: typeof import('vue')['computed']
   const createApp: typeof import('vue')['createApp']
   const customRef: typeof import('vue')['customRef']
-  const dailyApiMetrics: typeof import('../src/components/daily-api-metrics.vue')['default']
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
   const dfPersonalMenu: typeof import('@data-fair/lib-vuetify/personal-menu.vue')['default']
   const dfTutorialAlert: typeof import('@data-fair/lib-vuetify/tutorial-alert.vue')['default']
   const dfUserAvatar: typeof import('@data-fair/lib-vuetify/user-avatar.vue')['default']
   const effectScope: typeof import('vue')['effectScope']
-  const filterDatePicker: typeof import('../src/components/filter/filter-date-picker.vue')['default']
-  const filterPeriod: typeof import('../src/components/filter/filter-period.vue')['default']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
   const h: typeof import('vue')['h']
@@ -38,16 +29,11 @@ declare global {
   const isReactive: typeof import('vue')['isReactive']
   const isReadonly: typeof import('vue')['isReadonly']
   const isRef: typeof import('vue')['isRef']
-  const layoutResizableCard: typeof import('../src/components/layout/layout-resizable-card.vue')['default']
   const markRaw: typeof import('vue')['markRaw']
-  const mdiArrowDown: typeof import('@mdi/js')['mdiArrowDown']
-  const mdiArrowLeft: typeof import('@mdi/js')['mdiArrowLeft']
-  const mdiArrowRight: typeof import('@mdi/js')['mdiArrowRight']
-  const mdiArrowUp: typeof import('@mdi/js')['mdiArrowUp']
   const mdiCalendarRange: typeof import('@mdi/js')['mdiCalendarRange']
   const mdiDatabase: typeof import('@mdi/js')['mdiDatabase']
   const mdiImageSizeSelectSmall: typeof import('@mdi/js')['mdiImageSizeSelectSmall']
-  const mdiMicrosoftExcel: typeof import('@mdi/js')['mdiMicrosoftExcel']
+  const mdiTableArrowDown: typeof import('@mdi/js')['mdiTableArrowDown']
   const mdiTrendingDown: typeof import('@mdi/js')['mdiTrendingDown']
   const mdiTrendingNeutral: typeof import('@mdi/js')['mdiTrendingNeutral']
   const mdiTrendingUp: typeof import('@mdi/js')['mdiTrendingUp']
@@ -77,7 +63,6 @@ declare global {
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
-  const simpleMetric: typeof import('../src/components/chart/simple-metric.vue')['default']
   const toRaw: typeof import('vue')['toRaw']
   const toRef: typeof import('vue')['toRef']
   const toRefs: typeof import('vue')['toRefs']
@@ -119,4 +104,104 @@ declare global {
   // @ts-ignore
   export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+}
+
+// for vue template auto import
+import { UnwrapRef } from 'vue'
+declare module 'vue' {
+  interface GlobalComponents {}
+  interface ComponentCustomProperties {
+    readonly $apiPath: UnwrapRef<typeof import('~/context')['$apiPath']>
+    readonly $fetch: UnwrapRef<typeof import('~/context')['$fetch']>
+    readonly $sitePath: UnwrapRef<typeof import('~/context')['$sitePath']>
+    readonly $uiConfig: UnwrapRef<typeof import('~/context')['$uiConfig']>
+    readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly chart: UnwrapRef<typeof import('../src/utils/chart.js')['default']>
+    readonly computed: UnwrapRef<typeof import('vue')['computed']>
+    readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
+    readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
+    readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
+    readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
+    readonly dfPersonalMenu: UnwrapRef<typeof import('@data-fair/lib-vuetify/personal-menu.vue')['default']>
+    readonly dfTutorialAlert: UnwrapRef<typeof import('@data-fair/lib-vuetify/tutorial-alert.vue')['default']>
+    readonly dfUserAvatar: UnwrapRef<typeof import('@data-fair/lib-vuetify/user-avatar.vue')['default']>
+    readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
+    readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
+    readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
+    readonly h: UnwrapRef<typeof import('vue')['h']>
+    readonly inject: UnwrapRef<typeof import('vue')['inject']>
+    readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
+    readonly isReactive: UnwrapRef<typeof import('vue')['isReactive']>
+    readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
+    readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
+    readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
+    readonly mdiCalendarRange: UnwrapRef<typeof import('@mdi/js')['mdiCalendarRange']>
+    readonly mdiDatabase: UnwrapRef<typeof import('@mdi/js')['mdiDatabase']>
+    readonly mdiImageSizeSelectSmall: UnwrapRef<typeof import('@mdi/js')['mdiImageSizeSelectSmall']>
+    readonly mdiTableArrowDown: UnwrapRef<typeof import('@mdi/js')['mdiTableArrowDown']>
+    readonly mdiTrendingDown: UnwrapRef<typeof import('@mdi/js')['mdiTrendingDown']>
+    readonly mdiTrendingNeutral: UnwrapRef<typeof import('@mdi/js')['mdiTrendingNeutral']>
+    readonly mdiTrendingUp: UnwrapRef<typeof import('@mdi/js')['mdiTrendingUp']>
+    readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
+    readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
+    readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
+    readonly onBeforeRouteLeave: UnwrapRef<typeof import('vue-router')['onBeforeRouteLeave']>
+    readonly onBeforeRouteUpdate: UnwrapRef<typeof import('vue-router')['onBeforeRouteUpdate']>
+    readonly onBeforeUnmount: UnwrapRef<typeof import('vue')['onBeforeUnmount']>
+    readonly onBeforeUpdate: UnwrapRef<typeof import('vue')['onBeforeUpdate']>
+    readonly onDeactivated: UnwrapRef<typeof import('vue')['onDeactivated']>
+    readonly onErrorCaptured: UnwrapRef<typeof import('vue')['onErrorCaptured']>
+    readonly onMounted: UnwrapRef<typeof import('vue')['onMounted']>
+    readonly onRenderTracked: UnwrapRef<typeof import('vue')['onRenderTracked']>
+    readonly onRenderTriggered: UnwrapRef<typeof import('vue')['onRenderTriggered']>
+    readonly onScopeDispose: UnwrapRef<typeof import('vue')['onScopeDispose']>
+    readonly onServerPrefetch: UnwrapRef<typeof import('vue')['onServerPrefetch']>
+    readonly onUnmounted: UnwrapRef<typeof import('vue')['onUnmounted']>
+    readonly onUpdated: UnwrapRef<typeof import('vue')['onUpdated']>
+    readonly onWatcherCleanup: UnwrapRef<typeof import('vue')['onWatcherCleanup']>
+    readonly provide: UnwrapRef<typeof import('vue')['provide']>
+    readonly reactive: UnwrapRef<typeof import('vue')['reactive']>
+    readonly readonly: UnwrapRef<typeof import('vue')['readonly']>
+    readonly ref: UnwrapRef<typeof import('vue')['ref']>
+    readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
+    readonly safeDecodeUriComponent: UnwrapRef<typeof import('../src/utils/safe-decode-uri-component')['default']>
+    readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
+    readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
+    readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
+    readonly toRaw: UnwrapRef<typeof import('vue')['toRaw']>
+    readonly toRef: UnwrapRef<typeof import('vue')['toRef']>
+    readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
+    readonly toValue: UnwrapRef<typeof import('vue')['toValue']>
+    readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
+    readonly unref: UnwrapRef<typeof import('vue')['unref']>
+    readonly useAsyncAction: UnwrapRef<typeof import('@data-fair/lib-vue/async-action.js')['useAsyncAction']>
+    readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
+    readonly useBooleanSearchParam: UnwrapRef<typeof import('@data-fair/lib-vue/reactive-search-params.js')['useBooleanSearchParam']>
+    readonly useConceptFilters: UnwrapRef<typeof import('@data-fair/lib-vue/concept-filters.js')['useConceptFilters']>
+    readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
+    readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
+    readonly useFetch: UnwrapRef<typeof import('@data-fair/lib-vue/fetch.js')['useFetch']>
+    readonly useI18n: UnwrapRef<typeof import('vue-i18n')['useI18n']>
+    readonly useId: UnwrapRef<typeof import('vue')['useId']>
+    readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
+    readonly useLocaleDayjs: UnwrapRef<typeof import('@data-fair/lib-vue/locale-dayjs.js')['useLocaleDayjs']>
+    readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
+    readonly useNumberSearchParam: UnwrapRef<typeof import('@data-fair/lib-vue/reactive-search-params.js')['useNumberSearchParam']>
+    readonly useReactiveSearchParams: UnwrapRef<typeof import('@data-fair/lib-vue/reactive-search-params.js')['useReactiveSearchParams']>
+    readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
+    readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
+    readonly useSession: UnwrapRef<typeof import('@data-fair/lib-vue/session.js')['useSession']>
+    readonly useSessionAuthenticated: UnwrapRef<typeof import('@data-fair/lib-vue/session.js')['useSessionAuthenticated']>
+    readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
+    readonly useStringSearchParam: UnwrapRef<typeof import('@data-fair/lib-vue/reactive-search-params.js')['useStringSearchParam']>
+    readonly useStringsArraySearchParam: UnwrapRef<typeof import('@data-fair/lib-vue/reactive-search-params.js')['useStringsArraySearchParam']>
+    readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
+    readonly useUiNotif: UnwrapRef<typeof import('@data-fair/lib-vue/ui-notif.js')['useUiNotif']>
+    readonly useWS: UnwrapRef<typeof import('@data-fair/lib-vue/ws.js')['useWS']>
+    readonly watch: UnwrapRef<typeof import('vue')['watch']>
+    readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>
+    readonly watchPostEffect: UnwrapRef<typeof import('vue')['watchPostEffect']>
+    readonly watchSyncEffect: UnwrapRef<typeof import('vue')['watchSyncEffect']>
+    readonly withUiNotif: UnwrapRef<typeof import('@data-fair/lib-vue/ui-notif.js')['withUiNotif']>
+  }
 }

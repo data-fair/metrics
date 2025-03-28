@@ -29,10 +29,6 @@
 import { useLocaleDayjs } from '@data-fair/lib-vue/locale-dayjs.js'
 
 export default {
-  components: {
-    filterDatePicker,
-    chartLegend
-  },
   emits: ['update:modelValue'],
   setup () {
     const { dayjs } = useLocaleDayjs()
