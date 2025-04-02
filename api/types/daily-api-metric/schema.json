@@ -106,7 +106,7 @@
     },
     "userClass": {
       "type":"string",
-      "enum": ["anonymous", "user", "owner", "external", "ownerProcessing", "externalProcessing", "ownerAPIKey", "externalAPIKey"]
+      "enum": ["anonymous", "owner", "external", "ownerProcessing", "externalProcessing", "ownerAPIKey", "externalAPIKey"]
     }
   }
 }

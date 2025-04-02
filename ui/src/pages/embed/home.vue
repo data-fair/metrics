@@ -70,28 +70,12 @@
         />
         <v-autocomplete
           v-model="dataset"
-          :disabled="!!topic"
           :loading="!aggResultDataAPI"
           :items="datasetItems"
           variant="outlined"
           density="compact"
           label="Cibler un jeu de données"
           max-width="500"
-          hide-details
-          clearable
-        />
-        <v-autocomplete
-          v-model="topic"
-          :disabled="!!dataset"
-          :loading="topics.loading.value || !topics.initialized.value"
-          :items="topics.data.value || []"
-          item-value="id"
-          item-title="title"
-          variant="outlined"
-          density="compact"
-          label="Cibler une thématique"
-          max-width="500"
-          class="ml-4"
           hide-details
           clearable
         />
@@ -163,13 +147,6 @@ import { ref, computed } from 'vue'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import tutorialAlert from '@data-fair/lib-vuetify/tutorial-alert.vue'
 
-const session = useSessionAuthenticated()
-const topics = useFetch<{ id: string, title: string, icon?: string }[]>(`/data-fair/api/v1/settings/${session.state.account.type}/${session.state.account.id}/topics`)
-
-const topic = ref(null)
-const filteredDatasetUrl = computed(() => `/data-fair/api/v1/datasets?mine=true&raw=true&select=id&size=10000&topics=${topic.value}`)
-const filteredDataset = useFetch<{ results: { id: string }[] }>(filteredDatasetUrl)
-
 const periods = ref<any>(null)
 const aggResultDataFiles = ref<any>(null)
 const aggResultDataAPI = ref<any>(null)
@@ -185,7 +162,6 @@ const datasetItems = computed(() => {
 const baseFilter = computed(() => {
   const filter: any = { statusClass: 'ok' }
   if (dataset.value) filter.resourceId = dataset.value
-  if (topic.value) filter.topicId = topic.value
   return filter
 })
 
@@ -200,44 +176,6 @@ const simpleMetricsSeries = computed(() => {
     const dataAPI = {
       previous: aggResultDataAPI.value.previous.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0 },
       current: aggResultDataAPI.value.current.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0 }
-    }
-
-    return { dataFiles, dataAPI }
-  }
-
-  if (topic.value) {
-    const filteredDatasetIds = filteredDataset.data.value?.results.map(dataset => dataset.id) || []
-
-    const aggResultDataFilesFiltered = {
-      previous: aggResultDataFiles.value.previous.series.filter((s: any) => filteredDatasetIds.includes(s.key.resource.id)),
-      current: aggResultDataFiles.value.current.series.filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
-    }
-
-    const dataFiles = {
-      previous: {
-        nbRequests: aggResultDataFilesFiltered.previous
-          .reduce((sum: number, s: any) => sum + s.nbRequests, 0),
-        bytes: aggResultDataFilesFiltered.previous
-          .reduce((sum: number, s: any) => sum + s.bytes, 0)
-      },
-      current: {
-        nbRequests: aggResultDataFilesFiltered.current
-          .reduce((sum: number, s: any) => sum + s.nbRequests, 0),
-        bytes: aggResultDataFilesFiltered.current
-          .reduce((sum: number, s: any) => sum + s.bytes, 0)
-      }
-    }
-    const dataAPI = {
-      previous: {
-        nbRequests: aggResultDataAPI.value.previous.series
-          .filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
-          .reduce((sum: number, s: any) => sum + s.nbRequests, 0)
-      },
-      current: {
-        nbRequests: aggResultDataAPI.value.current.series
-          .filter((s: any) => filteredDatasetIds.includes(s.key.resource.id))
-          .reduce((sum: number, s: any) => sum + s.nbRequests, 0)
-      }
     }
 
     return { dataFiles, dataAPI }

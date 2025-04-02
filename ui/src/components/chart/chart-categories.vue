@@ -18,7 +18,6 @@ import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 const userClasses = {
   anonymous: 'Anonyme',
   owner: 'Propriétaire',
-  user: 'Utilisateur',
   external: 'Utilisateur externe',
   ownerAPIKey: 'Propriétaire (clé d\'API)',
   externalAPIKey: 'Utilisateur externe (clé d\'API)',

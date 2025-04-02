@@ -1,7 +1,7 @@
 <template>
   <v-row class="ma-0 mb-2">
     <v-select
-      :model-value="selectItems.find(si => !si.value || (si.value.start === period.start && si.value.end === period.end))"
+      :model-value="selectItems.find(si => !si.value || (si.value.start === startPeriod && si.value.end === endPeriod))"
       :items="selectItems"
       label="période"
       style="max-width: 360px;"
@@ -12,12 +12,12 @@
       @update:model-value="setPeriod"
     />
     <filter-date-picker
-      v-model="period.start"
+      v-model="startPeriod"
       label="début"
       @update:model-value="input"
     />
     <filter-date-picker
-      v-model="period.end"
+      v-model="endPeriod"
       label="fin"
       @update:model-value="input"
     />
@@ -32,7 +32,11 @@ export default {
   emits: ['update:modelValue'],
   setup () {
     const { dayjs } = useLocaleDayjs()
-    return { dayjs }
+
+    const startPeriod = useStringSearchParam('start', { default: dayjs().subtract(6, 'days').format('YYYY-MM-DD') })
+    const endPeriod = useStringSearchParam('end', { default: dayjs().format('YYYY-MM-DD') })
+
+    return { dayjs, startPeriod, endPeriod }
   },
   data () {
     const defaultSelectItem = {
@@ -78,9 +82,7 @@ export default {
       }
     ]
     return {
-      selectItems,
-      /** @type {{start: string, end: string}} */
-      period: { ...defaultSelectItem.value }
+      selectItems
     }
   },
   mounted () {
@@ -89,18 +91,22 @@ export default {
   methods: {
     setPeriod (value: any) {
       if (value) {
-        this.period = { ...value }
+        this.startPeriod = value.start
+        this.endPeriod = value.end
         this.input()
       }
     },
     input () {
-      const duration = this.dayjs(this.period.end).diff(this.period.start, 'day')
+      const duration = this.dayjs(this.endPeriod).diff(this.startPeriod, 'day')
       this.$emit('update:modelValue', {
         previous: {
-          start: this.dayjs(this.period.start).subtract(duration + 1, 'days').format('YYYY-MM-DD'),
-          end: this.dayjs(this.period.start).subtract(1, 'days').format('YYYY-MM-DD')
+          start: this.dayjs(this.startPeriod).subtract(duration + 1, 'days').format('YYYY-MM-DD'),
+          end: this.dayjs(this.startPeriod).subtract(1, 'days').format('YYYY-MM-DD')
         },
-        current: { ...this.period }
+        current: {
+          start: this.startPeriod,
+          end: this.endPeriod
+        }
       })
     }
   }

@@ -26,7 +26,7 @@ export const list = async (account: Account) => {
   return results
 }
 
-export const agg = async (account: Account, query: AggQuery, filteredDatasetIds: string[] | null) => {
+export const agg = async (account: Account, query: AggQuery) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id
@@ -42,7 +42,6 @@ export const agg = async (account: Account, query: AggQuery, filteredDatasetIds:
   if (query.operationTrack) $match.operationTrack = query.operationTrack
   if (query.resourceType) $match['resource.type'] = query.resourceType
   if (query.resourceId) $match['resource.id'] = query.resourceId
-  else if (query.topicId && filteredDatasetIds) $match['resource.id'] = { $in: filteredDatasetIds }
   if (query.processingId) $match['processing._id'] = query.resourceId
 
   const $group: Record<string, any> = {
@@ -125,10 +124,7 @@ export const agg = async (account: Account, query: AggQuery, filteredDatasetIds:
   return result
 }
 
-export const getHistory = async (account: Account, query: {
-  start: string
-  end: string
-}) => {
+export const getHistory = async (account: Account, query: { start: string, end: string }) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id,
@@ -194,10 +190,7 @@ export const getHistory = async (account: Account, query: {
   return await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
 }
 
-export const getDataset = async (account: Account, query: {
-  start: string;
-  end: string;
-}, datasetsId: string[]) => {
+export const getDataset = async (account: Account, query: { start: string, end: string }, datasetsId: string[]) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id,
@@ -270,10 +263,7 @@ export const getDataset = async (account: Account, query: {
   return new Map(results.map(item => [item.id, item]))
 }
 
-export const getOrigin = async (account: Account, query: {
-  start: string
-  end: string
-}) => {
+export const getOrigin = async (account: Account, query: { start: string, end: string }) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id,
@@ -328,10 +318,7 @@ export const getOrigin = async (account: Account, query: {
   return await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
 }
 
-export const getApp = async (account: Account, query: {
-  start: string
-  end: string
-}, applicationsId: string[]) => {
+export const getApp = async (account: Account, query: { start: string, end: string }, applicationsId: string[]) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id,
@@ -389,10 +376,7 @@ export const getApp = async (account: Account, query: {
   return new Map(results.map(item => [item.id, item]))
 }
 
-export const getUserClass = async (account: Account, query: {
-  start: string
-  end: string
-}) => {
+export const getUserClass = async (account: Account, query: { start: string, end: string }) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id,
@@ -418,31 +402,81 @@ export const getUserClass = async (account: Account, query: {
   return await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray() as { _id: string, nbRequests: number }[]
 }
 
-export const getTotal = async (account: Account, query: {
-  start: string
-  end: string
-}) => {
+export const getTotal = async (account: Account, query: { start: string; end: string }) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id,
-    day: {
-      $gte: query.start,
-      $lte: query.end
-    },
     statusClass: 'ok'
   }
   if (account.department) $match['owner.department'] = account.department
 
+  // Calculate the previous period
+  const previousStart = new Date(query.start)
+  const previousEnd = new Date(query.end)
+  previousStart.setMonth(previousStart.getMonth() - 1)
+  previousEnd.setMonth(previousEnd.getMonth() - 1)
+
   const aggregate = [
     { $match },
     {
-      $group: {
-        _id: '$operationTrack',
-        nbRequests: { $sum: '$nbRequests' }
+      $facet: {
+        current: [
+          {
+            $match: {
+              day: {
+                $gte: query.start,
+                $lte: query.end
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$operationTrack',
+              nbRequests: { $sum: '$nbRequests' }
+            }
+          }
+        ],
+        previous: [
+          {
+            $match: {
+              day: {
+                $gte: previousStart.toISOString().split('T')[0],
+                $lte: previousEnd.toISOString().split('T')[0]
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$operationTrack',
+              nbRequests: { $sum: '$nbRequests' }
+            }
+          }
+        ]
       }
     }
   ]
 
   const result = await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
-  return Object.fromEntries(result.map(({ _id, nbRequests }) => [_id, nbRequests]))
+
+  if (result.length === 0) {
+    return {
+      current: { openApplication: 0, readDataAPI: 0, readDataFiles: 0 },
+      previous: { openApplication: 0, readDataAPI: 0, readDataFiles: 0 }
+    }
+  }
+
+  const ensureClasses = (data: Record<string, number>) => {
+    const classes = ['openApplication', 'readDataAPI', 'readDataFiles']
+    for (const cls of classes) if (!(cls in data)) data[cls] = 0
+    return data
+  }
+
+  return {
+    current: ensureClasses(
+      Object.fromEntries(result[0].current.map(({ _id, nbRequests }: { _id: string; nbRequests: number }) => [_id, nbRequests]))
+    ),
+    previous: ensureClasses(
+      Object.fromEntries(result[0].previous.map(({ _id, nbRequests }: { _id: string; nbRequests: number }) => [_id, nbRequests]))
+    )
+  }
 }

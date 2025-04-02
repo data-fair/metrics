@@ -51,6 +51,7 @@ services:
       - PUBLIC_URL=http://localhost:5600/data-fair
       - WS_PUBLIC_URL=ws://localhost:5600/data-fair
       - OBSERVER_ACTIVE=false
+      - EXTRA_NAV_ITEMS=[{"id":"metrics","can":"admin","iframe":"https://staging-koumoul.com/metrics/embed/home","basePath":"/metrics","icon":"mdi-chart-bar","title":"Audience"}]
 
   #####
   # db and search engine

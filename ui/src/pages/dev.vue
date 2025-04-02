@@ -1,37 +1,41 @@
 <template>
-  <div>
-    <v-app-bar density="comfortable">
-      <v-spacer />
-      <personal-menu dark-mode-switch />
-    </v-app-bar>
-
-    <ul>
-      <li
-        v-for="link in links"
-        :key="link[0]"
+  <v-app-bar
+    flat
+    dense
+    class="px-0 main-app-bar"
+  >
+    <v-toolbar-items>
+      <v-btn
+        variant="text"
+        href="/metrics/embed/home"
       >
-        <a :href="link[0]">{{ link[1] }}</a>
-      </li>
-    </ul>
-    <p>
-      Session :
-    </p>
-    <pre>{{ session.state }}</pre>
-  </div>
+        Audience
+      </v-btn>
+      <v-btn
+        variant="text"
+        target="_blank"
+        href="/simple-directory"
+        color="primary"
+      >
+        Simple Directory
+      </v-btn>
+      <v-btn
+        variant="text"
+        target="_blank"
+        href="/data-fair/"
+        color="primary"
+      >
+        Data Fair
+      </v-btn>
+    </v-toolbar-items>
+    <v-spacer />
+    <personal-menu />
+  </v-app-bar>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import personalMenu from '@data-fair/lib-vuetify/personal-menu.vue'
-
-const session = useSession()
-
-const links = [
-  ['/simple-directory', 'User management'],
-  ['/metrics/embed/home', 'Metrics dashboard'],
-  ['/built/metrics/embed/home', 'Built version']
-]
 </script>
 
-  <style>
-
-  </style>
+<style>
+</style>
