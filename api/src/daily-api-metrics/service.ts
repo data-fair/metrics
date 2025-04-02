@@ -411,10 +411,12 @@ export const getTotal = async (account: Account, query: { start: string; end: st
   if (account.department) $match['owner.department'] = account.department
 
   // Calculate the previous period
-  const previousStart = new Date(query.start)
-  const previousEnd = new Date(query.end)
-  previousStart.setMonth(previousStart.getMonth() - 1)
-  previousEnd.setMonth(previousEnd.getMonth() - 1)
+  const startDate = new Date(query.start)
+  const endDate = new Date(query.end)
+  const durationInMs = endDate.getTime() - startDate.getTime()
+
+  const previousEnd = new Date(startDate.getTime() - 86400000)
+  const previousStart = new Date(previousEnd.getTime() - durationInMs)
 
   const aggregate = [
     { $match },

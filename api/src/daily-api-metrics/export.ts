@@ -321,8 +321,8 @@ const generate = async (
     const cell = global.getCell(`D${row}`)
     const diff = current - previous
     cell.value = {
-      formula: `=(C${row}-B${row})/B${row}`,
-      result: previous !== 0 ? diff / previous : 0
+      formula: `=(B${row}-C${row})/C${row}`,
+      result: previous !== 0 ? diff / previous : diff === 0 ? 0 : 1
     }
 
     cell.numFmt = '0.00%'
