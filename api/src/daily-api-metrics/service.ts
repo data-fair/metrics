@@ -380,26 +380,66 @@ export const getUserClass = async (account: Account, query: { start: string, end
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id,
-    statusClass: 'ok',
-    day: {
-      $gte: query.start,
-      $lte: query.end
-    }
+    statusClass: 'ok'
   }
   if (account.department) $match['owner.department'] = account.department
+
+  // Calculate the previous period
+  const startDate = new Date(query.start)
+  const endDate = new Date(query.end)
+  const durationInMs = endDate.getTime() - startDate.getTime()
+
+  const previousEnd = new Date(startDate.getTime() - 86400000) // 1 day before current start
+  const previousStart = new Date(previousEnd.getTime() - durationInMs)
 
   const aggregate = [
     { $match },
     {
-      $group: {
-        _id: '$userClass',
-        nbRequests: { $sum: '$nbRequests' }
+      $facet: {
+        current: [
+          {
+            $match: {
+              day: {
+                $gte: query.start,
+                $lte: query.end
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$userClass',
+              nbRequests: { $sum: '$nbRequests' }
+            }
+          },
+          { $sort: { nbRequests: -1 } }
+        ],
+        previous: [
+          {
+            $match: {
+              day: {
+                $gte: previousStart.toISOString().split('T')[0],
+                $lte: previousEnd.toISOString().split('T')[0]
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$userClass',
+              nbRequests: { $sum: '$nbRequests' }
+            }
+          },
+          { $sort: { nbRequests: -1 } }
+        ]
       }
-    },
-    { $sort: { nbRequests: -1 } }
+    }
   ]
 
-  return await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray() as { _id: string, nbRequests: number }[]
+  const result = await mongo.db.collection('daily-api-metrics').aggregate(aggregate).toArray()
+
+  return {
+    current: result[0]?.current || [],
+    previous: result[0]?.previous || []
+  }
 }
 
 export const getTotal = async (account: Account, query: { start: string; end: string }) => {

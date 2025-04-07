@@ -39,8 +39,8 @@ const setupWorksheets = (workbook: Excel.stream.xlsx.WorkbookWriter, query: { st
 
   const global = workbook.addWorksheet('Global')
   global.columns = [
-    { header: `Période du ${formatDate(query.start)} au ${formatDate(query.end)}`, key: 'stat', width: 35 },
-    { header: 'Période du 01/03/2015 au 01/04/2015', key: 'current', width: 35 },
+    { header: '', key: 'metric', width: 35 },
+    { header: `Période du ${formatDate(query.start)} au ${formatDate(query.end)}`, key: 'current', width: 35 },
     { header: 'Période précédente', key: 'previous', width: 20 },
     { header: 'Variation', key: 'variation', width: 10 }
   ]
@@ -339,10 +339,50 @@ const generate = async (
 
   // Add user class stats
   global.addRow(['Répartition par catégories d\'utilisateurs'])
-  for (const item of userClassResults) {
-    const className = userClasses[item._id as keyof typeof userClasses]
-    if (className) global.addRow([className, item.nbRequests])
-  }
+  const userClassMap = new Map()
+  userClassResults.current.forEach((item: { _id: string; nbRequests: any }) => {
+    if (userClasses[item._id as keyof typeof userClasses]) {
+      userClassMap.set(item._id, {
+        className: userClasses[item._id as keyof typeof userClasses],
+        current: item.nbRequests,
+        previous: 0
+      })
+    }
+  })
+  userClassResults.previous.forEach((item: { _id: string; nbRequests: any }) => {
+    if (userClassMap.has(item._id)) {
+      userClassMap.get(item._id).previous = item.nbRequests
+    } else if (userClasses[item._id as keyof typeof userClasses]) {
+      userClassMap.set(item._id, {
+        className: userClasses[item._id as keyof typeof userClasses],
+        current: 0,
+        previous: item.nbRequests
+      })
+    }
+  })
+  let rowIndex = 7
+  userClassMap.forEach((data, id) => {
+    global.addRow([data.className, data.current, data.previous])
+
+    // Calculate and format percentage change
+    const cell = global.getCell(`D${rowIndex}`)
+    const diff = data.current - data.previous
+    cell.value = {
+      formula: `=(B${rowIndex}-C${rowIndex})/C${rowIndex}`,
+      result: data.previous !== 0 ? diff / data.previous : diff === 0 ? 0 : 1
+    }
+
+    cell.numFmt = '0.00%'
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: {
+        argb: diff > 0 ? COLOR.POSITIVE : (diff < 0 ? COLOR.NEGATIVE : COLOR.NEUTRAL)
+      }
+    }
+
+    rowIndex++
+  })
 
   await workbook.commit()
 }
