@@ -290,7 +290,7 @@ const generate = async (
     app.addRow({
       id: {
         text: application.id,
-        hyperlink: `${baseUrl}/data-fair/dataset/${application.id}`
+        hyperlink: `${baseUrl}/data-fair/application/${application.id}`
       },
       title: application.title || '',
       nbRequests: item?.nbRequests || 0,
