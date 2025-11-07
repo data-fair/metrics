@@ -34,7 +34,7 @@ export default defineConfig({
       imports: [
         ...(autoImports as any),
         {
-          '~/context': ['$uiConfig', '$sitePath', '$apiPath', '$fetch'],
+          '~/context': ['$uiConfig', '$sitePath', '$cspNonce', '$apiPath', '$fetch'],
           '@mdi/js': [
             'mdiCalendarRange',
             'mdiDatabase',

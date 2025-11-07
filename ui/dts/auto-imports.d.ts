@@ -7,6 +7,7 @@
 export {}
 declare global {
   const $apiPath: typeof import('~/context')['$apiPath']
+  const $cspNonce: typeof import('~/context')['$cspNonce']
   const $fetch: typeof import('~/context')['$fetch']
   const $sitePath: typeof import('~/context')['$sitePath']
   const $uiConfig: typeof import('~/context')['$uiConfig']
@@ -17,14 +18,24 @@ declare global {
   const chartLegend: typeof import('../src/components/chart/chart-legend.vue')['default']
   const chartSimpleMetric: typeof import('../src/components/chart/chart-simple-metric.vue')['default']
   const computed: typeof import('vue')['computed']
+  const computedDeepDiff: typeof import('@data-fair/lib-vue/deep-diff.js')['computedDeepDiff']
   const createApp: typeof import('vue')['createApp']
   const customRef: typeof import('vue')['customRef']
   const dailyApiMetrics: typeof import('../src/components/daily-api-metrics.vue')['default']
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
+  const dfDateMatchFilter: typeof import('@data-fair/lib-vuetify/date-match-filter.vue')['default']
+  const dfDateRangePicker: typeof import('@data-fair/lib-vuetify/date-range-picker.vue')['default']
+  const dfLangSwitcher: typeof import('@data-fair/lib-vuetify/lang-switcher.vue')['default']
+  const dfNavigationRight: typeof import('@data-fair/lib-vuetify/navigation-right.vue')['default']
+  const dfOwnerAvatar: typeof import('@data-fair/lib-vuetify/owner-avatar.vue')['default']
+  const dfOwnerPick: typeof import('@data-fair/lib-vuetify/owner-pick.vue')['default']
   const dfPersonalMenu: typeof import('@data-fair/lib-vuetify/personal-menu.vue')['default']
+  const dfThemeSwitcher: typeof import('@data-fair/lib-vuetify/theme-switcher.vue')['default']
   const dfTutorialAlert: typeof import('@data-fair/lib-vuetify/tutorial-alert.vue')['default']
-  const dfUserAvatar: typeof import('@data-fair/lib-vuetify/user-avatar.vue')['default']
+  const dfUiNotif: typeof import('@data-fair/lib-vuetify/ui-notif.vue')['default']
+  const dfUiNotifAlert: typeof import('@data-fair/lib-vuetify/ui-notif-alert.vue')['default']
+  const dfUserAvatar: typeof import('@data-fair/lib-vuetify/ui-user-avatar.vue')['default']
   const effectScope: typeof import('vue')['effectScope']
   const filterDatePicker: typeof import('../src/components/filter/filter-date-picker.vue')['default']
   const filterPeriod: typeof import('../src/components/filter/filter-period.vue')['default']
@@ -103,6 +114,7 @@ declare global {
   const useUiNotif: typeof import('@data-fair/lib-vue/ui-notif.js')['useUiNotif']
   const useWS: typeof import('@data-fair/lib-vue/ws.js')['useWS']
   const watch: typeof import('vue')['watch']
+  const watchDeepDiff: typeof import('@data-fair/lib-vue/deep-diff.js')['watchDeepDiff']
   const watchEffect: typeof import('vue')['watchEffect']
   const watchPostEffect: typeof import('vue')['watchPostEffect']
   const watchSyncEffect: typeof import('vue')['watchSyncEffect']
@@ -121,19 +133,30 @@ declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
     readonly $apiPath: UnwrapRef<typeof import('~/context')['$apiPath']>
+    readonly $cspNonce: UnwrapRef<typeof import('~/context')['$cspNonce']>
     readonly $fetch: UnwrapRef<typeof import('~/context')['$fetch']>
     readonly $sitePath: UnwrapRef<typeof import('~/context')['$sitePath']>
     readonly $uiConfig: UnwrapRef<typeof import('~/context')['$uiConfig']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly chart: UnwrapRef<typeof import('../src/utils/chart.js')['default']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
+    readonly computedDeepDiff: UnwrapRef<typeof import('@data-fair/lib-vue/deep-diff.js')['computedDeepDiff']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
+    readonly dfDateMatchFilter: UnwrapRef<typeof import('@data-fair/lib-vuetify/date-match-filter.vue')['default']>
+    readonly dfDateRangePicker: UnwrapRef<typeof import('@data-fair/lib-vuetify/date-range-picker.vue')['default']>
+    readonly dfLangSwitcher: UnwrapRef<typeof import('@data-fair/lib-vuetify/lang-switcher.vue')['default']>
+    readonly dfNavigationRight: UnwrapRef<typeof import('@data-fair/lib-vuetify/navigation-right.vue')['default']>
+    readonly dfOwnerAvatar: UnwrapRef<typeof import('@data-fair/lib-vuetify/owner-avatar.vue')['default']>
+    readonly dfOwnerPick: UnwrapRef<typeof import('@data-fair/lib-vuetify/owner-pick.vue')['default']>
     readonly dfPersonalMenu: UnwrapRef<typeof import('@data-fair/lib-vuetify/personal-menu.vue')['default']>
+    readonly dfThemeSwitcher: UnwrapRef<typeof import('@data-fair/lib-vuetify/theme-switcher.vue')['default']>
     readonly dfTutorialAlert: UnwrapRef<typeof import('@data-fair/lib-vuetify/tutorial-alert.vue')['default']>
-    readonly dfUserAvatar: UnwrapRef<typeof import('@data-fair/lib-vuetify/user-avatar.vue')['default']>
+    readonly dfUiNotif: UnwrapRef<typeof import('@data-fair/lib-vuetify/ui-notif.vue')['default']>
+    readonly dfUiNotifAlert: UnwrapRef<typeof import('@data-fair/lib-vuetify/ui-notif-alert.vue')['default']>
+    readonly dfUserAvatar: UnwrapRef<typeof import('@data-fair/lib-vuetify/ui-user-avatar.vue')['default']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
@@ -208,6 +231,7 @@ declare module 'vue' {
     readonly useUiNotif: UnwrapRef<typeof import('@data-fair/lib-vue/ui-notif.js')['useUiNotif']>
     readonly useWS: UnwrapRef<typeof import('@data-fair/lib-vue/ws.js')['useWS']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
+    readonly watchDeepDiff: UnwrapRef<typeof import('@data-fair/lib-vue/deep-diff.js')['watchDeepDiff']>
     readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>
     readonly watchPostEffect: UnwrapRef<typeof import('vue')['watchPostEffect']>
     readonly watchSyncEffect: UnwrapRef<typeof import('vue')['watchSyncEffect']>

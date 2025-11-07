@@ -27,11 +27,6 @@
         Exporter
       </v-btn>
     </v-toolbar>
-    <tutorial-alert id="metrics-gzip">
-      À partir de la 2e moitié de janvier 2024 la manière de compter les volumes de données téléchargés a changé.
-      Auparavant, le volume était comptabilisé après la compression Gzip effectuée par le serveur web, maintenant c'est le volume brut qui est compté sans tenir compte de la compression.
-      Cela peut avoir pour effet une augmentation soudaine des valeurs (jusqu'à x2 ou x3 en fonction de la nature des données).
-    </tutorial-alert>
     <template v-if="periods">
       <v-row dense>
         <chart-categories
@@ -145,7 +140,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
-import tutorialAlert from '@data-fair/lib-vuetify/tutorial-alert.vue'
 
 const periods = ref<any>(null)
 const aggResultDataFiles = ref<any>(null)
