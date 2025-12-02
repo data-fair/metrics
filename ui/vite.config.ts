@@ -5,10 +5,9 @@ import VueRouter from 'unplugin-vue-router/vite'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import Unfonts from 'unplugin-fonts/vite'
 import Vuetify from 'vite-plugin-vuetify'
 import microTemplate from '@data-fair/lib-utils/micro-template.js'
-import { autoImports } from '@data-fair/lib-vuetify/vite.js'
+import { autoImports, settingsPath } from '@data-fair/lib-vuetify/vite.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,6 +18,9 @@ export default defineConfig({
       '~': path.resolve(__dirname, 'src/')
     },
   },
+  html: {
+    cspNonce: '{CSP_NONCE}'
+  },
   plugins: [
     VueRouter({
       dts: './dts/typed-router.d.ts',
@@ -26,8 +28,7 @@ export default defineConfig({
     }),
     Vue(),
     VueI18nPlugin(),
-    Vuetify(),
-    Unfonts({ google: { families: [{ name: 'Nunito', styles: 'ital,wght@0,200..1000;1,200..1000' }] } }),
+    Vuetify({ styles: { configFile: settingsPath } }),
     AutoImport({
       dts: './dts/auto-imports.d.ts',
       vueTemplate: true,
@@ -56,8 +57,8 @@ export default defineConfig({
       async transformIndexHtml (html) {
         // in production this injection will be performed by an express middleware
         if (process.env.NODE_ENV !== 'development') return html
-        const { uiConfig } = await import('../api/src/config')
-        return microTemplate(html, { SITE_PATH: '', UI_CONFIG: JSON.stringify(uiConfig) })
+        const { uiConfigPath } = (await import('@data-fair/lib-express')).prepareUiConfig((await import('../api/src/config.ts')).uiConfig)
+        return microTemplate(html, { SITE_PATH: '', UI_CONFIG_PATH: uiConfigPath, THEME_CSS_HASH: '', PUBLIC_SITE_INFO_HASH: '' })
       }
     }
   ],

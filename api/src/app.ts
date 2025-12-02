@@ -3,7 +3,7 @@ import express from 'express'
 import { session, errorHandler, createSiteMiddleware, createSpaMiddleware } from '@data-fair/lib-express/index.js'
 import dailyApiMetricsRouter from './daily-api-metrics/router.ts'
 import adminRouter from './admin.ts'
-import { uiConfig } from '#config'
+import { apiConfig, uiConfig } from '#config'
 
 export const app = express()
 
@@ -17,6 +17,12 @@ app.use(session.middleware())
 app.use('/api/daily-api-metrics', dailyApiMetricsRouter)
 app.use('/api/admin', adminRouter)
 
-app.use(await createSpaMiddleware(resolve(import.meta.dirname, '../../ui/dist'), uiConfig))
+app.use(await createSpaMiddleware(resolve(import.meta.dirname, '../../ui/dist'), uiConfig, {
+  csp: {
+    nonce: true,
+    header: true
+  },
+  privateDirectoryUrl: apiConfig.privateDirectoryUrl
+}))
 
 app.use(errorHandler)
