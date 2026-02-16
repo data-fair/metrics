@@ -1,28 +1,26 @@
 <template>
-  <v-row class="ma-0 mb-2">
-    <v-select
-      :model-value="selectItems.find(si => !si.value || (si.value.start === startPeriod && si.value.end === endPeriod))"
-      :items="selectItems"
-      label="période"
-      style="max-width: 360px;"
-      hide-details
-      variant="outlined"
-      density="compact"
-      class="mr-4 mt-2"
-      @update:model-value="setPeriod"
-    />
-    <filter-date-picker
-      v-model="startPeriod"
-      label="début"
-      @update:model-value="input"
-    />
-    <filter-date-picker
-      v-model="endPeriod"
-      label="fin"
-      @update:model-value="input"
-    />
-    <chart-legend />
-  </v-row>
+  <v-select
+    :model-value="selectItems.find(si => !si.value || (si.value.start === startPeriod && si.value.end === endPeriod))"
+    :items="selectItems"
+    label="période"
+    variant="outlined"
+    density="compact"
+    class="mr-4"
+    max-width="400"
+    hide-details
+    @update:model-value="setPeriod"
+  />
+  <filter-date-picker
+    v-model="startPeriod"
+    label="début"
+    @update:model-value="input"
+  />
+  <filter-date-picker
+    v-model="endPeriod"
+    label="fin"
+    @update:model-value="input"
+  />
+  <chart-legend />
 </template>
 
 <script lang="ts">
