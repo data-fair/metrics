@@ -54,6 +54,7 @@
       <v-toolbar
         class="my-4"
         variant="tonal"
+        height="auto"
         rounded
       >
         <v-icon
@@ -62,6 +63,8 @@
           color="primary"
           size="x-large"
         />
+
+        <!-- Dataset filter -->
         <v-autocomplete
           v-model="datasets"
           :loading="!aggResultDataAPI"
@@ -70,13 +73,28 @@
           density="compact"
           label="Jeu de données"
           max-width="400"
-          class="mr-4"
+          class="mr-4 my-2"
           hide-details
           clearable
           multiple
-          chips
-          closable-chips
-        />
+        >
+          <template #selection="{ item, index }">
+            <div
+              v-if="index === 0"
+              class="d-flex overflow-hidden"
+            >
+              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+              <span
+                v-if="datasets.length > 1"
+                class="text-grey text-caption align-self-center ml-1"
+              >
+                (+{{ datasets.length - 1 }})
+              </span>
+            </div>
+          </template>
+        </v-autocomplete>
+
+        <!-- Referrer domain filter -->
         <v-autocomplete
           v-model="refererDomains"
           :loading="refererDomainLoading"
@@ -85,13 +103,26 @@
           density="compact"
           label="Site d'origine"
           max-width="400"
-          class="mr-4"
+          class="mr-4 my-2"
           hide-details
           clearable
           multiple
-          chips
-          closable-chips
-        />
+        >
+          <template #selection="{ index, item }">
+            <span
+              v-if="index === 0"
+              class="d-flex overflow-hidden"
+            >
+              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+              <span
+                v-if="refererDomains.length > 1"
+                class="text-grey text-caption align-self-center ml-1"
+              >(+{{ refererDomains.length - 1 }})</span>
+            </span>
+          </template>
+        </v-autocomplete>
+
+        <!-- User class filter -->
         <v-autocomplete
           v-model="userClasses"
           :loading="userClassLoading"
@@ -100,13 +131,25 @@
           density="compact"
           label="Catégorie d'utilisateur"
           max-width="400"
-          class="mr-4"
+          class="mr-4 my-2"
           hide-details
           clearable
           multiple
-          chips
-          closable-chips
-        />
+        >
+          <template #selection="{ index, item }">
+            <span
+              v-if="index === 0"
+              class="d-flex overflow-hidden"
+            >
+              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+
+              <span
+                v-if="userClasses.length > 1"
+                class="text-grey text-caption align-self-center ml-1"
+              >(+{{ userClasses.length - 1 }})</span>
+            </span>
+          </template>
+        </v-autocomplete>
       </v-toolbar>
 
       <v-row>
