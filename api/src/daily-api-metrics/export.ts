@@ -38,12 +38,13 @@ const setupWorksheets = (workbook: Excel.stream.xlsx.WorkbookWriter, query: { st
   workbook.created = new Date()
 
   const global = workbook.addWorksheet('Global')
-  global.columns = [
-    { header: '', key: 'metric', width: 35 },
-    { header: `Période du ${formatDate(query.start)} au ${formatDate(query.end)}`, key: 'current', width: 35 },
-    { header: 'Période précédente', key: 'previous', width: 20 },
-    { header: 'Variation', key: 'variation', width: 10 }
-  ]
+  global.getColumn(1).width = 4
+  global.getColumn(2).width = 30
+  global.getColumn(3).width = 18
+  global.getColumn(4).width = 18
+  global.getColumn(5).width = 10
+  global.addRow([])
+  global.addRow(['', `Du ${formatDate(query.start)} au ${formatDate(query.end)}`, 'Période actuelle', 'Période précédente', 'Variation'])
 
   const history = workbook.addWorksheet('Historique')
   history.columns = [
@@ -111,6 +112,32 @@ const setupWorksheets = (workbook: Excel.stream.xlsx.WorkbookWriter, query: { st
   return { global, history, dataset, topic, origin, app }
 }
 
+const applyGlobalBordersAndFill = (global: Excel.Worksheet) => {
+  const extBorder = { style: 'thin' as const }
+  const intBorder = { style: 'hair' as const }
+
+  for (let row = 2; row <= 5; row++) {
+    for (let col = 2; col <= 5; col++) {
+      const cell = global.getCell(row, col)
+
+      cell.border = {
+        top: row === 2 ? extBorder : intBorder,
+        bottom: (row === 2 || row === 5) ? extBorder : intBorder,
+        left: col === 2 ? extBorder : intBorder,
+        right: (col === 2 || col === 5) ? extBorder : intBorder
+      }
+
+      if (row === 2 || col === 2) {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'A6D0F4' }
+        }
+      }
+    }
+  }
+}
+
 // Update topic stats based on dataset metrics
 const updateTopicStats = (topicsStats: Record<string, TopicStats>, dataset: Dataset, datasetMetrics: any) => {
   if (!datasetMetrics || !dataset.topics) return
@@ -165,7 +192,7 @@ const generate = async (
     return acc
   }, {} as Record<string, TopicStats>)
 
-  // Fetch all data in parallel for better performance
+  // Fetch all data concurrently to improve performance
   const [historyData, datasetResults, originResults, appResults, totalResults, userClassResults] = await Promise.all([
     getHistory(account, query),
     getDataset(account, query, datasetIds),
@@ -301,9 +328,9 @@ const generate = async (
   }
 
   // Add global stats
-  global.addRow(['Appels d\'API', totalResults.current.readDataAPI, totalResults.previous.readDataAPI])
-  global.addRow(['Fichiers téléchargés', totalResults.current.readDataFiles, totalResults.previous.readDataFiles])
-  global.addRow(['Affichages d\'applications', totalResults.current.openApplication, totalResults.previous.openApplication])
+  global.addRow(['', 'Appels d\'API', totalResults.current.readDataAPI, totalResults.previous.readDataAPI])
+  global.addRow(['', 'Fichiers téléchargés', totalResults.current.readDataFiles, totalResults.previous.readDataFiles])
+  global.addRow(['', 'Affichages d\'applications', totalResults.current.openApplication, totalResults.previous.openApplication])
 
   const COLOR = {
     POSITIVE: '4CAF50', // Green
@@ -312,16 +339,16 @@ const generate = async (
   }
 
   const metrics = [
-    { row: 2, current: totalResults.current.readDataAPI, previous: totalResults.previous.readDataAPI },
-    { row: 3, current: totalResults.current.readDataFiles, previous: totalResults.previous.readDataFiles },
-    { row: 4, current: totalResults.current.openApplication, previous: totalResults.previous.openApplication }
+    { row: 3, current: totalResults.current.readDataAPI, previous: totalResults.previous.readDataAPI },
+    { row: 4, current: totalResults.current.readDataFiles, previous: totalResults.previous.readDataFiles },
+    { row: 5, current: totalResults.current.openApplication, previous: totalResults.previous.openApplication }
   ]
 
   metrics.forEach(({ row, current, previous }) => {
-    const cell = global.getCell(`D${row}`)
+    const cell = global.getCell(`E${row}`)
     const diff = current - previous
     cell.value = {
-      formula: `=(B${row}-C${row})/C${row}`,
+      formula: `=(C${row}-D${row})/D${row}`,
       result: previous !== 0 ? diff / previous : diff === 0 ? 0 : 1
     }
 
@@ -335,10 +362,11 @@ const generate = async (
     }
   })
 
+  applyGlobalBordersAndFill(global)
   global.addRow([])
 
   // Add user class stats
-  global.addRow(['Répartition par catégories d\'utilisateurs'])
+  global.addRow(['', 'Répartition par catégories d\'utilisateurs'])
   const userClassMap = new Map()
   userClassResults.current.forEach((item: { _id: string; nbRequests: any }) => {
     if (userClasses[item._id as keyof typeof userClasses]) {
@@ -360,15 +388,16 @@ const generate = async (
       })
     }
   })
-  let rowIndex = 7
+
+  let rowIndex = 8
   userClassMap.forEach((data, id) => {
-    global.addRow([data.className, data.current, data.previous])
+    global.addRow(['', data.className, data.current, data.previous])
 
     // Calculate and format percentage change
-    const cell = global.getCell(`D${rowIndex}`)
+    const cell = global.getCell(`E${rowIndex}`)
     const diff = data.current - data.previous
     cell.value = {
-      formula: `=(B${rowIndex}-C${rowIndex})/C${rowIndex}`,
+      formula: `=(C${rowIndex}-D${rowIndex})/D${rowIndex}`,
       result: data.previous !== 0 ? diff / data.previous : diff === 0 ? 0 : 1
     }
 

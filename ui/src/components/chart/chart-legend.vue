@@ -2,28 +2,22 @@
   <div class="legend mt-2">
     <div class="legend-item text-caption">
       <v-sheet
-        rounded
         color="accent"
         class="legend-item-square"
+        rounded
       />
       <span>période sélectionnée</span>
     </div>
     <div class="legend-item text-caption">
       <v-sheet
-        rounded
         color="#9E9E9E"
         class="legend-item-square"
+        rounded
       />
       <span>période précédente</span>
     </div>
   </div>
 </template>
-
-<script>
-export default {
-
-}
-</script>
 
 <style>
 .legend .legend-item-square {

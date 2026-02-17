@@ -1,28 +1,27 @@
 <template>
   <v-container
-    class="home my-0"
     :fluid="$vuetify.display.lgAndDown"
     data-iframe-height
   >
     <v-toolbar
+      class="mb-4"
       variant="tonal"
       rounded
-      :class="`mb-4 section-bar-${$vuetify.theme.current.dark ? 'dark' : 'light'}`"
     >
       <v-icon
-        size="x-large"
-        color="primary"
-        class="mx-4"
         :icon="mdiCalendarRange"
+        class="mx-4"
+        color="primary"
+        size="x-large"
       />
       <filter-period @update:model-value="(v: any) => periods = v" />
       <v-spacer />
       <v-btn
         :prepend-icon="mdiTableArrowDown"
-        class="mr-4"
+        :href="exportUrl"
+        class="mx-4"
         color="primary"
         variant="elevated"
-        :href="exportUrl"
       >
         Exporter
       </v-btn>
@@ -53,27 +52,104 @@
       </v-row>
 
       <v-toolbar
+        class="my-4"
         variant="tonal"
+        height="auto"
         rounded
-        :class="`my-4 section-bar-${$vuetify.theme.current.dark ? 'dark' : 'light'}`"
       >
         <v-icon
-          size="x-large"
-          color="primary"
-          class="mx-4"
           :icon="mdiDatabase"
+          class="mx-4"
+          color="primary"
+          size="x-large"
         />
+
+        <!-- Dataset filter -->
         <v-autocomplete
-          v-model="dataset"
+          v-model="datasets"
           :loading="!aggResultDataAPI"
           :items="datasetItems"
           variant="outlined"
           density="compact"
-          label="Cibler un jeu de données"
-          max-width="500"
+          label="Jeu de données"
+          max-width="400"
+          class="mr-4 my-2"
           hide-details
           clearable
-        />
+          multiple
+        >
+          <template #selection="{ item, index }">
+            <div
+              v-if="index === 0"
+              class="d-flex overflow-hidden"
+            >
+              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+              <span
+                v-if="datasets.length > 1"
+                class="text-grey text-caption align-self-center ml-1"
+              >
+                (+{{ datasets.length - 1 }})
+              </span>
+            </div>
+          </template>
+        </v-autocomplete>
+
+        <!-- Referrer domain filter -->
+        <v-autocomplete
+          v-model="refererDomains"
+          :loading="refererDomainLoading"
+          :items="refererDomainItems"
+          variant="outlined"
+          density="compact"
+          label="Site d'origine"
+          max-width="400"
+          class="mr-4 my-2"
+          hide-details
+          clearable
+          multiple
+        >
+          <template #selection="{ index, item }">
+            <span
+              v-if="index === 0"
+              class="d-flex overflow-hidden"
+            >
+              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+              <span
+                v-if="refererDomains.length > 1"
+                class="text-grey text-caption align-self-center ml-1"
+              >(+{{ refererDomains.length - 1 }})</span>
+            </span>
+          </template>
+        </v-autocomplete>
+
+        <!-- User class filter -->
+        <v-autocomplete
+          v-model="userClasses"
+          :loading="userClassLoading"
+          :items="userClassItems"
+          variant="outlined"
+          density="compact"
+          label="Catégorie d'utilisateur"
+          max-width="400"
+          class="mr-4 my-2"
+          hide-details
+          clearable
+          multiple
+        >
+          <template #selection="{ index, item }">
+            <span
+              v-if="index === 0"
+              class="d-flex overflow-hidden"
+            >
+              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+
+              <span
+                v-if="userClasses.length > 1"
+                class="text-grey text-caption align-self-center ml-1"
+              >(+{{ userClasses.length - 1 }})</span>
+            </span>
+          </template>
+        </v-autocomplete>
       </v-toolbar>
 
       <v-row>
@@ -138,14 +214,32 @@
 </i18n>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 
 const periods = ref<any>(null)
 const aggResultDataFiles = ref<any>(null)
 const aggResultDataAPI = ref<any>(null)
 const aggResultOpenApp = ref<any>(null)
-const dataset = ref(null)
+const simpleAggDataFiles = ref<any>(null)
+const simpleAggDataAPI = ref<any>(null)
+const datasets = ref<string[]>([])
+const refererDomains = ref<string[]>([])
+const userClasses = ref<string[]>([])
+const refererDomainAgg = ref<any>(null)
+const userClassAgg = ref<any>(null)
+const refererDomainLoading = ref(false)
+const userClassLoading = ref(false)
+
+const userClassLabels: Record<string, string> = {
+  anonymous: 'Anonyme',
+  owner: 'Proprietaire',
+  external: 'Utilisateur externe',
+  ownerAPIKey: "Proprietaire (cle d'API)",
+  externalAPIKey: "Utilisateur externe (cle d'API)",
+  ownerProcessing: 'Proprietaire (traitement)',
+  externalProcessing: 'Utilisateur externe (traitement)'
+}
 
 const datasetItems = computed(() => {
   if (!aggResultDataAPI.value) return []
@@ -153,29 +247,137 @@ const datasetItems = computed(() => {
     .map((s: any) => ({ title: safeDecodeUriComponent(s.key.resource.title), value: s.key.resource.id, serie: s }))
 })
 
+const refererDomainItems = computed(() => {
+  if (!refererDomainAgg.value) return []
+  return refererDomainAgg.value.series.map((serie: any) => {
+    const value = serie.key.refererDomain
+    let title = value
+    if (value === 'none') title = 'Inconnu'
+    if (value === null || value === undefined) title = 'Aucune'
+    return { title, value }
+  })
+})
+
+const userClassItems = computed(() => {
+  if (!userClassAgg.value) return []
+  return userClassAgg.value.series.map((serie: any) => {
+    const value = serie.key.userClass
+    return { title: userClassLabels[value] || value, value }
+  })
+})
+
 const baseFilter = computed(() => {
   const filter: any = { statusClass: 'ok' }
-  if (dataset.value) filter.resourceId = dataset.value
+  if (datasets.value.length) filter.resourceId = datasets.value
+  if (refererDomains.value.length) filter.refererDomain = refererDomains.value
+  if (userClasses.value.length) filter.userClass = userClasses.value
   return filter
 })
 
-const simpleMetricsSeries = computed(() => {
-  if (!aggResultDataFiles.value || !aggResultDataAPI.value) return null
+const refererDomainOptionFilter = computed(() => {
+  const filter: any = { statusClass: 'ok' }
+  if (datasets.value.length) filter.resourceId = datasets.value
+  if (userClasses.value.length) filter.userClass = userClasses.value
+  return filter
+})
 
-  if (dataset.value) {
+const userClassOptionFilter = computed(() => {
+  const filter: any = { statusClass: 'ok' }
+  if (datasets.value.length) filter.resourceId = datasets.value
+  if (refererDomains.value.length) filter.refererDomain = refererDomains.value
+  return filter
+})
+
+const fetchOptionAgg = async (split: string, filter: Record<string, any>, target: typeof refererDomainAgg, loading: typeof refererDomainLoading) => {
+  if (!periods.value?.current?.start || !periods.value?.current?.end) return
+  loading.value = true
+  try {
+    target.value = await $fetch('daily-api-metrics/_agg', {
+      query: {
+        split,
+        ...filter,
+        start: periods.value.current.start,
+        end: periods.value.current.end
+      }
+    })
+  } catch {
+    target.value = null
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchSimpleAgg = async (operationTrack: string) => {
+  if (!periods.value?.current?.start || !periods.value?.current?.end) return { current: null, previous: null }
+  const [current, previous] = await Promise.all([
+    $fetch('daily-api-metrics/_agg', {
+      query: {
+        split: 'resource',
+        ...baseFilter.value,
+        operationTrack,
+        start: periods.value.current.start,
+        end: periods.value.current.end
+      }
+    }),
+    $fetch('daily-api-metrics/_agg', {
+      query: {
+        split: 'resource',
+        ...baseFilter.value,
+        operationTrack,
+        start: periods.value.previous.start,
+        end: periods.value.previous.end
+      }
+    })
+  ])
+  return { current, previous }
+}
+
+const simpleMetricsSeries = computed(() => {
+  if (!simpleAggDataFiles.value || !simpleAggDataAPI.value) return null
+
+  if (datasets.value.length) {
+    const sumSeries = (series: any[], ids: string[]) => ids.reduce((acc, id) => {
+      const match = series.find((s: any) => s.key.resource.id === id)
+      if (!match) return acc
+      acc.nbRequests += match.nbRequests || 0
+      acc.bytes += match.bytes || 0
+      return acc
+    }, { nbRequests: 0, bytes: 0 })
+
     const dataFiles = {
-      previous: aggResultDataFiles.value.previous.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0, bytes: 0 },
-      current: aggResultDataFiles.value.current.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0, bytes: 0 }
+      previous: sumSeries(simpleAggDataFiles.value.previous.series, datasets.value),
+      current: sumSeries(simpleAggDataFiles.value.current.series, datasets.value)
     }
     const dataAPI = {
-      previous: aggResultDataAPI.value.previous.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0 },
-      current: aggResultDataAPI.value.current.series.find((s: any) => s.key.resource.id === dataset.value) || { nbRequests: 0 }
+      previous: sumSeries(simpleAggDataAPI.value.previous.series, datasets.value),
+      current: sumSeries(simpleAggDataAPI.value.current.series, datasets.value)
     }
 
     return { dataFiles, dataAPI }
   }
 
-  return { dataFiles: aggResultDataFiles.value, dataAPI: aggResultDataAPI.value }
+  return {
+    dataFiles: {
+      current: {
+        nbRequests: simpleAggDataFiles.value.current.nbRequests,
+        bytes: simpleAggDataFiles.value.current.bytes
+      },
+      previous: {
+        nbRequests: simpleAggDataFiles.value.previous.nbRequests,
+        bytes: simpleAggDataFiles.value.previous.bytes
+      }
+    },
+    dataAPI: {
+      current: {
+        nbRequests: simpleAggDataAPI.value.current.nbRequests,
+        bytes: simpleAggDataAPI.value.current.bytes
+      },
+      previous: {
+        nbRequests: simpleAggDataAPI.value.previous.nbRequests,
+        bytes: simpleAggDataAPI.value.previous.bytes
+      }
+    }
+  }
 })
 
 const simpleMetrics = computed(() => {
@@ -237,5 +439,22 @@ const exportUrl = computed(() => {
   if (!periods.value) return undefined
   return `${$apiPath}/daily-api-metrics/_export?start=${periods.value.current.start}&end=${periods.value.current.end}`
 })
+
+watch([periods, refererDomainOptionFilter], async () => {
+  await fetchOptionAgg('refererDomain', refererDomainOptionFilter.value, refererDomainAgg, refererDomainLoading)
+}, { immediate: true, deep: true })
+
+watch([periods, userClassOptionFilter], async () => {
+  await fetchOptionAgg('userClass', userClassOptionFilter.value, userClassAgg, userClassLoading)
+}, { immediate: true, deep: true })
+
+watch([periods, baseFilter], async () => {
+  const [dataFiles, dataAPI] = await Promise.all([
+    fetchSimpleAgg('readDataFiles'),
+    fetchSimpleAgg('readDataAPI')
+  ])
+  simpleAggDataFiles.value = dataFiles
+  simpleAggDataAPI.value = dataAPI
+}, { immediate: true, deep: true })
 
 </script>

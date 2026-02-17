@@ -16,9 +16,29 @@
     },
     "operationTrack": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/operationTrack"},
     "statusClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/statusClass"},
-    "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"},
+    "userClass": {
+      "oneOf": [
+        {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"},
+        {
+          "type": "array",
+          "items": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"},
+          "minItems": 1
+        }
+      ]
+    },
     "resourceType": {"type": "string"},
-    "resourceId": {"type": "string"},
+    "resourceId": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      ]
+    },
+    "refererDomain": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      ]
+    },
     "topicId": {"type": "string"},
     "processingId": {"type": "string"},
     "split": {

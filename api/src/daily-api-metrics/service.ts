@@ -38,10 +38,11 @@ export const agg = async (account: Account, query: AggQuery) => {
   if (query.start) $match.day = { $gte: query.start }
   if (query.end) $match.day = { ...$match.day, $lte: query.end }
   if (query.statusClass) $match.statusClass = query.statusClass
-  if (query.userClass) $match.userClass = query.userClass
+  if (query.userClass) $match.userClass = Array.isArray(query.userClass) ? { $in: query.userClass } : query.userClass
   if (query.operationTrack) $match.operationTrack = query.operationTrack
   if (query.resourceType) $match['resource.type'] = query.resourceType
-  if (query.resourceId) $match['resource.id'] = query.resourceId
+  if (query.resourceId) $match['resource.id'] = Array.isArray(query.resourceId) ? { $in: query.resourceId } : query.resourceId
+  if (query.refererDomain) $match.refererDomain = Array.isArray(query.refererDomain) ? { $in: query.refererDomain } : query.refererDomain
   if (query.processingId) $match['processing._id'] = query.resourceId
 
   const $group: Record<string, any> = {
