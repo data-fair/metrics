@@ -221,6 +221,8 @@ const periods = ref<any>(null)
 const aggResultDataFiles = ref<any>(null)
 const aggResultDataAPI = ref<any>(null)
 const aggResultOpenApp = ref<any>(null)
+const simpleAggDataFiles = ref<any>(null)
+const simpleAggDataAPI = ref<any>(null)
 const datasets = ref<string[]>([])
 const refererDomains = ref<string[]>([])
 const userClasses = ref<string[]>([])
@@ -305,8 +307,33 @@ const fetchOptionAgg = async (split: string, filter: Record<string, any>, target
   }
 }
 
+const fetchSimpleAgg = async (operationTrack: string) => {
+  if (!periods.value?.current?.start || !periods.value?.current?.end) return { current: null, previous: null }
+  const [current, previous] = await Promise.all([
+    $fetch('daily-api-metrics/_agg', {
+      query: {
+        split: 'resource',
+        ...baseFilter.value,
+        operationTrack,
+        start: periods.value.current.start,
+        end: periods.value.current.end
+      }
+    }),
+    $fetch('daily-api-metrics/_agg', {
+      query: {
+        split: 'resource',
+        ...baseFilter.value,
+        operationTrack,
+        start: periods.value.previous.start,
+        end: periods.value.previous.end
+      }
+    })
+  ])
+  return { current, previous }
+}
+
 const simpleMetricsSeries = computed(() => {
-  if (!aggResultDataFiles.value || !aggResultDataAPI.value) return null
+  if (!simpleAggDataFiles.value || !simpleAggDataAPI.value) return null
 
   if (datasets.value.length) {
     const sumSeries = (series: any[], ids: string[]) => ids.reduce((acc, id) => {
@@ -318,18 +345,39 @@ const simpleMetricsSeries = computed(() => {
     }, { nbRequests: 0, bytes: 0 })
 
     const dataFiles = {
-      previous: sumSeries(aggResultDataFiles.value.previous.series, datasets.value),
-      current: sumSeries(aggResultDataFiles.value.current.series, datasets.value)
+      previous: sumSeries(simpleAggDataFiles.value.previous.series, datasets.value),
+      current: sumSeries(simpleAggDataFiles.value.current.series, datasets.value)
     }
     const dataAPI = {
-      previous: sumSeries(aggResultDataAPI.value.previous.series, datasets.value),
-      current: sumSeries(aggResultDataAPI.value.current.series, datasets.value)
+      previous: sumSeries(simpleAggDataAPI.value.previous.series, datasets.value),
+      current: sumSeries(simpleAggDataAPI.value.current.series, datasets.value)
     }
 
     return { dataFiles, dataAPI }
   }
 
-  return { dataFiles: aggResultDataFiles.value, dataAPI: aggResultDataAPI.value }
+  return {
+    dataFiles: {
+      current: {
+        nbRequests: simpleAggDataFiles.value.current.nbRequests,
+        bytes: simpleAggDataFiles.value.current.bytes
+      },
+      previous: {
+        nbRequests: simpleAggDataFiles.value.previous.nbRequests,
+        bytes: simpleAggDataFiles.value.previous.bytes
+      }
+    },
+    dataAPI: {
+      current: {
+        nbRequests: simpleAggDataAPI.value.current.nbRequests,
+        bytes: simpleAggDataAPI.value.current.bytes
+      },
+      previous: {
+        nbRequests: simpleAggDataAPI.value.previous.nbRequests,
+        bytes: simpleAggDataAPI.value.previous.bytes
+      }
+    }
+  }
 })
 
 const simpleMetrics = computed(() => {
@@ -398,6 +446,15 @@ watch([periods, refererDomainOptionFilter], async () => {
 
 watch([periods, userClassOptionFilter], async () => {
   await fetchOptionAgg('userClass', userClassOptionFilter.value, userClassAgg, userClassLoading)
+}, { immediate: true, deep: true })
+
+watch([periods, baseFilter], async () => {
+  const [dataFiles, dataAPI] = await Promise.all([
+    fetchSimpleAgg('readDataFiles'),
+    fetchSimpleAgg('readDataAPI')
+  ])
+  simpleAggDataFiles.value = dataFiles
+  simpleAggDataAPI.value = dataAPI
 }, { immediate: true, deep: true })
 
 </script>
