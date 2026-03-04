@@ -1,8 +1,11 @@
-##########################
-FROM node:22.21.1-alpine3.22 AS base
+# =============================
+# Base Node image
+# =============================
+FROM node:24.11.1-alpine3.22 AS base
 
 WORKDIR /app
 ENV NODE_ENV=production
+ENV DEBUG=upgrade*
 
 ##########################
 FROM base AS package-strip
@@ -65,7 +68,7 @@ ADD package.json README.md LICENSE BUILD.json* ./
 EXPOSE 9090
 # USER node
 WORKDIR /app/daemon
-CMD ["node", "--experimental-strip-types", "index.ts"]
+CMD ["node", "index.ts"]
 
 ##########################
 FROM installer AS api-installer
@@ -92,4 +95,4 @@ EXPOSE 8080
 EXPOSE 9090
 USER node
 WORKDIR /app/api
-CMD ["node", "--max-http-header-size", "64000", "--experimental-strip-types", "index.ts"]
+CMD ["node", "--max-http-header-size", "64000", "index.ts"]

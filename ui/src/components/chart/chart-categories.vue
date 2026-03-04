@@ -2,7 +2,6 @@
   <layout-resizable-card
     v-model="large"
     :title="title"
-    :lg-cols="lgCols"
     :aspect-ratio="aspectRatio"
     :loading="loading"
   >
@@ -210,7 +209,3 @@ export default {
   }
 }
 </script>
-
-<style>
-
-</style>

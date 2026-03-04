@@ -2,7 +2,7 @@
   <v-select
     :model-value="selectItems.find(si => !si.value || (si.value.start === startPeriod && si.value.end === endPeriod))"
     :items="selectItems"
-    label="période"
+    label="Période"
     variant="outlined"
     density="compact"
     class="mr-4"
@@ -12,12 +12,12 @@
   />
   <filter-date-picker
     v-model="startPeriod"
-    label="début"
+    label="Début"
     @update:model-value="input"
   />
   <filter-date-picker
     v-model="endPeriod"
-    label="fin"
+    label="Fin"
     @update:model-value="input"
   />
   <chart-legend />
@@ -110,7 +110,3 @@ export default {
   }
 }
 </script>
-
-<style>
-
-</style>

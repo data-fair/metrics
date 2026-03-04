@@ -1,9 +1,10 @@
 <template>
   <v-card
+    class="text-center"
     variant="text"
     :loading="loading"
   >
-    <v-card-title class="text-accent-darken-2 text-h3 mt-2 pb-0 justify-center text-center d-flex align-center">
+    <v-card-title class="text-display-medium py-4">
       {{ value }}
       <v-icon
         :color="trend === 'up' ? 'success' : trend === 'down' ? 'error' : 'primary'"
@@ -13,12 +14,14 @@
       />
     </v-card-title>
 
-    <v-card-title class="text-accent-darken-2 text-h6 pt-0 pb-0 justify-center text-center">
-      {{ title }}
-    </v-card-title>
-    <v-card-title class="text-grey-darken-2 text-subtitle-2 mb-2 justify-center text-center">
-      {{ subtitle }}
-    </v-card-title>
+    <v-card-text>
+      <div class="text-title-large mb-2">
+        {{ title }}
+      </div>
+      <div class="text-title-small">
+        {{ subtitle }}
+      </div>
+    </v-card-text>
   </v-card>
 </template>
 

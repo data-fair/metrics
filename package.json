@@ -4,8 +4,8 @@
   "description": "A service to help monitoring HTTP requests in the data-fair stack.",
   "type": "module",
   "scripts": {
-    "test": "NODE_ENV=test node --experimental-strip-types --test-force-exit --test-concurrency=1 --test --test-reporter=spec test-it/*.ts",
-    "test-only": "NODE_ENV=test node --experimental-strip-types --test-force-exit --test-only --test-concurrency=1 --test test-it/*.ts",
+    "test": "NODE_ENV=test node --test-force-exit --test-concurrency=1 --test --test-reporter=spec test-it/*.ts",
+    "test-only": "NODE_ENV=test node --test-force-exit --test-only --test-concurrency=1 --test test-it/*.ts",
     "lint": "eslint . && npm -w ui run lint",
     "lint-fix": "eslint --fix . && npm -w ui run lint-fix",
     "check-types": "tsc",
@@ -35,16 +35,17 @@
     "tough-cookie": "^5.1.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.0",
-    "@commitlint/config-conventional": "^19.8.0",
+    "@commitlint/cli": "^20.4.3",
+    "@commitlint/config-conventional": "^20.4.3",
     "@data-fair/lib-utils": "^1.5.0",
     "@types/chart.js": "^2.9.41",
     "@types/config": "^3.3.5",
     "@types/debug": "^4.1.12",
+    "@types/express": "^5.0.6",
     "@types/truncate-middle": "^1.0.4",
     "eslint": "^9.23.0",
     "eslint-plugin-vue": "^9.28.0",
-    "eslint-plugin-vuetify": "github:albanm/eslint-plugin-vuetify",
+    "eslint-plugin-vuetify": "^2.5.3",
     "husky": "^9.1.6",
     "neostandard": "^0.12.1",
     "typescript": "^5.8.2"

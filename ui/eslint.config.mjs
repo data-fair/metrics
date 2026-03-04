@@ -1,13 +1,12 @@
 import neostandard from 'neostandard'
-import pluginVue from 'eslint-plugin-vue'
+import vue from 'eslint-plugin-vue'
+import vuetify from 'eslint-plugin-vuetify'
 import dfLibRecommended from '@data-fair/lib-utils/eslint/recommended.js'
-// cf https://github.com/vuetifyjs/eslint-plugin-vuetify/pull/98
-// @ts-ignore
-import vuetify from 'eslint-plugin-vuetify/src/index.js'
 
 export default [
   ...dfLibRecommended,
-  ...pluginVue.configs['flat/recommended'],
+  ...vue.configs['flat/base'],
+  ...vuetify.configs['flat/base'],
   {
     rules: {
       'vue/multi-word-component-names': 'off'
@@ -19,10 +18,6 @@ export default [
       parserOptions: {
         parser: '@typescript-eslint/parser'
       }
-    },
-    plugins: { vuetify },
-    rules: {
-      ...vuetify.configs.base.rules
     }
   },
   ...neostandard({ ts: true }),
