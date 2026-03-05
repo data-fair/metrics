@@ -1,8 +1,5 @@
 <template>
-  <v-container
-    :fluid="$vuetify.display.lgAndDown"
-    data-iframe-height
-  >
+  <v-container data-iframe-height>
     <v-toolbar
       class="mb-4"
       variant="tonal"
