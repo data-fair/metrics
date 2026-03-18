@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 .legend .legend-item-square {
   width:12px;
   height:12px;

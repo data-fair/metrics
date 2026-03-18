@@ -207,11 +207,7 @@
   </v-container>
 </template>
 
-<i18n lang="yaml">
-</i18n>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 
 const periods = ref<any>(null)
@@ -232,8 +228,8 @@ const userClassLabels: Record<string, string> = {
   anonymous: 'Anonyme',
   owner: 'Propriétaire',
   external: 'Utilisateur externe',
-  ownerAPIKey: "Propriétaire (cle d'API)",
-  externalAPIKey: "Utilisateur externe (cle d'API)",
+  ownerAPIKey: "Propriétaire (clé d'API)",
+  externalAPIKey: "Utilisateur externe (clé d'API)",
   ownerProcessing: 'Propriétaire (traitement)',
   externalProcessing: 'Utilisateur externe (traitement)'
 }
@@ -455,3 +451,5 @@ watch([periods, baseFilter], async () => {
 }, { immediate: true, deep: true })
 
 </script>
+
+<style scoped></style>

@@ -29,6 +29,9 @@
   </v-app-bar>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import personalMenu from '@data-fair/lib-vuetify/personal-menu.vue'
 </script>
+
+<style scoped>
+</style>

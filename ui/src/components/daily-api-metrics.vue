@@ -14,7 +14,7 @@
           v-model="split"
           :items="splitItems"
           :return-object="false"
-          label="Groupé par"
+          label="Groupe par"
         />
       </v-col>
       <v-col>
@@ -43,124 +43,113 @@
   </v-container>
 </template>
 
-<script>
-// @ts-nocheck
-import { ref, reactive } from 'vue'
-import { useLocaleDayjs } from '@data-fair/lib/vue/locale-dayjs.js'
-import formatBytes from '@data-fair/lib/format/bytes.js'
-// const palette = require('google-palette')('cb-Dark2', 8)
+<script setup lang="ts">
+import formatBytes from '@data-fair/lib-vue/format/bytes.js'
+import { useI18n } from 'vue-i18n'
+import { useDisplay } from 'vuetify'
 
-export default {
-  setup () {
-    const { dayjs } = useLocaleDayjs()
-    const filters = reactive({ statusClass: 'ok', userClass: null })
-    const split = ref('resource')
+const { dayjs } = useLocaleDayjs()
+const { locale } = useI18n()
+const display = useDisplay()
 
-    const data = /** @type {import('vue').Ref<import('#api/doc').AggResult>} */(useFetch('daily-api-metrics/_agg', { query: { split, ...filters } }).data)
-    return { split, filters, dayjs, aggResult: data }
-  },
-  data () {
-    return {
-      statusClasses: [
-        { value: 'ok', text: 'ok' },
-        { value: 'redirect', text: 'redirection (ok mais sans corps de réponse)' },
-        { value: 'clientError', text: 'erreur de l\'appelant' },
-        { value: 'serverError', text: 'erreur du serveur' }
-      ],
-      userClasses: [
-        { value: null, text: 'tous' },
-        { value: 'anonymous', text: 'anonyme' },
-        { value: 'owner', text: 'propriétaire' },
-        { value: 'external', text: 'utilisateur externe' },
-        { value: 'ownerAPIKey', text: 'propriétaire (clé d\'API)' },
-        { value: 'externalAPIKey', text: 'utilisateur externe (clé d\'API)' },
-        { value: 'ownerProcessing', text: 'propriétaire (traitement)' },
-        { value: 'externalProcessing', text: 'utilisateur externe (traitement)' }
-      ],
-      splitItems: [
-        { value: 'resource', text: 'Jeu de données' },
-        { value: 'refererDomain', text: 'Domaine d\'origine' },
-        { value: 'operationTrack', text: 'Type de requête' }
-      ],
-      metric: 'nbRequests',
-      metricItems: [
-        { value: 'nbRequests', text: 'Nombre de requêtes' },
-        { value: 'bytes', text: 'Volume de données' }
-      ]
-    }
-  },
-  computed: {
-    chartConfig () {
-      if (!this.aggResult) return
-      return {
-        type: 'bar',
-        data: {
-          labels: this.aggResult.days.map(day => this.dayjs(day).format('L')),
-          datasets: this.aggResult.series
-            .map(s => s)
-            // @ts-expect-error this.metric is a string, we should type it more restrictively
-            .sort((s1, s2) => s1[this.metric] - s2[this.metric])
-            .map((serie, i) => ({
-              label: {
-                // @ts-ignore
-                resource: key => decodeURIComponent(key.resource.title),
-                // @ts-ignore
-                refererDomain: key => key.refererDomain,
-                // @ts-ignore
-                operationTrack: key => ({
-                  readDataAPI: 'API de données',
-                  readDataFiles: 'Téléchargement de fichiers de données',
-                  openApplication: 'Ouverture d\'une visualisation'
-                }[key.operationTrack])
-              }[this.split](serie.key),
-              // @ts-ignore
-              data: this.aggResult.days.map(day => serie.days[day] ? serie.days[day][this.metric] : 0),
-              // @ts-ignore
-              backgroundColor: palette[i] && ('#' + palette[i])
-            }))
+const filters = reactive({ statusClass: 'ok', userClass: null as string | null })
+const split = ref('resource')
+const metric = ref<'nbRequests' | 'bytes'>('nbRequests')
+
+const data = useFetch('daily-api-metrics/_agg', { query: { split, ...filters } }).data as Ref<any>
+
+let chartInstance: InstanceType<typeof chart.Chart> | null = null
+
+const statusClasses = [
+  { value: 'ok', title: 'ok' },
+  { value: 'redirect', title: 'redirection (ok mais sans corps de réponse)' },
+  { value: 'clientError', title: "erreur de l'appelant" },
+  { value: 'serverError', title: 'erreur du serveur' }
+]
+
+const userClasses = [
+  { value: null, title: 'tous' },
+  { value: 'anonymous', title: 'anonyme' },
+  { value: 'owner', title: 'Propriétaire' },
+  { value: 'external', title: 'utilisateur externe' },
+  { value: 'ownerAPIKey', title: "Propriétaire (clé d'API)" },
+  { value: 'externalAPIKey', title: "utilisateur externe (clé d'API)" },
+  { value: 'ownerProcessing', title: 'Propriétaire (traitement)' },
+  { value: 'externalProcessing', title: 'utilisateur externe (traitement)' }
+]
+
+const splitItems = [
+  { value: 'resource', title: 'Jeu de données' },
+  { value: 'refererDomain', title: "Domaine d'origine" },
+  { value: 'operationTrack', title: 'Type de requête' }
+]
+
+const metricItems = [
+  { value: 'nbRequests', title: 'Nombre de requêtes' },
+  { value: 'bytes', title: 'Volume de données' }
+]
+
+const chartConfig = computed(() => {
+  if (!data.value) return null
+  return {
+    type: 'bar' as const,
+    data: {
+      labels: data.value.days.map((day: string) => dayjs(day).format('L')),
+      datasets: data.value.series
+        .map((s: any) => s)
+        .sort((s1: any, s2: any) => s1[metric.value] - s2[metric.value])
+        .map((serie: any, i: number) => ({
+          label: {
+            resource: (key: any) => decodeURIComponent(key.resource.title),
+            refererDomain: (key: any) => key.refererDomain,
+            operationTrack: (key: any) => ({
+              readDataAPI: 'API de données',
+              readDataFiles: 'Téléchargement de fichiers de données',
+              openApplication: "Ouverture d'une visualisation"
+            } as Record<string, string>)[key.operationTrack]
+          }[split.value as 'resource' | 'refererDomain' | 'operationTrack']?.(serie.key),
+          data: data.value.days.map((day: string) => serie.days[day] ? serie.days[day][metric.value] : 0),
+          backgroundColor: ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02', '#a6761d', '#666666'][i]
+        }))
+    },
+    options: {
+      locale: locale.value,
+      aspectRatio: display.smAndDown.value ? 1 : 2,
+      scales: {
+        y: {
+          beginAtZero: true,
+          stacked: true,
+          ticks: metric.value === 'bytes'
+            ? {
+                callback: (value: number) => formatBytes(value, locale.value)
+              }
+            : undefined
         },
-        options: {
-          locale: this.$i18n.locale,
-          aspectRatio: this.$vuetify.display.smAndDown ? 1 : 2,
-          scales: {
-            y: {
-              beginAtZero: true,
-              stacked: true,
-              ticks: this.metric === 'bytes'
-                ? {
-                    // @ts-ignore
-                    callback: value => formatBytes(value, this.$i18n.locale)
-                  }
-                : undefined
-            },
-            x: {
-              stacked: true
-            }
-          },
-          plugins: {
-            legend: {
-              display: true
-            }
-          }
+        x: {
+          stacked: true
+        }
+      },
+      plugins: {
+        legend: {
+          display: true
         }
       }
     }
-  },
-  watch: {
-    chartConfig () {
-      // @ts-ignore
-      if (this.chart) this.chart.destroy()
-      // @ts-ignore
-      this.chart = new chart.Chart(document.getElementById('chart'), this.chartConfig)
-    }
-  },
-  unmounted () {
-    // @ts-ignore
-    if (this.chart) this.chart.destroy()
   }
-}
+})
+
+watch(chartConfig, () => {
+  if (chartInstance) chartInstance.destroy()
+  const canvas = document.getElementById('chart') as HTMLCanvasElement
+  if (canvas && chartConfig.value) {
+    chartInstance = new chart.Chart(canvas, chartConfig.value as any)
+  }
+})
+
+onUnmounted(() => {
+  if (chartInstance) chartInstance.destroy()
+})
 </script>
 
-<style>
-
+<style scoped>
 </style>

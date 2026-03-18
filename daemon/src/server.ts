@@ -25,7 +25,7 @@ const logLineRegexp = /.*? df: (.*)/
 export const parseLogLine = (logLine: string) => {
   // @test:spy("rawLine", logLine)
   const match = logLine.match(logLineRegexp)
-  if (!match) throw new Error('regexp dit not match')
+  if (!match) throw new Error('regexp did not match')
   return JSON.parse(match[1]) as LogLine
 }
 

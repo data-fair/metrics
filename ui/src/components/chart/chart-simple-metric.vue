@@ -25,18 +25,15 @@
   </v-card>
 </template>
 
-<script>
-export default {
-  props: {
-    loading: { type: Boolean, default: true },
-    value: { type: String, default: '' },
-    title: { type: String, default: '' },
-    subtitle: { type: String, default: '' },
-    trend: { type: String, default: 'neutral' },
-  }
-}
+<script setup lang="ts">
+defineProps<{
+  loading?: boolean
+  value?: string
+  title?: string
+  subtitle?: string
+  trend?: string
+}>()
 </script>
 
-<style>
-
+<style scoped>
 </style>

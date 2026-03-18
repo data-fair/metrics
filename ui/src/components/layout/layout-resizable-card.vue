@@ -37,30 +37,25 @@
   </v-col>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+defineProps<{
+  title: string
+  aspectRatio?: number
+  loading?: boolean
+}>()
 
-export default {
-  props: {
-    title: { type: String, required: true },
-    aspectRatio: { type: Number, default: 1 },
-    loading: { type: Boolean, default: false }
-  },
-  emits: ['update:modelValue'],
-  data () {
-    return {
-      large: false,
-      hover: false
-    }
-  },
-  methods: {
-    toggle () {
-      this.large = !this.large
-      this.$emit('update:modelValue', this.large)
-    }
-  }
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean]
+}>()
+
+const large = ref(false)
+const hover = ref(false)
+
+const toggle = () => {
+  large.value = !large.value
+  emit('update:modelValue', large.value)
 }
 </script>
 
-<style>
-
+<style scoped>
 </style>
