@@ -43,7 +43,7 @@ export const agg = async (account: Account, query: AggQuery) => {
   if (query.resourceType) $match['resource.type'] = query.resourceType
   if (query.resourceId) $match['resource.id'] = Array.isArray(query.resourceId) ? { $in: query.resourceId } : query.resourceId
   if (query.refererDomain) $match.refererDomain = Array.isArray(query.refererDomain) ? { $in: query.refererDomain } : query.refererDomain
-  if (query.processingId) $match['processing._id'] = query.resourceId
+  if (query.processingId) $match['processing._id'] = query.processingId
 
   const $group: Record<string, any> = {
     _id: {},
