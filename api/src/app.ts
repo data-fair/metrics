@@ -3,7 +3,7 @@ import express from 'express'
 import { session, errorHandler, createSiteMiddleware, createSpaMiddleware } from '@data-fair/lib-express/index.js'
 import dailyApiMetricsRouter from './daily-api-metrics/router.ts'
 import adminRouter from './admin.ts'
-import { apiConfig, uiConfig } from '#config'
+import config, { uiConfig } from '#config'
 
 export const app = express()
 
@@ -22,7 +22,7 @@ app.use(await createSpaMiddleware(resolve(import.meta.dirname, '../../ui/dist'),
     nonce: true,
     header: true
   },
-  privateDirectoryUrl: apiConfig.privateDirectoryUrl
+  privateDirectoryUrl: config.privateDirectoryUrl
 }))
 
 app.use(errorHandler)

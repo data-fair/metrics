@@ -4,15 +4,14 @@ import config from 'config'
 
 // we reload the config instead of using the singleton from the config module for testing purposes
 // @ts-ignore
-export const apiConfig = process.env.NODE_ENV === 'test' ? config.util.loadFileConfigs(process.env.NODE_CONFIG_DIR, { skipConfigSources: true }) : config
+const apiConfig = process.env.NODE_ENV === 'test' ? config.util.loadFileConfigs(process.env.NODE_CONFIG_DIR, { skipConfigSources: true }) : config
 
 // maintain compatibility
+// @ts-ignore
 if (process.env.DIRECTORY_URL) apiConfig.privateDirectoryUrl = process.env.DIRECTORY_URL
-
 assertValid(apiConfig, { lang: 'en', name: 'config', internal: true })
 
 export default apiConfig as ApiConfig
 
 export type UiConfig = {}
-
 export const uiConfig: UiConfig = {}

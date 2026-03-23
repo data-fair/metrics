@@ -1,17 +1,12 @@
 import neostandard from 'neostandard'
-import vue from 'eslint-plugin-vue'
-import vuetify from 'eslint-plugin-vuetify'
+import pluginVue from 'eslint-plugin-vue'
+import pluginVuetify from 'eslint-plugin-vuetify'
 import dfLibRecommended from '@data-fair/lib-utils/eslint/recommended.js'
 
 export default [
   ...dfLibRecommended,
-  ...vue.configs['flat/base'],
-  ...vuetify.configs['flat/base'],
-  {
-    rules: {
-      'vue/multi-word-component-names': 'off'
-    }
-  },
+  ...pluginVue.configs['flat/base'],
+  ...pluginVuetify.configs['flat/base'],
   {
     files: ['**/*.vue'],
     languageOptions: {
