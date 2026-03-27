@@ -12,22 +12,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@data-fair/lib-vue": "^1.27.0",
-    "@data-fair/lib-vuetify": "^2.0.0",
+    "@data-fair/lib-vue": "^1.27.1",
+    "@data-fair/lib-vuetify": "^2.0.5",
     "@intlify/unplugin-vue-i18n": "^11.0.7",
     "@mdi/js": "^7.4.47",
     "@vitejs/plugin-vue": "^6.0.0",
     "chart.js": "^4.4.8",
-    "sass-embedded": "^1.79.4",
+    "sass-embedded": "^1.89.2",
     "truncate-middle": "^1.0.6",
-    "unplugin-auto-import": "^19.1.1",
-    "unplugin-vue-components": "^0.27.4",
-    "vite": "^8.0.0",
+    "unplugin-auto-import": "^19.3.0",
+    "unplugin-vue-components": "^28.8.0",
+    "vite": "^8.0.2",
     "vite-plugin-vuetify": "^2.1.3",
-    "vue": "^3.5.13",
-    "vue-i18n": "^11.1.2",
+    "vue": "^3.5.30",
+    "vue-i18n": "^11.1.11",
     "vue-router": "^5.0.3",
-    "vue-tsc": "^2.2.8",
-    "vuetify": "^4.0.0"
+    "vue-tsc": "^3.0.1",
+    "vuetify": "^4.0.3"
   }
 }

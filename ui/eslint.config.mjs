@@ -18,7 +18,9 @@ export default [
   ...neostandard({ ts: true }),
   {
     rules: {
-      'no-undef': 'off' // typescript takes care of this with autoImport support
+      'vue/require-default-prop': 'off',
+      'vue/multi-word-component-names': 'off',
+      'no-undef': 'off'
     }
   },
   { ignores: ['dist/*', 'dts/*'] },

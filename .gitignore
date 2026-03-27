@@ -1,5 +1,4 @@
-/tmp
-.type
-node_modules
-dev/data
-*.tsbuildinfo
+data/
+node_modules/
+**/config/local-*
+.type/
