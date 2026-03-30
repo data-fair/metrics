@@ -42,11 +42,9 @@ const props = withDefaults(defineProps<{
   filter: Record<string, any>
   periods: Record<string, any>
   labels?: Record<string, string> | null
-  lgCols?: number
 }>(), {
   category: 'resource',
-  labels: null,
-  lgCols: 4
+  labels: null
 })
 
 const emit = defineEmits<{

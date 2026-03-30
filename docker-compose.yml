@@ -35,7 +35,7 @@ services:
       - ./dev/resources/organizations.json:/webapp/data/organizations.json
 
   data-fair:
-    image: ghcr.io/data-fair/data-fair:master
+    image: ghcr.io/data-fair/data-fair:5
     network_mode: host
     depends_on:
       mongo:

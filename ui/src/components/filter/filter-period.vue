@@ -12,7 +12,7 @@
   />
   <filter-date-picker
     v-model="startPeriod"
-    label="Debut"
+    label="Début"
     @update:model-value="emitPeriod"
   />
   <filter-date-picker
