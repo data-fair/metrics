@@ -1,5 +1,5 @@
-import childProcess from 'node:child_process'
 import type { AxiosAuthOptions } from '@data-fair/lib-node/axios-auth.js'
+import childProcess from 'node:child_process'
 import { axiosBuilder } from '@data-fair/lib-node/axios.js'
 import { axiosAuth as _axiosAuth } from '@data-fair/lib-node/axios-auth.js'
 import mongo from '@data-fair/lib-node/mongo.js'
@@ -39,8 +39,7 @@ export const startDaemonServer = async () => {
   process.env.NODE_CONFIG_DIR = 'daemon/config/'
   const daemonServer = await import('../../daemon/src/server.ts')
   await daemonServer.start()
-  // childProcess.execSync('chmod a+w ./dev/data/metrics.log.sock')
-  childProcess.execSync('docker compose restart -t 0 nginx')
+  childProcess.execSync('docker compose exec nginx nginx -s reload')
 }
 
 export const stopDaemonServer = async () => {

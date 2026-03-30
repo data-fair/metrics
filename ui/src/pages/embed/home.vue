@@ -1,8 +1,5 @@
 <template>
-  <v-container
-    :fluid="$vuetify.display.lgAndDown"
-    data-iframe-height
-  >
+  <v-container data-iframe-height>
     <v-toolbar
       class="mb-4"
       variant="tonal"
@@ -27,7 +24,7 @@
       </v-btn>
     </v-toolbar>
     <template v-if="periods">
-      <v-row dense>
+      <v-row density="compact">
         <chart-categories
           title="Téléchargements / jeu de données"
           category="resource"
@@ -78,15 +75,15 @@
           clearable
           multiple
         >
-          <template #selection="{ item, index }">
+          <template #selection="{ internalItem, index }">
             <div
               v-if="index === 0"
               class="d-flex overflow-hidden"
             >
-              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+              <span class="text-truncate flex-grow-1">{{ internalItem.title }}</span>
               <span
                 v-if="datasets.length > 1"
-                class="text-grey text-caption align-self-center ml-1"
+                class="text-grey text-body-small align-self-center ml-1"
               >
                 (+{{ datasets.length - 1 }})
               </span>
@@ -108,15 +105,15 @@
           clearable
           multiple
         >
-          <template #selection="{ index, item }">
+          <template #selection="{ internalItem, index }">
             <span
               v-if="index === 0"
               class="d-flex overflow-hidden"
             >
-              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+              <span class="text-truncate flex-grow-1">{{ internalItem.title }}</span>
               <span
                 v-if="refererDomains.length > 1"
-                class="text-grey text-caption align-self-center ml-1"
+                class="text-grey text-body-small align-self-center ml-1"
               >(+{{ refererDomains.length - 1 }})</span>
             </span>
           </template>
@@ -136,16 +133,16 @@
           clearable
           multiple
         >
-          <template #selection="{ index, item }">
+          <template #selection="{ internalItem, index }">
             <span
               v-if="index === 0"
               class="d-flex overflow-hidden"
             >
-              <span class="text-truncate flex-grow-1">{{ item.title }}</span>
+              <span class="text-truncate flex-grow-1">{{ internalItem.title }}</span>
 
               <span
                 v-if="userClasses.length > 1"
-                class="text-grey text-caption align-self-center ml-1"
+                class="text-grey text-body-small align-self-center ml-1"
               >(+{{ userClasses.length - 1 }})</span>
             </span>
           </template>
@@ -169,7 +166,7 @@
         </v-col>
       </v-row>
 
-      <v-row dense>
+      <v-row density="compact">
         <chart-date-histo
           title="Historique téléchargements"
           :filter="{ ...baseFilter, operationTrack: 'readDataFiles' }"
@@ -210,11 +207,7 @@
   </v-container>
 </template>
 
-<i18n lang="yaml">
-</i18n>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 
 const periods = ref<any>(null)
@@ -233,11 +226,11 @@ const userClassLoading = ref(false)
 
 const userClassLabels: Record<string, string> = {
   anonymous: 'Anonyme',
-  owner: 'Proprietaire',
+  owner: 'Propriétaire',
   external: 'Utilisateur externe',
-  ownerAPIKey: "Proprietaire (cle d'API)",
-  externalAPIKey: "Utilisateur externe (cle d'API)",
-  ownerProcessing: 'Proprietaire (traitement)',
+  ownerAPIKey: "Propriétaire (clé d'API)",
+  externalAPIKey: "Utilisateur externe (clé d'API)",
+  ownerProcessing: 'Propriétaire (traitement)',
   externalProcessing: 'Utilisateur externe (traitement)'
 }
 
@@ -458,3 +451,5 @@ watch([periods, baseFilter], async () => {
 }, { immediate: true, deep: true })
 
 </script>
+
+<style scoped></style>

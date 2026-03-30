@@ -7,6 +7,4 @@ import config from 'config'
 const daemonConfig = process.env.NODE_ENV === 'test' ? config.util.loadFileConfigs(process.env.NODE_CONFIG_DIR, { skipConfigSources: true }) : config
 assertValid(daemonConfig, { lang: 'en', name: 'config', internal: true })
 
-config.util.makeImmutable(daemonConfig)
-
 export default daemonConfig as DaemonConfig

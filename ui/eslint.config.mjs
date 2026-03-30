@@ -1,34 +1,26 @@
 import neostandard from 'neostandard'
 import pluginVue from 'eslint-plugin-vue'
+import pluginVuetify from 'eslint-plugin-vuetify'
 import dfLibRecommended from '@data-fair/lib-utils/eslint/recommended.js'
-// cf https://github.com/vuetifyjs/eslint-plugin-vuetify/pull/98
-// @ts-ignore
-import vuetify from 'eslint-plugin-vuetify/src/index.js'
 
 export default [
   ...dfLibRecommended,
-  ...pluginVue.configs['flat/recommended'],
-  {
-    rules: {
-      'vue/multi-word-component-names': 'off'
-    }
-  },
+  ...pluginVue.configs['flat/base'],
+  ...pluginVuetify.configs['flat/base'],
   {
     files: ['**/*.vue'],
     languageOptions: {
       parserOptions: {
         parser: '@typescript-eslint/parser'
       }
-    },
-    plugins: { vuetify },
-    rules: {
-      ...vuetify.configs.base.rules
     }
   },
   ...neostandard({ ts: true }),
   {
     rules: {
-      'no-undef': 'off' // typescript takes care of this with autoImport support
+      'vue/require-default-prop': 'off',
+      'vue/multi-word-component-names': 'off',
+      'no-undef': 'off'
     }
   },
   { ignores: ['dist/*', 'dts/*'] },

@@ -2,7 +2,7 @@
   <v-select
     :model-value="selectItems.find(si => !si.value || (si.value.start === startPeriod && si.value.end === endPeriod))"
     :items="selectItems"
-    label="période"
+    label="Période"
     variant="outlined"
     density="compact"
     class="mr-4"
@@ -12,105 +12,95 @@
   />
   <filter-date-picker
     v-model="startPeriod"
-    label="début"
-    @update:model-value="input"
+    label="Début"
+    @update:model-value="emitPeriod"
   />
   <filter-date-picker
     v-model="endPeriod"
-    label="fin"
-    @update:model-value="input"
+    label="Fin"
+    @update:model-value="emitPeriod"
   />
   <chart-legend />
 </template>
 
-<script lang="ts">
-import { useLocaleDayjs } from '@data-fair/lib-vue/locale-dayjs.js'
+<script setup lang="ts">
+const emit = defineEmits<{
+  'update:modelValue': [value: any]
+}>()
 
-export default {
-  emits: ['update:modelValue'],
-  setup () {
-    const { dayjs } = useLocaleDayjs()
+const { dayjs } = useLocaleDayjs()
 
-    const startPeriod = useStringSearchParam('start', { default: dayjs().subtract(6, 'days').format('YYYY-MM-DD') })
-    const endPeriod = useStringSearchParam('end', { default: dayjs().format('YYYY-MM-DD') })
+const startPeriod = useStringSearchParam('start', { default: dayjs().subtract(6, 'days').format('YYYY-MM-DD') })
+const endPeriod = useStringSearchParam('end', { default: dayjs().format('YYYY-MM-DD') })
 
-    return { dayjs, startPeriod, endPeriod }
-  },
-  data () {
-    const defaultSelectItem = {
-      title: '7 derniers jours',
-      value: {
-        start: this.dayjs().subtract(6, 'days').format('YYYY-MM-DD'),
-        end: this.dayjs().format('YYYY-MM-DD')
-      }
-    }
-    const selectItems = [
-      defaultSelectItem,
-      {
-        title: 'dernière semaine (du lundi au dimanche)',
-        value: {
-          start: this.dayjs().startOf('week').subtract(7, 'days').format('YYYY-MM-DD'),
-          end: this.dayjs().startOf('week').subtract(1, 'days').format('YYYY-MM-DD')
-        }
-      },
-      {
-        title: '30 derniers jours',
-        value: {
-          start: this.dayjs().subtract(29, 'days').format('YYYY-MM-DD'),
-          end: this.dayjs().format('YYYY-MM-DD')
-        }
-      },
-      {
-        title: 'dernier mois écoulé',
-        value: {
-          start: this.dayjs().startOf('month').subtract(1, 'days').startOf('month').format('YYYY-MM-DD'),
-          end: this.dayjs().startOf('month').subtract(1, 'days').format('YYYY-MM-DD')
-        }
-      },
-      {
-        title: '360 derniers jours',
-        value: {
-          start: this.dayjs().subtract(359, 'days').format('YYYY-MM-DD'),
-          end: this.dayjs().format('YYYY-MM-DD')
-        }
-      },
-      {
-        title: 'période personnalisée',
-        value: null
-      }
-    ]
-    return {
-      selectItems
+const selectItems = computed(() => [
+  {
+    title: '7 derniers jours',
+    value: {
+      start: dayjs().subtract(6, 'days').format('YYYY-MM-DD'),
+      end: dayjs().format('YYYY-MM-DD')
     }
   },
-  mounted () {
-    this.input()
-  },
-  methods: {
-    setPeriod (value: any) {
-      if (value) {
-        this.startPeriod = value.start
-        this.endPeriod = value.end
-        this.input()
-      }
-    },
-    input () {
-      const duration = this.dayjs(this.endPeriod).diff(this.startPeriod, 'day')
-      this.$emit('update:modelValue', {
-        previous: {
-          start: this.dayjs(this.startPeriod).subtract(duration + 1, 'days').format('YYYY-MM-DD'),
-          end: this.dayjs(this.startPeriod).subtract(1, 'days').format('YYYY-MM-DD')
-        },
-        current: {
-          start: this.startPeriod,
-          end: this.endPeriod
-        }
-      })
+  {
+    title: 'dernière semaine (du lundi au dimanche)',
+    value: {
+      start: dayjs().startOf('week').subtract(7, 'days').format('YYYY-MM-DD'),
+      end: dayjs().startOf('week').subtract(1, 'days').format('YYYY-MM-DD')
     }
+  },
+  {
+    title: '30 derniers jours',
+    value: {
+      start: dayjs().subtract(29, 'days').format('YYYY-MM-DD'),
+      end: dayjs().format('YYYY-MM-DD')
+    }
+  },
+  {
+    title: 'dernier mois écoulé',
+    value: {
+      start: dayjs().startOf('month').subtract(1, 'days').startOf('month').format('YYYY-MM-DD'),
+      end: dayjs().startOf('month').subtract(1, 'days').format('YYYY-MM-DD')
+    }
+  },
+  {
+    title: '360 derniers jours',
+    value: {
+      start: dayjs().subtract(359, 'days').format('YYYY-MM-DD'),
+      end: dayjs().format('YYYY-MM-DD')
+    }
+  },
+  {
+    title: 'Période personnalisée',
+    value: null
+  }
+])
+
+const setPeriod = (value: any) => {
+  if (value) {
+    startPeriod.value = value.start
+    endPeriod.value = value.end
+    emitPeriod()
   }
 }
+
+const emitPeriod = () => {
+  const duration = dayjs(endPeriod.value).diff(startPeriod.value, 'day')
+  emit('update:modelValue', {
+    previous: {
+      start: dayjs(startPeriod.value).subtract(duration + 1, 'days').format('YYYY-MM-DD'),
+      end: dayjs(startPeriod.value).subtract(1, 'days').format('YYYY-MM-DD')
+    },
+    current: {
+      start: startPeriod.value,
+      end: endPeriod.value
+    }
+  })
+}
+
+onMounted(() => {
+  emitPeriod()
+})
 </script>
 
-<style>
-
+<style scoped>
 </style>

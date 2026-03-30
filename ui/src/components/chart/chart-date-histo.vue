@@ -4,113 +4,112 @@
     :aspect-ratio="aspectRatio"
     :loading="loading"
   >
-    <canvas :id="id + '-canvas'" />
+    <canvas :id="canvasId" />
   </layout-resizable-card>
 </template>
 
-<script>
-// @ts-nocheck
+<script setup lang="ts">
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
-import { useLocaleDayjs } from '@data-fair/lib-vue/locale-dayjs.js'
+import { useDisplay, useTheme } from 'vuetify'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  props: {
-    title: { type: String, required: true },
-    filter: { type: Object, required: true },
-    periods: { type: Object, required: true }
-  },
-  setup () {
-    const { dayjs } = useLocaleDayjs()
-    return { dayjs }
-  },
-  data () {
+const props = defineProps<{
+  title: string
+  filter: Record<string, any>
+  periods: Record<string, any>
+}>()
+
+const { dayjs } = useLocaleDayjs()
+const display = useDisplay()
+const theme = useTheme()
+const { locale } = useI18n()
+
+const aggResult = ref<any>(null)
+const loading = ref(false)
+let chartInstance: InstanceType<typeof chart.Chart> | null = null
+
+const canvasId = computed(() => {
+  return `chart-date-histo-${JSON.stringify(props.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
+})
+
+const aspectRatio = computed(() => display.smAndDown.value ? 1 : 2)
+
+const chartConfig = computed(() => {
+  if (!aggResult.value) return null
+  const days = aggResult.value.days.map((day: string) => {
+    const serieItem = aggResult.value.series[0]?.days[day]
     return {
-      aggResult: null,
-      loading: false
+      label: dayjs(day).format('L'),
+      value: serieItem ? serieItem.nbRequests : 0,
+      tooltip: serieItem ? `${serieItem.nbRequests.toLocaleString()} requêtes cumulant ${formatBytes(serieItem.bytes, locale.value)}` : '0 requête'
     }
-  },
-  computed: {
-    id () {
-      return `chart-date-histo-${JSON.stringify(this.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
+  })
+  return {
+    type: 'bar' as const,
+    data: {
+      labels: days.map((c: any) => c.label),
+      datasets: [{
+        label: 'Période en cours',
+        data: days.map((c: any) => c.value),
+        backgroundColor: String(theme.current.value.colors.accent),
+        borderRadius: 4
+      }]
     },
-    aspectRatio () {
-      return this.$vuetify.display.smAndDown ? 1 : 2
-    },
-    chartConfig () {
-      if (!this.aggResult) return
-      const days = this.aggResult.days.map((day) => {
-        const serieItem = this.aggResult.series[0].days[day]
-        return {
-          label: this.dayjs(day).format('L'),
-          value: serieItem ? serieItem.nbRequests : 0,
-          tooltip: serieItem ? `${serieItem.nbRequests.toLocaleString()} requêtes cumulant ${formatBytes(serieItem.bytes, this.$i18n.locale)}` : '0 requête'
-        }
-      })
-      return {
-        type: 'bar',
-        data: {
-          labels: days.map(c => c.label),
-          datasets: [{
-            label: 'Période en cours',
-            data: days.map(c => c.value),
-            backgroundColor: this.$vuetify.theme.current.colors.accent,
-            borderRadius: 4
-          }]
+    options: {
+      locale: locale.value,
+      scales: {},
+      plugins: {
+        legend: {
+          display: false
         },
-        options: {
-          locale: this.$i18n.locale,
-          scales: {},
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: (tooltipItem) => {
-                  return days[tooltipItem.dataIndex].tooltip
-                }
-              }
+        tooltip: {
+          callbacks: {
+            label: (tooltipItem: any) => {
+              return days[tooltipItem.dataIndex].tooltip
             }
           }
         }
       }
     }
-  },
-  watch: {
-    periods () {
-      this.update()
-    },
-    filter (oldValue, newValue) {
-      if (JSON.stringify(oldValue) === JSON.stringify(newValue)) return
-      this.update()
-    }
-  },
-  unmounted () {
-    if (this.chart) this.chart.destroy()
-  },
-  async mounted () {
-    await this.fetch()
-    if (this.chart) this.chart.destroy()
-    this.chart = new chart.Chart(document.getElementById(this.id + '-canvas'), this.chartConfig)
-  },
-  methods: {
-    async update () {
-      await this.fetch()
-      this.chart.options = this.chartConfig.options
-      this.chart.data = this.chartConfig.data
-      this.chart.update()
-    },
-    async fetch () {
-      this.loading = true
-      this.aggResult = await $fetch('daily-api-metrics/_agg', {
-        query: { split: 'day', ...this.filter, start: this.periods.current.start, end: this.periods.current.end }
-      })
-      this.loading = false
-    }
+  }
+})
+
+const fetchData = async () => {
+  loading.value = true
+  aggResult.value = await $fetch('daily-api-metrics/_agg', {
+    query: { split: 'day', ...props.filter, start: props.periods.current.start, end: props.periods.current.end }
+  })
+  loading.value = false
+}
+
+const updateChart = async () => {
+  await fetchData()
+  if (chartInstance && chartConfig.value) {
+    chartInstance.options = chartConfig.value.options as any
+    chartInstance.data = chartConfig.value.data
+    chartInstance.update()
   }
 }
+
+watch(() => props.periods, () => updateChart())
+watch(() => props.filter, (oldValue, newValue) => {
+  if (JSON.stringify(oldValue) === JSON.stringify(newValue)) return
+  updateChart()
+})
+
+onMounted(async () => {
+  await fetchData()
+  if (chartInstance) chartInstance.destroy()
+  const canvas = document.getElementById(canvasId.value) as HTMLCanvasElement
+  if (canvas && chartConfig.value) {
+    chartInstance = new chart.Chart(canvas, chartConfig.value as any)
+  }
+})
+
+onUnmounted(() => {
+  if (chartInstance) chartInstance.destroy()
+})
 </script>
 
-<style>
-
+<style scoped>
 </style>

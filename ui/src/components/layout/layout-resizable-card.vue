@@ -1,8 +1,7 @@
 <template>
   <v-col
     cols="12"
-    :md="large ? 12 : mdCols"
-    :lg="large ? 12 : lgCols"
+    :sm="large ? 12 : 4"
   >
     <v-card
       :variant="large ? 'outlined' : 'text'"
@@ -10,18 +9,18 @@
       @mouseover="hover = true"
       @mouseleave="hover = false"
     >
-      <v-card-title class="text-overline font-weight-bold text-primary justify-center text-center">
+      <v-card-title class="text-label-medium font-weight-bold text-primary text-center text-uppercase">
         {{ title }}
+
+        <!-- Expand/Collapse Button -->
         <v-btn
           v-if="$vuetify.display.mdAndUp && (large || hover)"
-          icon
           variant="flat"
           style="position: absolute; right:0; top: 0;"
-          :title="large ? 'réduire' : 'agrandir'"
+          :icon="mdiImageSizeSelectSmall"
+          :title="large ? 'Réduire' : 'Agrandir'"
           @click="toggle"
-        >
-          <v-icon :icon="mdiImageSizeSelectSmall" />
-        </v-btn>
+        />
       </v-card-title>
       <v-card-text>
         <v-responsive :aspect-ratio="aspectRatio">
@@ -38,32 +37,25 @@
   </v-col>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+defineProps<{
+  title: string
+  aspectRatio?: number
+  loading?: boolean
+}>()
 
-export default {
-  props: {
-    title: { type: String, required: true },
-    mdCols: { type: Number, default: 6 },
-    lgCols: { type: Number, default: 4 },
-    aspectRatio: { type: Number, default: 1 },
-    loading: { type: Boolean, default: false }
-  },
-  emits: ['update:modelValue'],
-  data () {
-    return {
-      large: false,
-      hover: false
-    }
-  },
-  methods: {
-    toggle () {
-      this.large = !this.large
-      this.$emit('update:modelValue', this.large)
-    }
-  }
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean]
+}>()
+
+const large = ref(false)
+const hover = ref(false)
+
+const toggle = () => {
+  large.value = !large.value
+  emit('update:modelValue', large.value)
 }
 </script>
 
-<style>
-
+<style scoped>
 </style>
