@@ -1,0 +1,60 @@
+{
+  "export": {
+    "sheets": {
+      "global": "Global",
+      "history": "History",
+      "datasets": "Datasets",
+      "topicsApi": "API calls by topic",
+      "originsApi": "API calls by domain",
+      "topicsFiles": "Downloads by topic",
+      "originsFiles": "Downloads by domain",
+      "apps": "Application views"
+    },
+    "columns": {
+      "date": "Date",
+      "id": "Identifier",
+      "title": "Title",
+      "topic": "Topic",
+      "origin": "Domain",
+      "totalApiCalls": "API calls / total",
+      "totalDownloads": "Downloads / total",
+      "apiCallsBy": "API calls / {{userClass}}",
+      "downloadsBy": "Downloads / {{userClass}}",
+      "allUsers": "All users"
+    },
+    "global": {
+      "periodRange": "From {{start}} to {{end}}",
+      "currentPeriod": "Current period",
+      "previousPeriod": "Previous period",
+      "variation": "Change",
+      "apiCalls": "API calls",
+      "fileDownloads": "Files downloaded",
+      "appViews": "Application views",
+      "userClassBreakdown": "Breakdown by user category",
+      "userClassDefinitionsTitle": "User category definitions"
+    },
+    "userClasses": {
+      "anonymous": "Anonymous users",
+      "owner": "Members",
+      "external": "External users",
+      "ownerAPIKey": "Member API keys",
+      "externalAPIKey": "External API keys"
+    },
+    "userClassDefinitions": {
+      "anonymous": "Visitors who are not signed in. They access data without identifying themselves.",
+      "owner": {
+        "user": "You.",
+        "organization": "A member of your organization."
+      },
+      "external": "Someone signed in through a personal account or an organization different from yours.",
+      "ownerAPIKey": {
+        "user": "API key belonging to your account.",
+        "organization": "API key belonging to your organization."
+      },
+      "externalAPIKey": "API key belonging to a personal account or an organization different from yours."
+    },
+    "misc": {
+      "unknown": "Unknown"
+    }
+  }
+}

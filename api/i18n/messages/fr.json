@@ -1,0 +1,60 @@
+{
+  "export": {
+    "sheets": {
+      "global": "Global",
+      "history": "Historique",
+      "datasets": "Jeux de données",
+      "topicsApi": "Appels d'API par thématiques",
+      "originsApi": "Appels d'API par domaines",
+      "topicsFiles": "Téléchargements par thématiques",
+      "originsFiles": "Téléchargements par domaines",
+      "apps": "Affichages d'applications"
+    },
+    "columns": {
+      "date": "Date",
+      "id": "Identifiant",
+      "title": "Titre",
+      "topic": "Thématique",
+      "origin": "Domaine",
+      "totalApiCalls": "Appels API / total",
+      "totalDownloads": "Téléchargements / total",
+      "apiCallsBy": "Appels d'API / {{userClass}}",
+      "downloadsBy": "Téléchargements / {{userClass}}",
+      "allUsers": "Tous les utilisateurs"
+    },
+    "global": {
+      "periodRange": "Du {{start}} au {{end}}",
+      "currentPeriod": "Période actuelle",
+      "previousPeriod": "Période précédente",
+      "variation": "Variation",
+      "apiCalls": "Appels d'API",
+      "fileDownloads": "Fichiers téléchargés",
+      "appViews": "Affichages d'applications",
+      "userClassBreakdown": "Répartition par catégories d'utilisateurs",
+      "userClassDefinitionsTitle": "Définition des catégories d'utilisateurs"
+    },
+    "userClasses": {
+      "anonymous": "Utilisateurs anonymes",
+      "owner": "Utilisateurs membres",
+      "external": "Utilisateurs externes",
+      "ownerAPIKey": "Clés d'API membres",
+      "externalAPIKey": "Clés d'API externes"
+    },
+    "userClassDefinitions": {
+      "anonymous": "Visiteurs non connectés. Ils consultent les données sans s'identifier.",
+      "owner": {
+        "user": "Vous.",
+        "organization": "Membre de votre organisation."
+      },
+      "external": "Personne connectée via un compte personnel ou une organisation différente de la vôtre.",
+      "ownerAPIKey": {
+        "user": "Clé d'API appartenant à votre compte.",
+        "organization": "Clé d'API appartenant à votre organisation."
+      },
+      "externalAPIKey": "Clé d'API appartenant à un compte personnel ou une organisation différente de la vôtre."
+    },
+    "misc": {
+      "unknown": "Inconnu"
+    }
+  }
+}
