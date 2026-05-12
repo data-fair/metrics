@@ -272,9 +272,21 @@ export const getOrigin = async (account: Account, query: { start: string, end: s
     day: {
       $gte: query.start,
       $lte: query.end
-    }
+    },
+    operationTrack: { $in: ['readDataAPI', 'readDataFiles'] }
   }
   if (account.department) $match['owner.department'] = account.department
+
+  const apiCond = (userClass?: string) => {
+    const conds: any[] = [{ $eq: ['$_id.operationTrack', 'readDataAPI'] }]
+    if (userClass) conds.push({ $eq: ['$_id.userClass', userClass] })
+    return { $sum: { $cond: [conds.length > 1 ? { $and: conds } : conds[0], '$nbRequests', 0] } }
+  }
+  const filesCond = (userClass?: string) => {
+    const conds: any[] = [{ $eq: ['$_id.operationTrack', 'readDataFiles'] }]
+    if (userClass) conds.push({ $eq: ['$_id.userClass', userClass] })
+    return { $sum: { $cond: [conds.length > 1 ? { $and: conds } : conds[0], '$nbRequests', 0] } }
+  }
 
   const aggregate = [
     { $match },
@@ -282,21 +294,29 @@ export const getOrigin = async (account: Account, query: { start: string, end: s
       $group: {
         _id: {
           origin: '$refererDomain',
-          userClass: '$userClass'
+          userClass: '$userClass',
+          operationTrack: '$operationTrack'
         },
-        nbRequests: { $sum: '$nbRequests' },
+        nbRequests: { $sum: '$nbRequests' }
       }
     },
     {
       $group: {
         _id: '$_id.origin',
-        nbRequests: { $sum: '$nbRequests' },
-        nbRequestsAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbRequests', 0] } },
-        nbRequestsOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbRequests', 0] } },
-        nbRequestsUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbRequests', 0] } },
-        nbRequestsExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbRequests', 0] } },
-        nbRequestsOwnerAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'ownerAPIKey'] }, '$nbRequests', 0] } },
-        nbRequestsExternalAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'externalAPIKey'] }, '$nbRequests', 0] } },
+        nbRequests: apiCond(),
+        nbRequestsAnonymous: apiCond('anonymous'),
+        nbRequestsOwner: apiCond('owner'),
+        nbRequestsUser: apiCond('user'),
+        nbRequestsExternal: apiCond('external'),
+        nbRequestsOwnerAPIKey: apiCond('ownerAPIKey'),
+        nbRequestsExternalAPIKey: apiCond('externalAPIKey'),
+        nbFiles: filesCond(),
+        nbFilesAnonymous: filesCond('anonymous'),
+        nbFilesOwner: filesCond('owner'),
+        nbFilesUser: filesCond('user'),
+        nbFilesExternal: filesCond('external'),
+        nbFilesOwnerAPIKey: filesCond('ownerAPIKey'),
+        nbFilesExternalAPIKey: filesCond('externalAPIKey')
       }
     },
     {
@@ -304,13 +324,19 @@ export const getOrigin = async (account: Account, query: { start: string, end: s
         _id: 0,
         origin: '$_id',
         nbRequests: 1,
-        nbFiles: 1,
         nbRequestsAnonymous: 1,
         nbRequestsOwner: 1,
         nbRequestsUser: 1,
         nbRequestsExternal: 1,
         nbRequestsOwnerAPIKey: 1,
-        nbRequestsExternalAPIKey: 1
+        nbRequestsExternalAPIKey: 1,
+        nbFiles: 1,
+        nbFilesAnonymous: 1,
+        nbFilesOwner: 1,
+        nbFilesUser: 1,
+        nbFilesExternal: 1,
+        nbFilesOwnerAPIKey: 1,
+        nbFilesExternalAPIKey: 1
       }
     },
     { $sort: { nbRequests: -1 } }

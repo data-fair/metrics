@@ -72,5 +72,18 @@ router.get('/_export', async (req, res) => {
     }
   )).data || []
 
-  await generate(reqSession.account, query, datasets, applications, topics, reqOrigin(req), res)
+  // Fetch site theme so the export styling matches the site's palette.
+  // Failure here is non-fatal: the export falls back to default colors.
+  let themeColors: Record<string, string> | undefined
+  try {
+    const siteInfo = (await axios.get(
+      new URL('/simple-directory/api/sites/_public', reqOrigin(req)).toString(),
+      { headers: { Cookie: req.headers.cookie } }
+    )).data
+    themeColors = siteInfo?.theme?.colors
+  } catch {
+    themeColors = undefined
+  }
+
+  await generate(reqSession.account, reqSession.lang, query, datasets, applications, topics, reqOrigin(req), themeColors, res)
 })
