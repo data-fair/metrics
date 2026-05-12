@@ -46,12 +46,12 @@
         "user": "You.",
         "organization": "A member of your organization."
       },
-      "external": "Someone signed in through a different account or organization.",
+      "external": "Someone signed in through a personal account or an organization different from yours.",
       "ownerAPIKey": {
         "user": "API key belonging to your account.",
         "organization": "API key belonging to your organization."
       },
-      "externalAPIKey": "API key belonging to another account or organization."
+      "externalAPIKey": "API key belonging to a personal account or an organization different from yours."
     },
     "misc": {
       "unknown": "Unknown"

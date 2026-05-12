@@ -46,12 +46,12 @@
         "user": "Vous.",
         "organization": "Membre de votre organisation."
       },
-      "external": "Personne connectée via un compte ou une organisation différent du vôtre.",
+      "external": "Personne connectée via un compte personnel ou une organisation différente de la vôtre.",
       "ownerAPIKey": {
         "user": "Clé d'API appartenant à votre compte.",
         "organization": "Clé d'API appartenant à votre organisation."
       },
-      "externalAPIKey": "Clé d'API appartenant à un autre compte ou une autre organisation."
+      "externalAPIKey": "Clé d'API appartenant à un compte personnel ou une organisation différente de la vôtre."
     },
     "misc": {
       "unknown": "Inconnu"
