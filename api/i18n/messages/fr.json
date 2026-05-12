@@ -48,8 +48,8 @@
       },
       "external": "Personne connectée via un compte ou une organisation différent du vôtre.",
       "ownerAPIKey": {
-        "user": "Clé d'API appartenant à votre compte (accès automatisés via scripts ou intégrations).",
-        "organization": "Clé d'API appartenant à votre organisation (accès automatisés via scripts ou intégrations)."
+        "user": "Clé d'API appartenant à votre compte.",
+        "organization": "Clé d'API appartenant à votre organisation."
       },
       "externalAPIKey": "Clé d'API appartenant à un autre compte ou une autre organisation."
     },

@@ -48,8 +48,8 @@
       },
       "external": "Someone signed in through a different account or organization.",
       "ownerAPIKey": {
-        "user": "API key belonging to your account (automated access from scripts or integrations).",
-        "organization": "API key belonging to your organization (automated access from scripts or integrations)."
+        "user": "API key belonging to your account.",
+        "organization": "API key belonging to your organization."
       },
       "externalAPIKey": "API key belonging to another account or organization."
     },

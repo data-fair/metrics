@@ -36,6 +36,8 @@ type TopicStats = {
 const DEFAULT_COLORS = {
   PRIMARY: '1E88E5',
   ON_PRIMARY: 'FFFFFF',
+  SECONDARY: '424242',
+  ON_SECONDARY: 'FFFFFF',
   SUCCESS: '4CAF50',
   ON_SUCCESS: 'FFFFFF',
   ERROR: 'FF5252',
@@ -43,6 +45,12 @@ const DEFAULT_COLORS = {
   ACCENT: 'FF9800',
   ON_ACCENT: 'FFFFFF'
 }
+
+// Excel cells need an explicit font name/size; otherwise Excel may fall back
+// to a different default than the workbook's, producing visibly mixed fonts
+// between styled and unstyled cells.
+const FONT_NAME = 'Calibri'
+const FONT_SIZE = 11
 
 // ExcelJS uses ARGB hex without a leading "#"; theme colors come from
 // simple-directory as "#RRGGBB", so we strip the prefix and uppercase.
@@ -54,6 +62,8 @@ const argb = (hex: string | undefined, fallback: string) => {
 const resolveColors = (themeColors?: Record<string, string>) => ({
   PRIMARY: argb(themeColors?.primary, DEFAULT_COLORS.PRIMARY),
   ON_PRIMARY: argb(themeColors?.['on-primary'], DEFAULT_COLORS.ON_PRIMARY),
+  SECONDARY: argb(themeColors?.secondary, DEFAULT_COLORS.SECONDARY),
+  ON_SECONDARY: argb(themeColors?.['on-secondary'], DEFAULT_COLORS.ON_SECONDARY),
   SUCCESS: argb(themeColors?.success, DEFAULT_COLORS.SUCCESS),
   ON_SUCCESS: argb(themeColors?.['on-success'], DEFAULT_COLORS.ON_SUCCESS),
   ERROR: argb(themeColors?.error, DEFAULT_COLORS.ERROR),
@@ -181,10 +191,10 @@ const styleColumnsHeader = (sheet: Excel.Worksheet, palette: Palette) => {
       pattern: 'solid',
       fgColor: { argb: palette.PRIMARY }
     }
-    cell.font = { ...(cell.font || {}), color: { argb: palette.ON_PRIMARY }, bold: true }
+    cell.font = { name: FONT_NAME, size: FONT_SIZE, color: { argb: palette.ON_PRIMARY }, bold: true }
     cell.border = {
       top: { style: 'medium' },
-      bottom: { style: 'medium' },
+      bottom: { style: 'thin' },
       left: { style: 'thin' },
       right: { style: 'thin' }
     }
@@ -193,7 +203,8 @@ const styleColumnsHeader = (sheet: Excel.Worksheet, palette: Palette) => {
 
 // Apply borders + header styling to a rectangular block. The outer border is
 // medium (thicker) so the two groups stand out; inner cells use hair borders.
-// Cells in the top row OR leftmost column receive a primary fill with on-primary text.
+// The top row uses the primary palette (header), and the leftmost column of the
+// remaining rows uses the secondary palette (row legends).
 const applyBlockBordersAndFill = (
   sheet: Excel.Worksheet,
   startRow: number,
@@ -216,13 +227,20 @@ const applyBlockBordersAndFill = (
         right: col === endCol ? extBorder : intBorder
       }
 
-      if (row === startRow || col === startCol) {
+      if (row === startRow) {
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
           fgColor: { argb: palette.PRIMARY }
         }
-        cell.font = { ...(cell.font || {}), color: { argb: palette.ON_PRIMARY }, bold: true }
+        cell.font = { name: FONT_NAME, size: FONT_SIZE, color: { argb: palette.ON_PRIMARY }, bold: true }
+      } else if (col === startCol) {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: palette.SECONDARY }
+        }
+        cell.font = { name: FONT_NAME, size: FONT_SIZE, color: { argb: palette.ON_SECONDARY }, bold: true }
       }
     }
   }
@@ -461,6 +479,8 @@ const generate = async (
     fgColor: { argb: diff > 0 ? palette.SUCCESS : (diff < 0 ? palette.ERROR : palette.ACCENT) }
   })
   const variationFont = (diff: number) => ({
+    name: FONT_NAME,
+    size: FONT_SIZE,
     color: { argb: diff > 0 ? palette.ON_SUCCESS : (diff < 0 ? palette.ON_ERROR : palette.ON_ACCENT) },
     bold: true
   })
@@ -561,17 +581,13 @@ const generate = async (
   // Style before merging so the master cell keeps the styling
   applyBlockBordersAndFill(global, definitionsHeaderRow, definitionsHeaderRow + userClassDefinitions.length, 2, 5, palette)
 
-  // Patch column C's right border to medium since it becomes the rightmost visible
-  // cell after the C:E merge (the medium border was originally on column E)
-  for (let row = definitionsHeaderRow; row <= definitionsHeaderRow + userClassDefinitions.length; row++) {
+  // Only the description rows merge C:E; the title row is left unmerged so the
+  // title text can overflow visually like in the breakdown block above.
+  for (let row = definitionsHeaderRow + 1; row <= definitionsHeaderRow + userClassDefinitions.length; row++) {
     const cell = global.getCell(`C${row}`)
     cell.border = { ...(cell.border || {}), right: { style: 'medium' } }
+    global.mergeCells(`C${row}:E${row}`)
   }
-
-  global.mergeCells(`C${definitionsHeaderRow}:E${definitionsHeaderRow}`)
-  userClassDefinitions.forEach((_, i) => {
-    global.mergeCells(`C${definitionsHeaderRow + 1 + i}:E${definitionsHeaderRow + 1 + i}`)
-  })
 
   // Style the column-driven sheets' header rows with the theme's primary palette.
   for (const sheet of [history, dataset, topic, origin, topicFiles, originFiles, app]) {
