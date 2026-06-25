@@ -43,7 +43,6 @@ export const agg = async (account: Account, query: AggQuery) => {
   if (query.resourceType) $match['resource.type'] = query.resourceType
   if (query.resourceId) $match['resource.id'] = Array.isArray(query.resourceId) ? { $in: query.resourceId } : query.resourceId
   if (query.refererDomain) $match.refererDomain = Array.isArray(query.refererDomain) ? { $in: query.refererDomain } : query.refererDomain
-  if (query.processingId) $match['processing._id'] = query.processingId
 
   const $group: Record<string, any> = {
     _id: {},
@@ -60,11 +59,7 @@ export const agg = async (account: Account, query: AggQuery) => {
     if (part === 'refererApp') {
       $match.refererApp = { $ne: null }
     }
-    if (part === 'processing') {
-      $match['processing._id'] = { $ne: null }
-      $group._id.processingId = '$processing._id'
-      $group.processing = { $last: '$processing' }
-    } else if (part === 'resource') {
+    if (part === 'resource') {
       $group._id.resourceType = '$resource.type'
       $group._id.resourceId = '$resource.id'
       $group.resource = { $last: '$resource' }
@@ -102,7 +97,6 @@ export const agg = async (account: Account, query: AggQuery) => {
   for (const item of items) {
     const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {} as Record<string, string>)
     if (item.resource) key.resource = item.resource
-    if (item.processing) key.processing = item.processing
     let serie = result.series.find((s) => equal(s.key, key))
     if (!serie) {
       serie = {

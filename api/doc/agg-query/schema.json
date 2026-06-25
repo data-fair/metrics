@@ -40,10 +40,9 @@
       ]
     },
     "topicId": {"type": "string"},
-    "processingId": {"type": "string"},
     "split": {
       "type": "array",
-      "items": { "type": "string", "enum": ["day", "refererApp", "processing", "resource", "refererDomain", "userClass"] }
+      "items": { "type": "string", "enum": ["day", "refererApp", "resource", "refererDomain", "userClass"] }
     }
   }
 } 

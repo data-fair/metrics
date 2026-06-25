@@ -73,9 +73,7 @@ const userClasses = [
   { value: 'owner', title: 'Propriétaire' },
   { value: 'external', title: 'utilisateur externe' },
   { value: 'ownerAPIKey', title: "Propriétaire (clé d'API)" },
-  { value: 'externalAPIKey', title: "utilisateur externe (clé d'API)" },
-  { value: 'ownerProcessing', title: 'Propriétaire (traitement)' },
-  { value: 'externalProcessing', title: 'utilisateur externe (traitement)' }
+  { value: 'externalAPIKey', title: "utilisateur externe (clé d'API)" }
 ]
 
 const splitItems = [

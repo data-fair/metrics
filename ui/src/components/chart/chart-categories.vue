@@ -20,15 +20,12 @@ const userClasses: Record<string, string> = {
   owner: 'Propriétaire',
   external: 'Utilisateur externe',
   ownerAPIKey: "Propriétaire (clé d'API)",
-  externalAPIKey: "Utilisateur externe (clé d'API)",
-  ownerProcessing: 'Propriétaire (traitement)',
-  externalProcessing: 'Utilisateur externe (traitement)'
+  externalAPIKey: "Utilisateur externe (clé d'API)"
 }
 
 const getLabel = (serie: any, category: string, labels: Record<string, string> | null) => {
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
-  if (category === 'processing') return safeDecodeUriComponent(serie.key.processing.title)
   if (category === 'userClass') return userClasses[serie.key.userClass] || serie.key.userClass
   if (serie.key[category] === 'none') return 'Inconnu'
   if (serie.key[category] === null || serie.key[category] === undefined) return 'Aucune'
