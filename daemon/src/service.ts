@@ -4,6 +4,7 @@ import type { User } from '@data-fair/lib-express/session.js'
 import { Counter, Histogram, Gauge } from 'prom-client'
 import { servicePromRegistry } from '@data-fair/lib-node/observer.js'
 import mongo from '#mongo'
+import { getUserFromApiKey } from './user-from-api-key.ts'
 import equal from 'fast-deep-equal'
 import config from '#config'
 import debug from 'debug'
@@ -42,11 +43,16 @@ const getStatusClass = (status: number) => {
 }
 
 const getUser = (line: LogLine) => {
-  if (!line[6] || line[6].length < 2) return null
-  const user = JSON.parse(Buffer.from(line[6].split('.')[1], 'base64url').toString()) as User
-  const userRef: UserRef = { id: user.id }
-  if (line[7]) userRef.organization = user.organizations.find((o) => o.id === line[7])
-  return userRef
+  // identified user from the session cookie
+  if (line[6] && line[6].length >= 2) {
+    const user = JSON.parse(Buffer.from(line[6].split('.')[1], 'base64url').toString()) as User
+    const userRef: UserRef = { id: user.id }
+    if (line[7]) userRef.organization = user.organizations.find((o) => o.id === line[7])
+    return userRef
+  }
+  // identified account from a self-describing api key (calls by api key carry no session cookie)
+  if (line[8]) return getUserFromApiKey(line[8])
+  return null
 }
 
 const getUserClass = (line: LogLine, user: UserRef | null, ownerType: string, ownerId: string) => {
