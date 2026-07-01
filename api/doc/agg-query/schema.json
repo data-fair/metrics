@@ -39,10 +39,16 @@
         {"type": "array", "items": {"type": "string"}, "minItems": 1}
       ]
     },
+    "refererCategory": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      ]
+    },
     "topicId": {"type": "string"},
     "split": {
       "type": "array",
-      "items": { "type": "string", "enum": ["day", "refererApp", "resource", "refererDomain", "userClass"] }
+      "items": { "type": "string", "enum": ["day", "refererApp", "resource", "refererDomain", "userClass", "refererCategory"] }
     }
   }
 } 

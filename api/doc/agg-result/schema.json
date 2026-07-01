@@ -37,6 +37,7 @@
             "refererApp": {"type": "string"},
             "resource": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/resourceDef"},
             "refererDomain": {"type": "string"},
+            "refererCategory": {"type": "string"},
             "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"}
           }
         },
