@@ -66,7 +66,20 @@ const getUserClass = (line: LogLine, user: UserRef | null, ownerType: string, ow
   return userClass
 }
 
-const getRefererInfo = (line: LogLine): [string, string | undefined] => {
+type RefererCategory = 'backoffice' | 'embed' | 'app' | 'mcp' | 'other'
+
+// classifies internal traffic by path; a referer whose host doesn't match our
+// own host can't be trusted to be internal, no matter what its path looks like
+const getRefererCategory = (url: URL, host: string): RefererCategory => {
+  if (url.hostname !== host) return 'other'
+  if (url.pathname.startsWith('/mcp')) return 'mcp'
+  if (url.pathname.startsWith('/data-fair/embed')) return 'embed'
+  if (url.pathname.startsWith('/data-fair/app/')) return 'app'
+  if (url.pathname.startsWith('/data-fair/')) return 'backoffice'
+  return 'other'
+}
+
+const getRefererInfo = (line: LogLine): [string, string | undefined, RefererCategory] => {
   if (line[1]) {
     try {
       const url = new URL(line[1])
@@ -77,12 +90,13 @@ const getRefererInfo = (line: LogLine): [string, string | undefined] => {
       const searchParamReferer = url.searchParams.get('referer')
       if (searchParamReferer) refererDomain = searchParamReferer
       if (url.pathname.startsWith('/data-fair/app/')) refererApp = /** @type {string} */(url.pathname.replace('/data-fair/app/', '').split('/').shift())
-      return [refererDomain, refererApp]
+      const refererCategory = getRefererCategory(url, line[0])
+      return [refererDomain, refererApp, refererCategory]
     } catch (err) {
-      return [line[1], undefined]
+      return [line[1], undefined, 'other']
     }
   } else {
-    return ['none', undefined]
+    return ['none', undefined, 'other']
   }
 }
 
@@ -114,7 +128,7 @@ export function pushLogLine (line: LogLine) {
   const statusClass = getStatusClass(line[4])
   const user = getUser(line)
   const userClass = getUserClass(line, user, ownerType, ownerId)
-  const [refererDomain, refererApp] = getRefererInfo(line)
+  const [refererDomain, refererApp, refererCategory] = getRefererInfo(line)
 
   let bytesSent = line[3]
   if (line[14] && line[14] !== '-') {
@@ -136,7 +150,8 @@ export function pushLogLine (line: LogLine) {
     operationTrack,
     statusClass,
     userClass,
-    refererDomain
+    refererDomain,
+    refererCategory
   }
   if (refererApp) patchKey.refererApp = refererApp
   if (ownerDep) patchKey['owner.department'] = ownerDep
@@ -157,7 +172,8 @@ export function pushLogLine (line: LogLine) {
       operationTrack,
       statusClass,
       userClass,
-      refererDomain
+      refererDomain,
+      refererCategory
     }
     if (refererApp) set.refererApp = refererApp
 

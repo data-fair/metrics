@@ -33,6 +33,7 @@ export class MetricsMongo {
             userClass: 1,
             refererDomain: 1,
             refererApp: 1,
+            refererCategory: 1,
             'processing._id': 1
           },
           { unique: true }
