@@ -196,6 +196,13 @@
           :periods="periods"
           :labels="appLabels"
         />
+        <chart-categories
+          title="Requêtes / consommateurs"
+          category="refererCategory"
+          :filter="baseFilter"
+          :periods="periods"
+          :labels="refererCategoryLabels"
+        />
       </v-row>
     </template>
   </v-container>
@@ -224,6 +231,14 @@ const userClassLabels: Record<string, string> = {
   external: 'Utilisateur externe',
   ownerAPIKey: "Propriétaire (clé d'API)",
   externalAPIKey: "Utilisateur externe (clé d'API)"
+}
+
+const refererCategoryLabels: Record<string, string> = {
+  backoffice: 'Back-office',
+  embed: 'Vues embarquées',
+  app: 'Applications',
+  mcp: 'MCP',
+  other: 'Autre'
 }
 
 const datasetItems = computed(() => {
