@@ -43,7 +43,11 @@ export const agg = async (account: Account, query: AggQuery) => {
   if (query.resourceType) $match['resource.type'] = query.resourceType
   if (query.resourceId) $match['resource.id'] = Array.isArray(query.resourceId) ? { $in: query.resourceId } : query.resourceId
   if (query.refererDomain) $match.refererDomain = Array.isArray(query.refererDomain) ? { $in: query.refererDomain } : query.refererDomain
-  if (query.refererCategory) $match.refererCategory = Array.isArray(query.refererCategory) ? { $in: query.refererCategory } : query.refererCategory
+  if (query.refererCategory) {
+    const refererCategories = Array.isArray(query.refererCategory) ? query.refererCategory : [query.refererCategory]
+    // legacy data recorded before refererCategory was introduced has no such field, treat it as 'other'
+    $match.refererCategory = { $in: refererCategories.includes('other') ? [...refererCategories, null] : refererCategories }
+  }
 
   const $group: Record<string, any> = {
     _id: {},
@@ -66,7 +70,8 @@ export const agg = async (account: Account, query: AggQuery) => {
       $group.resource = { $last: '$resource' }
     } else {
       if (part !== 'day') seriesKey.push(camelCase(part))
-      $group._id[camelCase(part)] = '$' + part
+      // legacy data recorded before refererCategory was introduced has no such field, group it with 'other'
+      $group._id[camelCase(part)] = part === 'refererCategory' ? { $ifNull: ['$' + part, 'other'] } : '$' + part
     }
   }
 
