@@ -12,6 +12,7 @@
     "statusClass",
     "userClass",
     "refererDomain",
+    "refererCategory",
     "nbRequests",
     "bytes",
     "duration"
@@ -28,6 +29,7 @@
     "userClass": {"$ref": "#/$defs/userClass"},
     "refererDomain":{"type":"string"},
     "refererApp":{"type":"string"},
+    "refererCategory":{"$ref": "#/$defs/refererCategory"},
     "processing":{"$ref": "#/$defs/processing"},
     "nbRequests":{
       "type":"integer",
@@ -107,6 +109,10 @@
     "userClass": {
       "type":"string",
       "enum": ["anonymous", "owner", "external", "ownerProcessing", "externalProcessing", "ownerAPIKey", "externalAPIKey"]
+    },
+    "refererCategory": {
+      "type": "string",
+      "enum": ["backoffice", "embed", "app", "mcp", "other"]
     }
   }
 }

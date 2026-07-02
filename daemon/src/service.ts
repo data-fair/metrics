@@ -63,11 +63,23 @@ const getUserClass = (line: LogLine, user: UserRef | null, ownerType: string, ow
   else userClass = 'external'
 
   if (user && line[8]) userClass += 'APIKey'
-  if (user && line[10]) userClass += 'Processing'
   return userClass
 }
 
-const getRefererInfo = (line: LogLine): [string, string | undefined] => {
+type RefererCategory = 'backoffice' | 'embed' | 'app' | 'mcp' | 'other'
+
+// classifies internal traffic by path; a referer whose host doesn't match our
+// own host can't be trusted to be internal, no matter what its path looks like
+const getRefererCategory = (url: URL, host: string): RefererCategory => {
+  if (url.hostname !== host) return 'other'
+  if (url.pathname.startsWith('/mcp')) return 'mcp'
+  if (url.pathname.startsWith('/data-fair/embed')) return 'embed'
+  if (url.pathname.startsWith('/data-fair/app/')) return 'app'
+  if (url.pathname.startsWith('/data-fair/')) return 'backoffice'
+  return 'other'
+}
+
+const getRefererInfo = (line: LogLine): [string, string | undefined, RefererCategory] => {
   if (line[1]) {
     try {
       const url = new URL(line[1])
@@ -78,19 +90,19 @@ const getRefererInfo = (line: LogLine): [string, string | undefined] => {
       const searchParamReferer = url.searchParams.get('referer')
       if (searchParamReferer) refererDomain = searchParamReferer
       if (url.pathname.startsWith('/data-fair/app/')) refererApp = /** @type {string} */(url.pathname.replace('/data-fair/app/', '').split('/').shift())
-      return [refererDomain, refererApp]
+      const refererCategory = getRefererCategory(url, line[0])
+      return [refererDomain, refererApp, refererCategory]
     } catch (err) {
-      return [line[1], undefined]
+      return [line[1], undefined, 'other']
     }
   } else {
-    return ['none', undefined]
+    return ['none', undefined, 'other']
   }
 }
 
 // cf https://stackoverflow.com/a/14350155
 // using regexp is faster and prevents lots of object affectations, garbage collecting, etc
 const idPropRegexp = /"id":"((\\"|[^"])*)"/
-const _idPropRegexp = /"_id":"((\\"|[^"])*)"/
 const depPropRegexp = /"department":"((\\"|[^"])*)"/
 const typePropRegexp = /"type":"((\\"|[^"])*)"/
 const trackPropRegexp = /"track":"((\\"|[^"])*)"/
@@ -113,11 +125,10 @@ export function pushLogLine (line: LogLine) {
   const resourceId = line[12].match(idPropRegexp)?.[1]
   if (!operationId || !operationTrack || !ownerType || !ownerId || !resourceType || !resourceId) return
   const ownerDep = line[1].match(depPropRegexp)?.[1]
-  const processingId = line[10].match(_idPropRegexp)?.[1]
   const statusClass = getStatusClass(line[4])
   const user = getUser(line)
   const userClass = getUserClass(line, user, ownerType, ownerId)
-  const [refererDomain, refererApp] = getRefererInfo(line)
+  const [refererDomain, refererApp, refererCategory] = getRefererInfo(line)
 
   let bytesSent = line[3]
   if (line[14] && line[14] !== '-') {
@@ -139,11 +150,11 @@ export function pushLogLine (line: LogLine) {
     operationTrack,
     statusClass,
     userClass,
-    refererDomain
+    refererDomain,
+    refererCategory
   }
   if (refererApp) patchKey.refererApp = refererApp
   if (ownerDep) patchKey['owner.department'] = ownerDep
-  if (processingId) patchKey['processing._id'] = processingId
 
   const existingPatch = patches.find(p => equal(p[0], patchKey))
   if (existingPatch) {
@@ -153,8 +164,6 @@ export function pushLogLine (line: LogLine) {
   } else {
     const resource = JSON.parse(line[12])
     if (resource.title) resource.title = decodeURIComponent(resource.title)
-    const processing = line[10] ? JSON.parse(line[10]) : undefined
-    if (processing?.title) processing.title = decodeURIComponent(processing.title)
 
     const set: Record<string, any> = {
       owner: JSON.parse(line[5]),
@@ -163,9 +172,9 @@ export function pushLogLine (line: LogLine) {
       operationTrack,
       statusClass,
       userClass,
-      refererDomain
+      refererDomain,
+      refererCategory
     }
-    if (processing) set.processing = processing
     if (refererApp) set.refererApp = refererApp
 
     patches.push([patchKey, {

@@ -197,10 +197,11 @@
           :labels="appLabels"
         />
         <chart-categories
-          title="Requêtes / traitement"
-          category="processing"
+          title="Requêtes / consommateurs"
+          category="refererCategory"
           :filter="baseFilter"
           :periods="periods"
+          :labels="refererCategoryLabels"
         />
       </v-row>
     </template>
@@ -229,9 +230,15 @@ const userClassLabels: Record<string, string> = {
   owner: 'Propriétaire',
   external: 'Utilisateur externe',
   ownerAPIKey: "Propriétaire (clé d'API)",
-  externalAPIKey: "Utilisateur externe (clé d'API)",
-  ownerProcessing: 'Propriétaire (traitement)',
-  externalProcessing: 'Utilisateur externe (traitement)'
+  externalAPIKey: "Utilisateur externe (clé d'API)"
+}
+
+const refererCategoryLabels: Record<string, string> = {
+  backoffice: 'Back-office',
+  embed: 'Vues embarquées',
+  app: 'Applications',
+  mcp: 'MCP',
+  other: 'Autre'
 }
 
 const datasetItems = computed(() => {

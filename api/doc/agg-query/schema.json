@@ -39,11 +39,16 @@
         {"type": "array", "items": {"type": "string"}, "minItems": 1}
       ]
     },
+    "refererCategory": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      ]
+    },
     "topicId": {"type": "string"},
-    "processingId": {"type": "string"},
     "split": {
       "type": "array",
-      "items": { "type": "string", "enum": ["day", "refererApp", "processing", "resource", "refererDomain", "userClass"] }
+      "items": { "type": "string", "enum": ["day", "resource", "userClass", "refererApp", "refererDomain", "refererCategory"] }
     }
   }
 } 
