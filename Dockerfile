@@ -1,7 +1,9 @@
 # =============================
 # Base Node image
 # =============================
-FROM node:24.11.1-alpine3.22 AS base
+FROM node:24.21.0-alpine3.24 AS base
+
+RUN apk upgrade --no-cache
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -59,6 +61,8 @@ RUN du -sh .
 ##########################
 FROM base AS daemon
 
+# npm, corepack and yarn are not used at runtime and carry their own vulnerabilities
+RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /opt/yarn-* /usr/local/bin/yarn /usr/local/bin/yarnpkg
 COPY --from=daemon-installer /app/node_modules node_modules
 ADD /daemon daemon
 COPY --from=types /app/api/types api/types
@@ -81,6 +85,8 @@ RUN mkdir -p /app/api/node_modules
 ##########################
 FROM base AS main
 
+# npm, corepack and yarn are not used at runtime and carry their own vulnerabilities
+RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /opt/yarn-* /usr/local/bin/yarn /usr/local/bin/yarnpkg
 COPY --from=api-installer /app/node_modules node_modules
 ADD /api api
 COPY --from=types /app/api/types api/types
