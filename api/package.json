@@ -17,7 +17,7 @@
     "@data-fair/lib-express": "^1.22.5",
     "@data-fair/lib-node": "^2.12.1",
     "camel-case": "^4.1.2",
-    "config": "^4.4.1",
+    "config": "^5.0.1",
     "dayjs": "^1.11.7",
     "exceljs": "^4.4.0",
     "express": "^5.2.0",
