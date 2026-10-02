@@ -10,7 +10,6 @@
 </template>
 
 <script setup lang="ts">
-import truncateMiddle from 'truncate-middle'
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useDisplay, useTheme } from 'vuetify'
 import { useI18n } from 'vue-i18n'
@@ -119,7 +118,9 @@ const chartConfig = computed(() => {
           ticks: {
             precision: 0,
             callback (_value: any, index: number) {
-              return truncateMiddle(categories[index].label, display.mdAndUp.value ? 20 : 10, 10, '...')
+              const label = categories[index].label ?? ''
+              const front = display.mdAndUp.value ? 20 : 10
+              return label.length > front + 10 ? label.slice(0, front) + '...' + label.slice(-10) : label
             }
           }
         }

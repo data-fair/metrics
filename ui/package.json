@@ -20,7 +20,6 @@
     "@vitejs/plugin-vue": "^6.0.0",
     "chart.js": "^4.4.8",
     "sass-embedded": "^1.89.2",
-    "truncate-middle": "^1.0.6",
     "unplugin-auto-import": "^19.3.0",
     "unplugin-vue-components": "^28.8.0",
     "vite": "^8.0.2",
