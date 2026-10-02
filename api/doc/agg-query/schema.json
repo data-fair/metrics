@@ -46,9 +46,20 @@
       ]
     },
     "topicId": {"type": "string"},
+    "format": {
+      "type": "string",
+      "enum": ["series", "rows"],
+      "default": "series",
+      "description": "series (default) groups values by key with a nested day map, rows returns one flat row per group"
+    },
+    "size": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$",
+      "description": "maximum number of rows returned when format=rows (default 1000)"
+    },
     "split": {
       "type": "array",
-      "items": { "type": "string", "enum": ["day", "resource", "userClass", "refererApp", "refererDomain", "refererCategory"] }
+      "items": { "type": "string", "enum": ["day", "resource", "operationTrack", "statusClass", "userClass", "refererApp", "refererDomain", "refererCategory"] }
     }
   }
 } 

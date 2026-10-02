@@ -1,0 +1,39 @@
+{
+  "$id": "https://github.com/data-fair/metrics/agg-rows-result",
+  "x-exports": ["types"],
+  "title": "agg rows result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["nbRequests", "bytes", "count", "results"],
+  "properties": {
+    "nbRequests": { "type": "integer", "description": "total number of requests matching the filters" },
+    "bytes": { "type": "integer", "description": "total bytes served matching the filters" },
+    "count": { "type": "integer", "description": "total number of groups, can be greater than the number of returned rows" },
+    "results": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/aggRow" }
+    }
+  },
+  "$defs": {
+    "aggRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nbRequests", "bytes"],
+      "properties": {
+        "day": { "type": "string", "format": "date" },
+        "resourceType": { "type": "string" },
+        "resourceId": { "type": "string" },
+        "resourceTitle": { "type": "string" },
+        "operationTrack": { "type": "string" },
+        "statusClass": { "type": "string" },
+        "userClass": { "type": "string" },
+        "refererDomain": { "type": "string" },
+        "refererApp": { "type": "string" },
+        "refererCategory": { "type": "string" },
+        "nbRequests": { "type": "integer" },
+        "bytes": { "type": "integer" },
+        "meanDuration": { "type": "number", "description": "mean response time in seconds" }
+      }
+    }
+  }
+}

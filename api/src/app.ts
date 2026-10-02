@@ -1,8 +1,9 @@
 import { resolve } from 'node:path'
 import express from 'express'
-import { session, errorHandler, createSiteMiddleware, createSpaMiddleware } from '@data-fair/lib-express/index.js'
+import { session, errorHandler, createSiteMiddleware, createSpaMiddleware, reqOrigin, reqSitePathSafe } from '@data-fair/lib-express/index.js'
 import dailyApiMetricsRouter from './daily-api-metrics/router.ts'
 import adminRouter from './admin.ts'
+import apiDocs from '../contract/api-docs.ts'
 import config, { uiConfig } from '#config'
 
 export const app = express()
@@ -13,6 +14,11 @@ app.set('query parser', 'simple')
 app.use(createSiteMiddleware('metrics'))
 
 app.use(session.middleware())
+
+// public, read by agents through the data-fair deployment index (/data-fair/api/v1/agents/index.json)
+app.get('/api/api-docs.json', (req, res) => {
+  res.json(apiDocs(`${reqOrigin(req)}${reqSitePathSafe(req)}/metrics`))
+})
 
 app.use('/api/daily-api-metrics', dailyApiMetricsRouter)
 app.use('/api/admin', adminRouter)

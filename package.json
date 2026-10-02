@@ -38,13 +38,14 @@
     "tough-cookie": "^5.1.2"
   },
   "devDependencies": {
-    "commitlint": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@data-fair/lib-utils": "^1.10.1",
+    "@data-fair/openapi-mcp": "^0.2.1",
     "@types/chart.js": "^2.9.41",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.6",
     "@types/truncate-middle": "^1.0.4",
+    "commitlint": "^20.5.0",
     "eslint": "^9.35.0",
     "eslint-plugin-vue": "^10.4.0",
     "eslint-plugin-vuetify": "^2.7.2",

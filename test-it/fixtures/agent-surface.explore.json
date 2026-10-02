@@ -1,0 +1,138 @@
+{
+  "profiles": [
+    "explore"
+  ],
+  "tools": [
+    {
+      "name": "metrics_aggregate_requests",
+      "description": "Count the HTTP requests received by the active account's datasets and applications over a period, filtered and grouped by the dimensions given in split. Returns one row per group with nbRequests, bytes and meanDuration (seconds), sorted by day then by number of requests.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of the period, format YYYY-MM-DD."
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day of the period (included), format YYYY-MM-DD."
+          },
+          "split": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "day",
+                "resource",
+                "operationTrack",
+                "statusClass",
+                "userClass",
+                "refererApp",
+                "refererDomain",
+                "refererCategory"
+              ]
+            },
+            "description": "Dimensions to group by, as an array. Example: [\"resource\"] for the most used resources, [\"day\", \"operationTrack\"] for a time series per kind of usage, [] for the totals of the period. Omitted means [\"day\"]."
+          },
+          "operationTrack": {
+            "type": "string",
+            "enum": [
+              "readDataAPI",
+              "openApplication",
+              "readDataFiles"
+            ],
+            "description": "Kind of operation."
+          },
+          "statusClass": {
+            "type": "string",
+            "enum": [
+              "info",
+              "ok",
+              "redirect",
+              "clientError",
+              "serverError"
+            ],
+            "description": "Class of the HTTP response status."
+          },
+          "userClass": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "anonymous",
+                "owner",
+                "external",
+                "ownerProcessing",
+                "externalProcessing",
+                "ownerAPIKey",
+                "externalAPIKey"
+              ]
+            },
+            "description": "Classes of users."
+          },
+          "resourceType": {
+            "type": "string",
+            "enum": [
+              "datasets",
+              "applications"
+            ],
+            "description": "Type of resource."
+          },
+          "resourceId": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Restrict to some resources, as an array of dataset or application ids. Combine with resourceType."
+          },
+          "refererDomain": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Domains of the calling sites."
+          },
+          "refererCategory": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "backoffice",
+                "embed",
+                "app",
+                "mcp",
+                "other"
+              ]
+            },
+            "description": "Categories of the calling sites."
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of rows. The response count says how many groups exist in total."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "start",
+          "end"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    }
+  ],
+  "skills": [
+    {
+      "id": "metrics-review",
+      "name": "metrics-review",
+      "description": "You are reviewing the audience of the active account's resources (datasets and applications) through the metrics service. Metrics are counts of HTTP requests, aggregated per day (UTC dates, the current day is partial)."
+    }
+  ]
+}
