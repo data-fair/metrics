@@ -333,7 +333,7 @@ const fetchSimpleAgg = async (operationTrack: string) => {
 }
 
 const simpleMetricsSeries = computed(() => {
-  if (!simpleAggDataFiles.value || !simpleAggDataAPI.value) return null
+  if (!simpleAggDataFiles.value?.current || !simpleAggDataAPI.value?.current) return null
 
   if (datasets.value.length) {
     const sumSeries = (series: any[], ids: string[]) => ids.reduce((acc, id) => {
