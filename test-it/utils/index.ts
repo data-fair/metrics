@@ -25,7 +25,7 @@ export const clean = async () => {
 process.env.SUPPRESS_NO_CONFIG_WARNING = '1'
 
 export const startApiServer = async () => {
-  process.env.NODE_CONFIG_DIR = 'api/config/'
+  process.env.NODE_CONFIG_DIR = './api/config/'
   const apiServer = await import('../../api/src/server.ts')
   await apiServer.start()
 }
@@ -36,7 +36,7 @@ export const stopApiServer = async () => {
 }
 
 export const startDaemonServer = async () => {
-  process.env.NODE_CONFIG_DIR = 'daemon/config/'
+  process.env.NODE_CONFIG_DIR = './daemon/config/'
   const daemonServer = await import('../../daemon/src/server.ts')
   await daemonServer.start()
   childProcess.execSync('docker compose exec nginx nginx -s reload')

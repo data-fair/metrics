@@ -13,7 +13,6 @@
 </template>
 
 <script setup lang="ts">
-import { VDateInput } from 'vuetify/labs/VDateInput'
 import { useDate } from 'vuetify'
 
 defineProps<{
