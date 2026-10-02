@@ -6,7 +6,7 @@ import dfLibRecommended from '@data-fair/lib-utils/eslint/recommended.js'
 export default [
   ...dfLibRecommended,
   ...pluginVue.configs['flat/base'],
-  ...pluginVuetify.configs['flat/base'],
+  ...pluginVuetify.configs['flat/recommended-v4'],
   {
     files: ['**/*.vue'],
     languageOptions: {
