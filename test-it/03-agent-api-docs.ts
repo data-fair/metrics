@@ -13,7 +13,7 @@ import { load, toolSetSnapshot } from '@data-fair/openapi-mcp'
 import apiDocs from '../api/contract/api-docs.ts'
 import { axios, axiosAuth, clean, startApiServer, stopApiServer } from './utils/index.ts'
 
-const goldenPath = path.resolve(import.meta.dirname, 'fixtures/agent-surface.explore.json')
+const goldenPath = path.resolve(import.meta.dirname, 'fixtures/agent-surface.read_metrics.json')
 const publicUrl = 'http://localhost:5600/metrics'
 
 const adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
@@ -34,8 +34,8 @@ const metric = (day: string, resourceId: string, operationTrack: string, userCla
 })
 
 describe('agent surface of the api docs', () => {
-  it('explore tools load without a lint error and match the golden', async () => {
-    const toolSet = await load(apiDocs(publicUrl), { profiles: ['explore'], lint: 'error' })
+  it('read_metrics tools load without a lint error and match the golden', async () => {
+    const toolSet = await load(apiDocs(publicUrl), { profiles: ['read_metrics'], lint: 'error' })
     assert.deepEqual(toolSet.tools.map(t => t.name), ['metrics_aggregate_requests'])
     assert.deepEqual(toolSet.skills.map(s => s.id), ['metrics-review'])
     // Through JSON: the golden is a file, and an `enum: undefined` left by the generator is not.
@@ -55,6 +55,7 @@ describe('agent api docs served by the api', () => {
     assert.equal(res.status, 200)
     assert.equal(res.data.servers[0].url, 'http://localhost:5600/metrics/api')
     assert.equal(res.data['x-agent'].namePrefix, 'metrics_')
+    assert.deepEqual(Object.keys(res.data['x-agent'].profiles), ['read_metrics'])
   })
 
   it('aggregates metrics as flat rows through the agent tool', async () => {
@@ -65,7 +66,7 @@ describe('agent api docs served by the api', () => {
       metric('2026-01-02', 'd2', 'readDataAPI', 'anonymous', 30),
       { ...metric('2026-01-02', 'd3', 'readDataAPI', 'anonymous', 1000), owner: { type: 'user', id: 'other' } }
     ])
-    const toolSet = await load(apiDocs(publicUrl), { profiles: ['explore'] })
+    const toolSet = await load(apiDocs(publicUrl), { profiles: ['read_metrics'] })
     const tool = toolSet.tools[0]
     const call = async (params: Record<string, unknown>) => {
       const result = await tool.execute({ start: '2026-01-01', end: '2026-01-31', ...params }, { headers: { cookie } })

@@ -1,6 +1,6 @@
 {
   "profiles": [
-    "explore"
+    "read_metrics"
   ],
   "tools": [
     {

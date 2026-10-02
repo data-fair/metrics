@@ -6,7 +6,7 @@
  * deployment index (/data-fair/api/v1/agents/index.json) when its metrics integration is
  * configured, so agents of the deployment can review the audience of the active account.
  *
- * The agent-facing surface these produce is pinned by test-it/fixtures/agent-surface.explore.json.
+ * The agent-facing surface these produce is pinned by test-it/fixtures/agent-surface.read_metrics.json.
  */
 import type { AgentRoot, AgentOperation } from '@data-fair/openapi-mcp'
 import dailyApiMetricSchema from '../types/daily-api-metric/schema.json' with { type: 'json' }
@@ -38,21 +38,21 @@ Always state the period you looked at. Answer in the user's language.`
 export const root: AgentRoot = {
   namePrefix: 'metrics_',
   profiles: {
-    explore: {
-      title: { en: 'Explore', fr: 'Explorer' },
-      description: { en: 'Read-only tools: review the audience of the account\'s datasets and applications.', fr: 'Outils en lecture seule : analyser l\'audience des jeux de données et applications du compte.' }
+    read_metrics: {
+      title: { en: 'Read — audience metrics', fr: "Lire — métriques d'audience" },
+      description: { en: 'Review the audience of the account\'s datasets and applications.', fr: 'Analyser l\'audience des jeux de données et applications du compte.' }
     }
   },
   skills: [{
     name: 'metrics-review',
     description: workflow,
-    profiles: ['explore'],
+    profiles: ['read_metrics'],
     tools: ['metrics_aggregate_requests']
   }]
 }
 
 export const aggregateRequests: AgentOperation = {
-  profiles: ['explore'],
+  profiles: ['read_metrics'],
   name: 'aggregate_requests',
   title: { en: 'Aggregate requests metrics', fr: 'Agréger les métriques de requêtes' },
   description: 'Count the HTTP requests received by the active account\'s datasets and applications over a period, filtered and grouped by the dimensions given in split. Returns one row per group with nbRequests, bytes and meanDuration (seconds), sorted by day then by number of requests.',
