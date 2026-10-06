@@ -132,7 +132,8 @@
     {
       "id": "metrics-review",
       "name": "metrics-review",
-      "description": "You are reviewing the audience of the active account's resources (datasets and applications) through the metrics service. Metrics are counts of HTTP requests, aggregated per day (UTC dates, the current day is partial)."
+      "description": "How to review the audience of the account's datasets and applications with metrics_aggregate_requests: totals, breakdowns, time series and period comparisons. Read it before analysing metrics.",
+      "digest": "sha256:7a2f97aad610533a1e5e612f28d6e9b99737b043e8edb775b607489a96a2f6e7"
     }
   ]
 }

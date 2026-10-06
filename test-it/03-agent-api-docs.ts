@@ -11,10 +11,19 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import mongo from '@data-fair/lib-node/mongo.js'
 import { load, toolSetSnapshot } from '@data-fair/openapi-mcp'
 import apiDocs from '../api/contract/api-docs.ts'
+import { readAgentSkill } from '../api/contract/skills.ts'
 import { axios, axiosAuth, clean, startApiServer, stopApiServer } from './utils/index.ts'
 
 const goldenPath = path.resolve(import.meta.dirname, 'fixtures/agent-surface.read_metrics.json')
 const publicUrl = 'http://localhost:5600/metrics'
+
+/** Serves what the API serves at /metrics/api/agents/skills/<name>.md, for the tests that run without it. */
+const skillFetch = (async (input: RequestInfo | URL) => {
+  const url = input instanceof Request ? input.url : String(input)
+  const prefix = `${publicUrl}/api/agents/skills/`
+  const body = url.startsWith(prefix) && url.endsWith('.md') ? readAgentSkill(url.slice(prefix.length, -3)) : undefined
+  return body ? new Response(body, { headers: { 'content-type': 'text/markdown' } }) : new Response('not found', { status: 404 })
+}) as typeof fetch
 
 const adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
 const cookie = adminAx.cookieJar.getCookieStringSync('http://localhost:5600')
@@ -35,9 +44,13 @@ const metric = (day: string, resourceId: string, operationTrack: string, userCla
 
 describe('agent surface of the api docs', () => {
   it('read_metrics tools load without a lint error and match the golden', async () => {
-    const toolSet = await load(apiDocs(publicUrl), { profiles: ['read_metrics'], lint: 'error' })
+    const toolSet = await load(apiDocs(publicUrl), { fetch: skillFetch, profiles: ['read_metrics'], lint: 'error' })
     assert.deepEqual(toolSet.tools.map(t => t.name), ['metrics_aggregate_requests'])
     assert.deepEqual(toolSet.skills.map(s => s.id), ['metrics-review'])
+    assert.equal(toolSet.skills[0].error, undefined, 'the linked body is read, so the golden pins its real digest')
+    assert.match(toolSet.skills[0].body, /^# Reviewing the audience of an account/)
+    assert.ok(toolSet.skills[0].description.length <= 1024)
+    assert.doesNotMatch(toolSet.instructions, /Dimensions:/, 'the body is not in the instructions')
     // Through JSON: the golden is a file, and an `enum: undefined` left by the generator is not.
     const snapshot = JSON.parse(JSON.stringify(toolSetSnapshot(toolSet)))
     if (process.env.UPDATE_GOLDEN) writeFileSync(goldenPath, JSON.stringify(snapshot, null, 2) + '\n')
@@ -55,6 +68,11 @@ describe('agent api docs served by the api', () => {
     assert.equal(res.status, 200)
     assert.equal(res.data.servers[0].url, 'http://localhost:5600/metrics/api')
     assert.equal(res.data['x-agent'].namePrefix, 'metrics_')
+    assert.equal(res.data['x-agent'].skills[0].href, 'agents/skills/metrics-review.md')
+    const skill = await axios().get('/metrics/api/agents/skills/metrics-review.md')
+    assert.match(skill.headers['content-type'], /text\/markdown/)
+    assert.match(skill.data, /^# Reviewing the audience of an account/)
+    assert.equal((await axios().get('/metrics/api/agents/skills/nope.md', { validateStatus: () => true })).status, 404)
     assert.deepEqual(Object.keys(res.data['x-agent'].profiles), ['read_metrics'])
   })
 
