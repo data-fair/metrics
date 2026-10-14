@@ -5,7 +5,7 @@ import * as aggQuery from '#doc/agg-query/index.ts'
 import * as exportQuery from '#doc/export-query/index.ts'
 import generate from './export.ts'
 
-import { list, agg } from './service.ts'
+import { list, agg, aggRows } from './service.ts'
 
 const router = Router()
 export default router
@@ -19,10 +19,10 @@ router.get('', async (req, res) => {
 router.get('/_agg', async (req, res) => {
   const reqSession = await session.reqAuthenticated(req)
   const query = { ...req.query } // better not to mutate req.query
-  if (typeof query.split === 'string') query.split = query.split.split(',')
+  if (typeof query.split === 'string') query.split = query.split.split(',').filter(Boolean)
   aggQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
-  const result = await agg(reqSession.account, query)
-  res.json(result)
+  if (query.format === 'rows') res.json(await aggRows(reqSession.account, query))
+  else res.json(await agg(reqSession.account, query))
 })
 
 router.get('/_export', async (req, res) => {

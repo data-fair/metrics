@@ -35,6 +35,8 @@
           "additionalProperties": false,
           "properties": {
             "refererApp": {"type": "string"},
+            "operationTrack": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/operationTrack"},
+            "statusClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/statusClass"},
             "resource": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/resourceDef"},
             "refererDomain": {"type": "string"},
             "refererCategory": {"type": "string"},

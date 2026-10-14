@@ -1,6 +1,6 @@
 import type { Account } from '@data-fair/lib-express/session.js'
 import type { DailyApiMetric } from '#types'
-import type { AggQuery, AggResult } from '#doc'
+import type { AggQuery, AggResult, AggRowsResult } from '#doc'
 
 import { camelCase } from 'camel-case'
 import dayjs from 'dayjs'
@@ -26,7 +26,7 @@ export const list = async (account: Account) => {
   return results
 }
 
-export const agg = async (account: Account, query: AggQuery) => {
+const aggMatch = (account: Account, query: AggQuery) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
     'owner.id': account.id
@@ -48,6 +48,11 @@ export const agg = async (account: Account, query: AggQuery) => {
     // legacy data recorded before refererCategory was introduced has no such field, treat it as 'other'
     $match.refererCategory = { $in: refererCategories.includes('other') ? [...refererCategories, null] : refererCategories }
   }
+  return $match
+}
+
+export const agg = async (account: Account, query: AggQuery) => {
+  const $match = aggMatch(account, query)
 
   const $group: Record<string, any> = {
     _id: {},
@@ -123,6 +128,59 @@ export const agg = async (account: Account, query: AggQuery) => {
   }
   result.series.sort((s1, s2) => s2.nbRequests - s1.nbRequests)
   return result
+}
+
+/**
+ * Same filters and splits as agg, but one flat row per group instead of series with a nested day map.
+ * This is the shape served to AI agents, whose tools render rows as a markdown table.
+ */
+export const aggRows = async (account: Account, query: AggQuery): Promise<AggRowsResult> => {
+  const $match = aggMatch(account, query)
+  const split = query.split ?? ['day']
+  const size = query.size ? Number(query.size) : 1000
+
+  const $group: Record<string, any> = {
+    _id: {},
+    nbRequests: { $sum: '$nbRequests' },
+    bytes: { $sum: '$bytes' },
+    duration: { $sum: '$duration' }
+  }
+  for (const part of split) {
+    if (part === 'refererApp') $match.refererApp = { $ne: null }
+    if (part === 'resource') {
+      $group._id.resourceType = '$resource.type'
+      $group._id.resourceId = '$resource.id'
+      $group.resourceTitle = { $last: '$resource.title' }
+    } else {
+      // legacy data recorded before refererCategory was introduced has no such field, group it with 'other'
+      $group._id[part] = part === 'refererCategory' ? { $ifNull: ['$' + part, 'other'] } : '$' + part
+    }
+  }
+  const $sort: Record<string, 1 | -1> = split.includes('day') ? { '_id.day': 1, nbRequests: -1 } : { nbRequests: -1 }
+
+  const [result] = await mongo.dailyApiMetrics.aggregate([
+    { $match },
+    { $group },
+    {
+      $facet: {
+        total: [{ $group: { _id: null, count: { $sum: 1 }, nbRequests: { $sum: '$nbRequests' }, bytes: { $sum: '$bytes' } } }],
+        results: [{ $sort }, { $limit: size }]
+      }
+    }
+  ]).toArray()
+
+  const total = result?.total[0]
+  return {
+    nbRequests: total?.nbRequests ?? 0,
+    bytes: total?.bytes ?? 0,
+    count: total?.count ?? 0,
+    results: (result?.results ?? []).map((r: any) => {
+      const row: AggRowsResult['results'][number] = { ...r._id, nbRequests: r.nbRequests, bytes: r.bytes }
+      if (r.resourceTitle) row.resourceTitle = r.resourceTitle
+      if (r.nbRequests) row.meanDuration = r.duration / r.nbRequests
+      return row
+    })
+  }
 }
 
 export const getHistory = async (account: Account, query: { start: string, end: string }) => {

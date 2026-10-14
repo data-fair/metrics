@@ -19,8 +19,12 @@ export const start = async () => {
   if (config.observer.active) await startObserver()
   await session.init(config.privateDirectoryUrl)
   await mongo.init()
-  server.listen(config.port)
-  await new Promise(resolve => server.once('listening', resolve))
+  // reject on a listen error (port already taken by a dev server…) instead of waiting forever
+  await new Promise<void>((resolve, reject) => {
+    server.once('listening', () => resolve())
+    server.once('error', reject)
+    server.listen(config.port)
+  })
 
   console.log(`API server listening on port ${config.port}`)
 }

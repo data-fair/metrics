@@ -30,6 +30,10 @@ services:
       - DEBUG=session
       - ADMINS=["superadmin@test.com"]
       - STORAGE_TYPE=file
+      # test suites log in on every run, loosen the login rate limiting
+      - AUTHRATELIMIT_ATTEMPTS=200
+      - AUTHRATELIMIT_DURATION=1
+      - MANAGE_DEPARTMENTS=true
     volumes:
       - ./dev/resources/users.json:/webapp/data/users.json
       - ./dev/resources/organizations.json:/webapp/data/organizations.json
