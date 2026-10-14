@@ -180,6 +180,9 @@ describe('aggregation of daily metrics', () => {
       assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', userClass: 'robot' }), 400)
       assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', format: 'csv' }), 400)
       assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', format: 'rows', size: '0' }), 400)
+      // the maximum the agent document advertises
+      assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', format: 'rows', size: '10001' }), 400)
+      assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', format: 'rows', size: '10000' }), 200)
     })
   })
 
