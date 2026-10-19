@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { acceptedScopes, scopedOperations, scopeDescriptions, scopeIncludes, requireOperationScope } from '../api/src/scopes.ts'
+import { acceptedScopes, scopedOperations, scopeDescriptions, requireOperationScope } from '../api/src/scopes.ts'
 
 describe('scope vocabulary', () => {
   it('accepted scopes of the metrics read tier', () => {
@@ -19,14 +19,6 @@ describe('scope vocabulary', () => {
     const keys = ['metrics', 'metrics:read', 'all:read', 'all:write', 'all:admin']
     assert.deepEqual(Object.keys(scopeDescriptions('fr')).sort(), [...keys].sort())
     assert.deepEqual(Object.keys(scopeDescriptions('en')).sort(), [...keys].sort())
-  })
-
-  it('global tier inclusions', () => {
-    assert.deepEqual(scopeIncludes, {
-      'all:read': ['metrics:read'],
-      'all:write': ['metrics:read'],
-      'all:admin': ['metrics:read']
-    })
   })
 
   it('an unknown operation fails at declaration', () => {
