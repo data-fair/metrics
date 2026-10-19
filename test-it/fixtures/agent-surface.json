@@ -126,6 +126,31 @@
       "security": [
         {
           "sdCookie": []
+        },
+        {
+          "oauth2": [
+            "metrics:read"
+          ]
+        },
+        {
+          "oauth2": [
+            "metrics"
+          ]
+        },
+        {
+          "oauth2": [
+            "all:read"
+          ]
+        },
+        {
+          "oauth2": [
+            "all:write"
+          ]
+        },
+        {
+          "oauth2": [
+            "all:admin"
+          ]
         }
       ]
     }

@@ -7,9 +7,15 @@
  * under /metrics/api, tools and skills prefixed metrics_), so agents of the deployment can review
  * the audience of the active account.
  *
+ * The oauth2 scheme declares the scopes metrics enforces (api/src/scopes.ts). Each operation lists
+ * every scope it accepts as its own security alternative (standard OpenAPI: the scopes of one
+ * requirement are all needed).
+ *
  * The agent-facing surface these produce is pinned by test-it/fixtures/agent-surface.json.
  */
 import type { AgentRoot, AgentOperation } from '@data-fair/openapi-mcp'
+import { oauth2SecurityScheme, oauth2Alternatives, type ScopeLocale } from '@data-fair/lib-common-types/scopes.js'
+import { vocabulary, acceptedScopes, scopedOperations, type ScopedOperationId } from '../src/scopes.ts'
 import dailyApiMetricSchema from '../types/daily-api-metric/schema.json' with { type: 'json' }
 import aggRowsResultSchema from '../doc/agg-rows-result/schema.json' with { type: 'json' }
 import aggQuerySchema from '../doc/agg-query/schema.json' with { type: 'json' }
@@ -58,7 +64,13 @@ const arrayParam = (name: string, items: Record<string, unknown>, description: s
   schema: { type: 'array', items }
 })
 
-export default () => ({
+// the security of a session-facing operation: the cookie session, or a token holding one of the scopes it accepts
+const operationSecurity = (operationId: ScopedOperationId) => {
+  const { family, tier } = scopedOperations[operationId]
+  return [{ sdCookie: [] }, ...oauth2Alternatives(acceptedScopes(family, tier))]
+}
+
+export default (locale: ScopeLocale = 'fr') => ({
   openapi: '3.1.0',
   info: {
     title: 'API Metrics',
@@ -70,7 +82,9 @@ export default () => ({
   servers: [{ url: '/metrics/api' }],
   components: {
     securitySchemes: {
-      sdCookie: { type: 'apiKey', in: 'cookie', name: 'id_token' }
+      sdCookie: { type: 'apiKey', in: 'cookie', name: 'id_token' },
+      // relative token url, data-fair sets the one of each site
+      oauth2: oauth2SecurityScheme(vocabulary, { directoryUrl: '/simple-directory', locale })
     },
     schemas: {
       aggRowsResult
@@ -85,6 +99,7 @@ export default () => ({
         summary: 'Aggregate daily metrics',
         description: 'Aggregate the daily metrics of the active account over a period, filtered and split by dimensions.',
         tags: ['Metrics'],
+        security: operationSecurity('aggDailyApiMetrics'),
         'x-agent': aggregateRequests,
         parameters: [
           { in: 'query', name: 'start', required: true, description: 'First day of the period.', schema: { type: 'string', format: 'date' } },
@@ -120,7 +135,9 @@ export default () => ({
       get: {
         operationId: 'exportDailyApiMetrics',
         summary: 'Export metrics as a spreadsheet',
+        description: 'The export also reads the account\'s datasets and applications in data-fair, so a scope-restricted token needs datasets:read and applications:read (or all:read) too.',
         tags: ['Metrics'],
+        security: operationSecurity('exportDailyApiMetrics'),
         parameters: [
           { in: 'query', name: 'start', required: true, schema: { type: 'string', format: 'date' } },
           { in: 'query', name: 'end', required: true, schema: { type: 'string', format: 'date' } }

@@ -9,7 +9,7 @@ import { strict as assert } from 'node:assert'
 import path from 'node:path'
 import { readFileSync, writeFileSync } from 'node:fs'
 import mongo from '@data-fair/lib-node/mongo.js'
-import { load, toolSetSnapshot } from '@data-fair/openapi-mcp'
+import { load, toolSetSnapshot, toolsForScopes } from '@data-fair/openapi-mcp'
 import apiDocs from '../api/contract/api-docs.ts'
 import { readAgentSkill } from '../api/contract/skills.ts'
 import { axios, axiosAuth, clean, startApiServer, stopApiServer } from './utils/index.ts'
@@ -58,6 +58,17 @@ describe('agent surface of the api docs', () => {
   })
 })
 
+describe('agent tools offered to scoped tokens', () => {
+  it('the metrics scopes and the global tier scopes reach the tool, other families do not', async () => {
+    const toolSet = await load(apiDocs(), { fetch: skillFetch, baseUrl, lint: 'error' })
+    const names = (scopes?: string[]) => toolsForScopes(toolSet, scopes).tools.map(t => t.name)
+    for (const scope of ['metrics:read', 'metrics', 'all:read', 'all:write', 'all:admin']) assert.deepEqual(names([scope]), ['aggregate_requests'], scope)
+    assert.deepEqual(names(['datasets:read']), [])
+    assert.deepEqual(toolsForScopes(toolSet, ['datasets:read']).skills, [])
+    assert.deepEqual(names(undefined), ['aggregate_requests'])
+  })
+})
+
 describe('agent api docs served by the api', () => {
   before(startApiServer)
   after(stopApiServer)
@@ -76,6 +87,16 @@ describe('agent api docs served by the api', () => {
     assert.match(skill.headers['content-type'], /text\/markdown/)
     assert.match(skill.data, /^# Reviewing the audience of an account/)
     assert.equal((await axios().get('/metrics/api/agents/skills/nope.md', { validateStatus: () => true })).status, 404)
+  })
+
+  it('serves the scope descriptions in the requested language, cacheable', async () => {
+    const fr = await axios().get('/metrics/api/api-docs.json')
+    assert.equal(Object.keys(fr.data.components.securitySchemes.oauth2.flows.clientCredentials.scopes).length, 5)
+    assert.match(fr.headers.vary, /Accept-Language/)
+    assert.match(fr.headers['cache-control'], /max-age=300/)
+    const en = await axios().get('/metrics/api/api-docs.json', { headers: { 'accept-language': 'en' } })
+    assert.equal(en.data.components.securitySchemes.oauth2.flows.clientCredentials.scopes['metrics:read'], "Read the audience metrics of the account's datasets and applications")
+    assert.notEqual(fr.data.components.securitySchemes.oauth2.flows.clientCredentials.scopes['metrics:read'], en.data.components.securitySchemes.oauth2.flows.clientCredentials.scopes['metrics:read'])
   })
 
   it('aggregates metrics as flat rows through the agent tool', async () => {

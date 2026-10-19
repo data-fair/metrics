@@ -18,8 +18,10 @@ app.use(createSiteMiddleware('metrics'))
 // requireScope), so the public ones do not depend on the caller's credentials
 
 // public, read by data-fair (private url, no forwarded headers) to merge it into its platform document
-app.get('/api/api-docs.json', (_req, res) => {
-  res.json(apiDocs())
+app.get('/api/api-docs.json', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=300')
+  res.vary('Accept-Language')
+  res.json(apiDocs(req.acceptsLanguages('fr', 'en') === 'en' ? 'en' : 'fr'))
 })
 
 // the bodies of the document's skills, linked from its x-agent.skills; public like the document
