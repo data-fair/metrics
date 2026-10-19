@@ -2,11 +2,12 @@
  * The OpenAPI document of this service, served at /metrics/api/api-docs.json.
  *
  * The x-agent annotations turn it into agent tools through `@data-fair/openapi-mcp`
- * (vocabulary: docs/x-agent.md in that project). data-fair lists this document in its
- * deployment index (/data-fair/api/v1/agents/index.json) when its metrics integration is
- * configured, so agents of the deployment can review the audience of the active account.
+ * (vocabulary: docs/x-agent.md in that project). data-fair fetches this document over a private
+ * url when its metrics integration is configured and merges it into its platform document (paths
+ * under /metrics/api, tools and skills prefixed metrics_), so agents of the deployment can review
+ * the audience of the active account.
  *
- * The agent-facing surface these produce is pinned by test-it/fixtures/agent-surface.read_metrics.json.
+ * The agent-facing surface these produce is pinned by test-it/fixtures/agent-surface.json.
  */
 import type { AgentRoot, AgentOperation } from '@data-fair/openapi-mcp'
 import dailyApiMetricSchema from '../types/daily-api-metric/schema.json' with { type: 'json' }
@@ -21,25 +22,16 @@ const { $id, $defs: rowsDefs, 'x-exports': _, ...aggRowsResult } = aggRowsResult
 aggRowsResult.properties = { ...aggRowsResult.properties, results: { type: 'array', items: rowsDefs.aggRow } as any }
 
 export const root: AgentRoot = {
-  namePrefix: 'metrics_',
-  profiles: {
-    read_metrics: {
-      title: { en: 'Read — audience metrics', fr: "Lire — métriques d'audience" },
-      description: { en: 'Review the audience of the account\'s datasets and applications.', fr: 'Analyser l\'audience des jeux de données et applications du compte.' }
-    }
-  },
   skills: [{
     name: 'metrics-review',
     description: 'How to review the audience of the account\'s datasets and applications with metrics_aggregate_requests: totals, breakdowns, time series and period comparisons. Read it before analysing metrics.',
     // the body is skills/metrics-review.md, served next to this document
     href: 'agents/skills/metrics-review.md',
-    profiles: ['read_metrics'],
-    tools: ['metrics_aggregate_requests']
+    tools: ['aggregate_requests']
   }]
 }
 
 export const aggregateRequests: AgentOperation = {
-  profiles: ['read_metrics'],
   name: 'aggregate_requests',
   title: { en: 'Aggregate requests metrics', fr: 'Agréger les métriques de requêtes' },
   description: 'Count the HTTP requests received by the active account\'s datasets and applications over a period, filtered and grouped by the dimensions given in split. Returns one row per group with nbRequests, bytes and meanDuration (seconds), sorted by day then by number of requests.',
@@ -66,7 +58,7 @@ const arrayParam = (name: string, items: Record<string, unknown>, description: s
   schema: { type: 'array', items }
 })
 
-export default (publicUrl: string) => ({
+export default () => ({
   openapi: '3.1.0',
   info: {
     title: 'API Metrics',
@@ -74,7 +66,8 @@ export default (publicUrl: string) => ({
     version: '1.0.0'
   },
   'x-agent': root,
-  servers: [{ url: `${publicUrl}/api` }],
+  // no request origin: data-fair fetches this document over a private url and prefixes the paths itself
+  servers: [{ url: '/metrics/api' }],
   components: {
     securitySchemes: {
       sdCookie: { type: 'apiKey', in: 'cookie', name: 'id_token' }

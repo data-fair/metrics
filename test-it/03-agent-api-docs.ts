@@ -14,13 +14,13 @@ import apiDocs from '../api/contract/api-docs.ts'
 import { readAgentSkill } from '../api/contract/skills.ts'
 import { axios, axiosAuth, clean, startApiServer, stopApiServer } from './utils/index.ts'
 
-const goldenPath = path.resolve(import.meta.dirname, 'fixtures/agent-surface.read_metrics.json')
-const publicUrl = 'http://localhost:5600/metrics'
+const goldenPath = path.resolve(import.meta.dirname, 'fixtures/agent-surface.json')
+const baseUrl = 'http://localhost:5600/metrics/api'
 
 /** Serves what the API serves at /metrics/api/agents/skills/<name>.md, for the tests that run without it. */
 const skillFetch = (async (input: RequestInfo | URL) => {
   const url = input instanceof Request ? input.url : String(input)
-  const prefix = `${publicUrl}/api/agents/skills/`
+  const prefix = `${baseUrl}/agents/skills/`
   const body = url.startsWith(prefix) && url.endsWith('.md') ? readAgentSkill(url.slice(prefix.length, -3)) : undefined
   return body ? new Response(body, { headers: { 'content-type': 'text/markdown' } }) : new Response('not found', { status: 404 })
 }) as typeof fetch
@@ -43,9 +43,9 @@ const metric = (day: string, resourceId: string, operationTrack: string, userCla
 })
 
 describe('agent surface of the api docs', () => {
-  it('read_metrics tools load without a lint error and match the golden', async () => {
-    const toolSet = await load(apiDocs(publicUrl), { fetch: skillFetch, profiles: ['read_metrics'], lint: 'error' })
-    assert.deepEqual(toolSet.tools.map(t => t.name), ['metrics_aggregate_requests'])
+  it('tools load without a lint error and match the golden', async () => {
+    const toolSet = await load(apiDocs(), { fetch: skillFetch, baseUrl, lint: 'error' })
+    assert.deepEqual(toolSet.tools.map(t => t.name), ['aggregate_requests'])
     assert.deepEqual(toolSet.skills.map(s => s.id), ['metrics-review'])
     assert.equal(toolSet.skills[0].error, undefined, 'the linked body is read, so the golden pins its real digest')
     assert.match(toolSet.skills[0].body, /^# Reviewing the audience of an account/)
@@ -63,17 +63,19 @@ describe('agent api docs served by the api', () => {
   after(stopApiServer)
   beforeEach(clean)
 
-  it('serves the document anonymously with the public url of the service', async () => {
-    const res = await axios().get('/metrics/api/api-docs.json')
+  it('serves the document anonymously, without forwarded headers, for data-fair to merge', async () => {
+    const res = await axios().get('/metrics/api/api-docs.json', { headers: { 'x-forwarded-host': '', 'x-forwarded-proto': '' } })
     assert.equal(res.status, 200)
-    assert.equal(res.data.servers[0].url, 'http://localhost:5600/metrics/api')
-    assert.equal(res.data['x-agent'].namePrefix, 'metrics_')
+    assert.equal(res.data.servers[0].url, '/metrics/api')
+    assert.equal(res.data['x-agent'].namePrefix, undefined)
+    assert.equal(res.data['x-agent'].profiles, undefined)
+    assert.deepEqual(res.data['x-agent'].skills[0].tools, ['aggregate_requests'])
+    assert.equal(JSON.stringify(res.data).includes('"profiles"'), false)
     assert.equal(res.data['x-agent'].skills[0].href, 'agents/skills/metrics-review.md')
     const skill = await axios().get('/metrics/api/agents/skills/metrics-review.md')
     assert.match(skill.headers['content-type'], /text\/markdown/)
     assert.match(skill.data, /^# Reviewing the audience of an account/)
     assert.equal((await axios().get('/metrics/api/agents/skills/nope.md', { validateStatus: () => true })).status, 404)
-    assert.deepEqual(Object.keys(res.data['x-agent'].profiles), ['read_metrics'])
   })
 
   it('aggregates metrics as flat rows through the agent tool', async () => {
@@ -84,7 +86,7 @@ describe('agent api docs served by the api', () => {
       metric('2026-01-02', 'd2', 'readDataAPI', 'anonymous', 30),
       { ...metric('2026-01-02', 'd3', 'readDataAPI', 'anonymous', 1000), owner: { type: 'user', id: 'other' } }
     ])
-    const toolSet = await load(apiDocs(publicUrl), { profiles: ['read_metrics'] })
+    const toolSet = await load(apiDocs(), { baseUrl })
     const tool = toolSet.tools[0]
     const call = async (params: Record<string, unknown>) => {
       const result = await tool.execute({ start: '2026-01-01', end: '2026-01-31', ...params }, { headers: { cookie } })
