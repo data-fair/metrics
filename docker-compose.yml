@@ -16,7 +16,8 @@ services:
   #####
 
   simple-directory:
-    image: ghcr.io/data-fair/simple-directory:master
+    # SD_IMAGE: a local build of simple-directory, for the scope tests (test-it/05-scopes.ts)
+    image: ${SD_IMAGE:-ghcr.io/data-fair/simple-directory:master}
     network_mode: host
     depends_on:
       - mongo
@@ -34,12 +35,16 @@ services:
       - AUTHRATELIMIT_ATTEMPTS=200
       - AUTHRATELIMIT_DURATION=1
       - MANAGE_DEPARTMENTS=true
+      # the test non-human identity of dev/resources/users.json (scope tests)
+      - MANAGE_NHIS=true
+      - NHIS_ALLOW_INSECURE_ISSUERS=true
     volumes:
       - ./dev/resources/users.json:/webapp/data/users.json
       - ./dev/resources/organizations.json:/webapp/data/organizations.json
 
   data-fair:
-    image: ghcr.io/data-fair/data-fair:5
+    # DF_IMAGE: a scope-aware data-fair build, for the export tests of test-it/05-scopes.ts
+    image: ${DF_IMAGE:-ghcr.io/data-fair/data-fair:5}
     network_mode: host
     depends_on:
       mongo:

@@ -24,6 +24,9 @@
   }, {
     "id": "manager1",
     "role": "manager"
+  }, {
+    "id": "orga1_scope_nhi",
+    "role": "admin"
   }]
 }, {
   "id": "orga2",
