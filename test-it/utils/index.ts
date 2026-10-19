@@ -1,12 +1,14 @@
 import type { AxiosAuthOptions } from '@data-fair/lib-node/axios-auth.js'
 import childProcess from 'node:child_process'
 import { axiosBuilder } from '@data-fair/lib-node/axios.js'
+import { privateHttpAgent } from '@data-fair/lib-node/http-agents.js'
 import { axiosAuth as _axiosAuth } from '@data-fair/lib-node/axios-auth.js'
 import mongo from '@data-fair/lib-node/mongo.js'
 
-const directoryUrl = 'http://localhost:5600/simple-directory'
+export const directoryUrl = 'http://localhost:5600/simple-directory'
 
-const axiosOpts = { baseURL: 'http://localhost:5600' }
+// the dev stack runs on localhost: the private agent, the default public one refuses loopback addresses (SSRF protection)
+export const axiosOpts = { baseURL: 'http://localhost:5600', httpAgent: privateHttpAgent }
 
 export const axios = (opts = {}) => axiosBuilder({ ...axiosOpts, ...opts })
 
