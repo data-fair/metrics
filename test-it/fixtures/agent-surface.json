@@ -157,8 +157,8 @@
   ],
   "skills": [
     {
-      "id": "metrics-review",
-      "name": "metrics-review",
+      "id": "review",
+      "name": "review",
       "description": "How to review the audience of the account's datasets and applications with metrics_aggregate_requests: totals, breakdowns, time series and period comparisons. Read it before analysing metrics.",
       "digest": "sha256:287e5b56d1b0a2782b0751a88201d9cc03af7f40b103ff870f919329a5b042e0"
     }

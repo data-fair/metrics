@@ -29,7 +29,7 @@ aggRowsResult.properties = { ...aggRowsResult.properties, results: { type: 'arra
 
 export const root: AgentRoot = {
   skills: [{
-    name: 'metrics-review',
+    name: 'review',
     description: 'How to review the audience of the account\'s datasets and applications with metrics_aggregate_requests: totals, breakdowns, time series and period comparisons. Read it before analysing metrics.',
     // the body is skills/metrics-review.md, served next to this document
     href: 'agents/skills/metrics-review.md',
