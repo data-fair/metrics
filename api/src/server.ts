@@ -17,7 +17,8 @@ server.headersTimeout = (60 * 1000) + 2000
 
 export const start = async () => {
   if (config.observer.active) await startObserver()
-  await session.init(config.privateDirectoryUrl)
+  // scope-aware: every route that reads the session checks a scope first (api/src/scopes.ts)
+  await session.init(config.privateDirectoryUrl, undefined, undefined, { scopeAware: true })
   await mongo.init()
   // reject on a listen error (port already taken by a dev server…) instead of waiting forever
   await new Promise<void>((resolve, reject) => {

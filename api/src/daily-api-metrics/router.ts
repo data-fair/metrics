@@ -1,22 +1,23 @@
 import { Router } from 'express'
-import { session, reqOrigin } from '@data-fair/lib-express/index.js'
+import { session, reqOrigin, httpError } from '@data-fair/lib-express/index.js'
 import axios from '@data-fair/lib-node/axios.js'
 import * as aggQuery from '#doc/agg-query/index.ts'
 import * as exportQuery from '#doc/export-query/index.ts'
 import generate from './export.ts'
 
 import { list, agg, aggRows } from './service.ts'
+import { requireOperationScope, exportScopesMessage } from '../scopes.ts'
 
 const router = Router()
 export default router
 
-router.get('', async (req, res) => {
+router.get('', requireOperationScope('listDailyApiMetrics'), async (req, res) => {
   const reqSession = await session.reqAuthenticated(req)
   const results = await list(reqSession.account)
   res.json({ count: results.length, results })
 })
 
-router.get('/_agg', async (req, res) => {
+router.get('/_agg', requireOperationScope('aggDailyApiMetrics'), async (req, res) => {
   const reqSession = await session.reqAuthenticated(req)
   const query = { ...req.query } // better not to mutate req.query
   if (typeof query.split === 'string') query.split = query.split.split(',').filter(Boolean)
@@ -25,52 +26,32 @@ router.get('/_agg', async (req, res) => {
   else res.json(await agg(reqSession.account, query))
 })
 
-router.get('/_export', async (req, res) => {
+router.get('/_export', requireOperationScope('exportDailyApiMetrics'), async (req, res) => {
   const reqSession = await session.reqAuthenticated(req)
   const query = { ...req.query } // better not to mutate req.query
   exportQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
 
+  // data-fair is called with the caller's credentials, cookie session or bearer token, through the
+  // public url of the site: data-fair checks the audience of a bearer against it
+  const upstreamHeaders: Record<string, string> = {}
+  if (req.headers.cookie) upstreamHeaders.cookie = req.headers.cookie
+  if (req.headers.authorization) upstreamHeaders.authorization = req.headers.authorization
+  const dataFairGet = async (path: string, params?: Record<string, unknown>) => {
+    try {
+      return (await axios.get(new URL(`/data-fair/api/v1${path}`, reqOrigin(req)).toString(), { params, headers: upstreamHeaders })).data
+    } catch (err: any) {
+      // data-fair decides on its own scopes, a session accepted here can still lack them
+      if (err.status === 401 || err.status === 403) throw httpError(403, exportScopesMessage)
+      throw err
+    }
+  }
+
+  const datasets = (await dataFairGet('/datasets', { mine: true, raw: true, select: 'id,topics,title', size: 10000 })).results || []
+  const applications = (await dataFairGet('/applications', { mine: true, raw: true, select: 'id,title', size: 10000 })).results || []
+  const topics = (await dataFairGet(`/settings/${reqSession.account.type}/${reqSession.account.id}/topics`)) || []
+
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   res.setHeader('Content-Disposition', `attachment; filename=Audience_${query.start}_${query.end}.xlsx`)
-
-  const datasets = (await axios.get(
-    new URL('/data-fair/api/v1/datasets', reqOrigin(req)).toString(),
-    {
-      params: {
-        mine: true,
-        raw: true,
-        select: 'id,topics,title',
-        size: 10000
-      },
-      headers: {
-        Cookie: req.headers.cookie
-      }
-    }
-  )).data.results || []
-
-  const applications = (await axios.get(
-    new URL('/data-fair/api/v1/applications', reqOrigin(req)).toString(),
-    {
-      params: {
-        mine: true,
-        raw: true,
-        select: 'id,title',
-        size: 10000
-      },
-      headers: {
-        Cookie: req.headers.cookie
-      }
-    }
-  )).data.results || []
-
-  const topics = (await axios.get(
-    new URL(`/data-fair/api/v1/settings/${reqSession.account.type}/${reqSession.account.id}/topics`, reqOrigin(req)).toString(),
-    {
-      headers: {
-        Cookie: req.headers.cookie
-      }
-    }
-  )).data || []
 
   // Fetch site theme so the export styling matches the site's palette.
   // Failure here is non-fatal: the export falls back to default colors.

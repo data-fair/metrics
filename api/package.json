@@ -3,7 +3,7 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development node --watch ./index.ts"
+    "dev": "NODE_ENV=development SSRF_PUBLIC_IPS=127.0.0.1,::1 node --watch ./index.ts"
   },
   "imports": {
     "#config": "./src/config.ts",
