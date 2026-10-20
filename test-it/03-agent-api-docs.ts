@@ -46,11 +46,11 @@ describe('agent surface of the api docs', () => {
   it('tools load without a lint error and match the golden', async () => {
     const toolSet = await load(apiDocs(), { fetch: skillFetch, baseUrl, lint: 'error' })
     assert.deepEqual(toolSet.tools.map(t => t.name), ['aggregate_requests'])
-    assert.deepEqual(toolSet.skills.map(s => s.id), ['review'])
+    assert.deepEqual(toolSet.skills.map(s => s.name), ['review'])
     assert.equal(toolSet.skills[0].error, undefined, 'the linked body is read, so the golden pins its real digest')
     assert.match(toolSet.skills[0].body, /^# Reviewing the audience of an account/)
     assert.ok(toolSet.skills[0].description.length <= 1024)
-    assert.doesNotMatch(toolSet.instructions, /Dimensions:/, 'the body is not in the instructions')
+    assert.doesNotMatch(toolSet.skills[0].description, /Dimensions:/, 'the body is not in the description the instructions list')
     // Through JSON: the golden is a file, and an `enum: undefined` left by the generator is not.
     const snapshot = JSON.parse(JSON.stringify(toolSetSnapshot(toolSet)))
     if (process.env.UPDATE_GOLDEN) writeFileSync(goldenPath, JSON.stringify(snapshot, null, 2) + '\n')
