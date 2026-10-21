@@ -71,7 +71,11 @@ To run a specific test, you can mark it with `it.only` or `describe.only` in the
 npm run test-only test-it/file-name.ts
 ```
 
-The scope tests (`test-it/05-scopes.ts`) get scope-restricted sessions from the test non-human identity of `dev/resources/users.json` with `nhiSession(scope)` (`test-it/utils/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them.
+The scope tests (`test-it/05-scopes.ts`) get scope-restricted sessions from the test non-human identity of `dev/resources/users.json` with `nhiSession(scope)` (`test-it/utils/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Set these variables in a git-ignored `.env` file, docker compose reads it:
+
+```
+DF_IMAGE=ghcr.io/data-fair/data-fair:feat-autonomous-agents
+```
 
 The export calls data-fair at the public url of the site with lib-node's public http agent, which refuses private addresses (SSRF protection): the `test` and `dev` scripts set `SSRF_PUBLIC_IPS=127.0.0.1,::1` for the local stack.
 
