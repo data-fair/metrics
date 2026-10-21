@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import express from 'express'
-import { session, errorHandler, createSiteMiddleware, createSpaMiddleware, reqOrigin, reqSitePathSafe } from '@data-fair/lib-express/index.js'
+import { errorHandler, createSiteMiddleware, createSpaMiddleware } from '@data-fair/lib-express/index.js'
 import dailyApiMetricsRouter from './daily-api-metrics/router.ts'
 import adminRouter from './admin.ts'
 import apiDocs from '../contract/api-docs.ts'
@@ -14,11 +14,14 @@ app.set('query parser', 'simple')
 
 app.use(createSiteMiddleware('metrics'))
 
-app.use(session.middleware())
+// no global session middleware: the routes that read the session do it themselves (session.req* or
+// requireScope), so the public ones do not depend on the caller's credentials
 
-// public, read by agents through the data-fair deployment index (/data-fair/api/v1/agents/index.json)
+// public, read by data-fair (private url, no forwarded headers) to merge it into its platform document
 app.get('/api/api-docs.json', (req, res) => {
-  res.json(apiDocs(`${reqOrigin(req)}${reqSitePathSafe(req)}/metrics`))
+  res.set('Cache-Control', 'public, max-age=300')
+  res.vary('Accept-Language')
+  res.json(apiDocs(req.acceptsLanguages('fr', 'en') === 'en' ? 'en' : 'fr'))
 })
 
 // the bodies of the document's skills, linked from its x-agent.skills; public like the document

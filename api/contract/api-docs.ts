@@ -2,13 +2,20 @@
  * The OpenAPI document of this service, served at /metrics/api/api-docs.json.
  *
  * The x-agent annotations turn it into agent tools through `@data-fair/openapi-mcp`
- * (vocabulary: docs/x-agent.md in that project). data-fair lists this document in its
- * deployment index (/data-fair/api/v1/agents/index.json) when its metrics integration is
- * configured, so agents of the deployment can review the audience of the active account.
+ * (vocabulary: docs/x-agent.md in that project). data-fair fetches this document over a private
+ * url when its metrics integration is configured and merges it into its platform document (paths
+ * under /metrics/api, tools and skills prefixed metrics_), so agents of the deployment can review
+ * the audience of the active account.
  *
- * The agent-facing surface these produce is pinned by test-it/fixtures/agent-surface.read_metrics.json.
+ * The oauth2 scheme declares the scopes metrics enforces (api/src/scopes.ts). Each operation lists
+ * every scope it accepts as its own security alternative (standard OpenAPI: the scopes of one
+ * requirement are all needed).
+ *
+ * The agent-facing surface these produce is pinned by test-it/fixtures/agent-surface.json.
  */
 import type { AgentRoot, AgentOperation } from '@data-fair/openapi-mcp'
+import { oauth2SecurityScheme, oauth2Alternatives, type ScopeLocale } from '@data-fair/lib-common-types/scopes.js'
+import { vocabulary, acceptedScopes, scopedOperations, type ScopedOperationId } from '../src/scopes.ts'
 import dailyApiMetricSchema from '../types/daily-api-metric/schema.json' with { type: 'json' }
 import aggRowsResultSchema from '../doc/agg-rows-result/schema.json' with { type: 'json' }
 import aggQuerySchema from '../doc/agg-query/schema.json' with { type: 'json' }
@@ -21,25 +28,16 @@ const { $id, $defs: rowsDefs, 'x-exports': _, ...aggRowsResult } = aggRowsResult
 aggRowsResult.properties = { ...aggRowsResult.properties, results: { type: 'array', items: rowsDefs.aggRow } as any }
 
 export const root: AgentRoot = {
-  namePrefix: 'metrics_',
-  profiles: {
-    read_metrics: {
-      title: { en: 'Read — audience metrics', fr: "Lire — métriques d'audience" },
-      description: { en: 'Review the audience of the account\'s datasets and applications.', fr: 'Analyser l\'audience des jeux de données et applications du compte.' }
-    }
-  },
   skills: [{
-    name: 'metrics-review',
+    name: 'review',
     description: 'How to review the audience of the account\'s datasets and applications with metrics_aggregate_requests: totals, breakdowns, time series and period comparisons. Read it before analysing metrics.',
     // the body is skills/metrics-review.md, served next to this document
     href: 'agents/skills/metrics-review.md',
-    profiles: ['read_metrics'],
-    tools: ['metrics_aggregate_requests']
+    tools: ['aggregate_requests']
   }]
 }
 
 export const aggregateRequests: AgentOperation = {
-  profiles: ['read_metrics'],
   name: 'aggregate_requests',
   title: { en: 'Aggregate requests metrics', fr: 'Agréger les métriques de requêtes' },
   description: 'Count the HTTP requests received by the active account\'s datasets and applications over a period, filtered and grouped by the dimensions given in split. Returns one row per group with nbRequests, bytes and meanDuration (seconds), sorted by day then by number of requests.',
@@ -66,7 +64,13 @@ const arrayParam = (name: string, items: Record<string, unknown>, description: s
   schema: { type: 'array', items }
 })
 
-export default (publicUrl: string) => ({
+// the security of a session-facing operation: the cookie session, or a token holding one of the scopes it accepts
+const operationSecurity = (operationId: ScopedOperationId) => {
+  const { family, tier } = scopedOperations[operationId]
+  return [{ sdCookie: [] }, ...oauth2Alternatives(acceptedScopes(family, tier))]
+}
+
+export default (locale: ScopeLocale = 'fr') => ({
   openapi: '3.1.0',
   info: {
     title: 'API Metrics',
@@ -74,10 +78,13 @@ export default (publicUrl: string) => ({
     version: '1.0.0'
   },
   'x-agent': root,
-  servers: [{ url: `${publicUrl}/api` }],
+  // no request origin: data-fair fetches this document over a private url and prefixes the paths itself
+  servers: [{ url: '/metrics/api' }],
   components: {
     securitySchemes: {
-      sdCookie: { type: 'apiKey', in: 'cookie', name: 'id_token' }
+      sdCookie: { type: 'apiKey', in: 'cookie', name: 'id_token' },
+      // relative token url, data-fair sets the one of each site
+      oauth2: oauth2SecurityScheme(vocabulary, { directoryUrl: '/simple-directory', locale })
     },
     schemas: {
       aggRowsResult
@@ -92,6 +99,7 @@ export default (publicUrl: string) => ({
         summary: 'Aggregate daily metrics',
         description: 'Aggregate the daily metrics of the active account over a period, filtered and split by dimensions.',
         tags: ['Metrics'],
+        security: operationSecurity('aggDailyApiMetrics'),
         'x-agent': aggregateRequests,
         parameters: [
           { in: 'query', name: 'start', required: true, description: 'First day of the period.', schema: { type: 'string', format: 'date' } },
@@ -127,7 +135,9 @@ export default (publicUrl: string) => ({
       get: {
         operationId: 'exportDailyApiMetrics',
         summary: 'Export metrics as a spreadsheet',
+        description: 'The export also reads the account\'s datasets and applications in data-fair, so a scope-restricted token needs datasets:read and applications:read (or all:read) too.',
         tags: ['Metrics'],
+        security: operationSecurity('exportDailyApiMetrics'),
         parameters: [
           { in: 'query', name: 'start', required: true, schema: { type: 'string', format: 'date' } },
           { in: 'query', name: 'end', required: true, schema: { type: 'string', format: 'date' } }
