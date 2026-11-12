@@ -8,35 +8,32 @@
 
 ## Install dependencies
 
-1. Install npm dependencies for all workspaces :
-
 ```sh
-npm i
+npm ci
+npx --no df-dev setup
 ```
 
-2. Build / Update the types based on schemas :
-
-```sh
-npm run build-types
-```
+`df-dev setup` (package `@data-fair/lib-dev`) writes the git-ignored `.env` of this checkout (free ports drawn for every service of `dev/dev.json`, `DEV_HOST`, `SSRF_PUBLIC_IPS`), builds the types and the UI.
 
 ## Start the development environment
+
+Requires [zellij](https://zellij.dev/) >= 0.44.
 
 ```sh
 npm run dev-zellij
 ```
 
-*Note : This command will start a Zellij session with multiple panes, each one running a part of the project. You can also run the environment manually by running the commands below in different terminals.*
+The zellij session of this checkout starts the containers (status pane), then the UI, the API and the daemon (each pane restarts its process on file changes). The dev page is printed in the bottom line, `http://<DEV_HOST>:<NGINX_PORT>/metrics/dev`.
 
-<details>
-<summary>Services</summary>
+For agents and scripts:
 
-- **Dev dependencies** : `npm run dev-deps`
-- **UI** : `npm run dev-ui`
-- **API** : `npm run dev-api`
-- **Daemon** : `npm run dev-daemon`
+| Need | Command |
+|---|---|
+| What runs, what is broken | `npx --no df-dev status` |
+| A process's output | `npx --no df-dev logs <pane> -n 100` (`api`, `ui`, `daemon`) |
+| Restart one process | `npx --no df-dev restart <pane>` |
 
-</details>
+Another branch in its own worktree, with its own ports, containers and session: `npx --no df-worktree <branch>` from this checkout, `npx --no df-worktree-delete <branch>` to remove it.
 
 ## Stop the development environment
 
@@ -53,13 +50,9 @@ docker build --progress=plain --target=daemon -t data-fair/metrics/daemon:dev .
 
 ## Running the tests
 
-First, you need to start the development dependencies:
+The dev environment is the test environment: the tests run against the `api` and `daemon` panes of the running zellij session, through nginx, and write their fixtures in the development database (they empty its `daily-api-metrics` collection). The pre-push hook (`dev/pre-push.sh`) runs the type check and the tests, the CI the whole `npm run quality`.
 
-```sh
-npm run dev-deps
-```
-
-Then, you can run the tests:
+Run the tests:
 
 ```sh
 npm run test
@@ -71,13 +64,13 @@ To run a specific test, you can mark it with `it.only` or `describe.only` in the
 npm run test-only test-it/file-name.ts
 ```
 
-The scope tests (`test-it/05-scopes.ts`) get scope-restricted sessions from the test non-human identity of `dev/resources/users.json` with `nhiSession(scope)` (`test-it/utils/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Set these variables in a git-ignored `.env` file, docker compose reads it:
+The scope tests (`test-it/05-scopes.ts`) get scope-restricted sessions from the test non-human identity of `dev/resources/users.json` with `nhiSession(scope)` (`test-it/utils/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Add these variables to the git-ignored `.env` file, docker compose reads it:
 
 ```
 DF_IMAGE=ghcr.io/data-fair/data-fair:feat-autonomous-agents
 ```
 
-The export calls data-fair at the public url of the site with lib-node's public http agent, which refuses private addresses (SSRF protection): the `test` and `dev` scripts set `SSRF_PUBLIC_IPS=127.0.0.1,::1` for the local stack.
+The export calls data-fair at the public url of the site with lib-node's public http agent, which refuses private addresses (SSRF protection): `.env` sets `SSRF_PUBLIC_IPS` for the local stack.
 
 ## Scopes
 

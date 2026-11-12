@@ -9,6 +9,8 @@
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
+    "erasableSyntaxOnly": true,
+    "types": ["node"],
     "paths": {
       "#shared/*": ["./shared/*"]
     }

@@ -28,6 +28,8 @@
 
     "allowJs": true,
     "checkJs": true,
+    // its imports reach api/src/config.ts, which reads process.env
+    "types": ["node"]
   },
   "include": [
     "dts/*.d.ts",

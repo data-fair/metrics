@@ -1,0 +1,23 @@
+{
+  "ports": [
+    "NGINX_PORT",
+    "DEV_API_PORT",
+    "DEV_UI_PORT",
+    "DEV_UI_HMR_PORT",
+    "SD_PORT",
+    "DF_PORT",
+    "ES_PORT",
+    "MONGO_PORT",
+    "MAILDEV_SMTP_PORT"
+  ],
+  "panes": {
+    "api": {
+      "ready": "http://localhost:${DEV_API_PORT}/metrics/api/api-docs.json"
+    },
+    "ui": {
+      "ready": "http://localhost:${DEV_UI_PORT}/metrics/"
+    },
+    "daemon": {}
+  },
+  "url": "http://${DEV_HOST}:${NGINX_PORT}/metrics/dev"
+}

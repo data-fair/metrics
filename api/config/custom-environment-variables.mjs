@@ -1,5 +1,6 @@
-module.exports = {
-  socketPath: 'SOCKET_PATH',
+export default {
+  port: 'PORT',
+  privateDirectoryUrl: 'PRIVATE_DIRECTORY_URL',
   mongo: {
     url: 'MONGO_URL',
     options: {
@@ -8,6 +9,6 @@ module.exports = {
     }
   },
   observer: {
-    active: 'OBSERVER_ACTIVE'
+    active: 'PROMETHEUS_ACTIVE'
   }
 }

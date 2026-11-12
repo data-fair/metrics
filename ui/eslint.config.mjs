@@ -5,7 +5,7 @@ import dfLibRecommended from '@data-fair/lib-utils/eslint/recommended.js'
 
 export default [
   ...dfLibRecommended,
-  ...pluginVue.configs['flat/base'],
+  ...pluginVue.configs['flat/recommended'],
   ...pluginVuetify.configs['flat/recommended-v4'],
   {
     files: ['**/*.vue'],
@@ -20,7 +20,7 @@ export default [
     rules: {
       'vue/require-default-prop': 'off',
       'vue/multi-word-component-names': 'off',
-      'no-undef': 'off'
+      'no-undef': 'off' // typescript takes care of this with autoImport support
     }
   },
   { ignores: ['dist/*', 'dts/*'] },

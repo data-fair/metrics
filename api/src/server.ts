@@ -3,6 +3,7 @@ import { createHttpTerminator } from 'http-terminator'
 import mongo from '#mongo'
 import { session } from '@data-fair/lib-express/index.js'
 import { startObserver, stopObserver } from '@data-fair/lib-node/observer.js'
+import log from '@data-fair/lib-node/log.js'
 import config from '#config'
 import { app } from './app.ts'
 
@@ -27,7 +28,7 @@ export const start = async () => {
     server.listen(config.port)
   })
 
-  console.log(`API server listening on port ${config.port}`)
+  log.info(`API server listening on port ${config.port}`)
 }
 
 export const stop = async () => {
