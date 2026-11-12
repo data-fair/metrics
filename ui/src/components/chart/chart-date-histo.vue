@@ -22,7 +22,7 @@ const props = defineProps<{
 const { dayjs } = useLocaleDayjs()
 const display = useDisplay()
 const theme = useTheme()
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 
 const aggResult = ref<any>(null)
 const loading = ref(false)
@@ -41,7 +41,9 @@ const chartConfig = computed(() => {
     return {
       label: dayjs(day).format('L'),
       value: serieItem ? serieItem.nbRequests : 0,
-      tooltip: serieItem ? `${serieItem.nbRequests.toLocaleString()} requêtes cumulant ${formatBytes(serieItem.bytes, locale.value)}` : '0 requête'
+      tooltip: serieItem
+        ? t('requestsTooltip', { nb: serieItem.nbRequests.toLocaleString(locale.value), bytes: formatBytes(serieItem.bytes, locale.value) }, serieItem.nbRequests)
+        : t('noRequest')
     }
   })
   return {
@@ -49,7 +51,7 @@ const chartConfig = computed(() => {
     data: {
       labels: days.map((c: any) => c.label),
       datasets: [{
-        label: 'Période en cours',
+        label: t('currentPeriod'),
         data: days.map((c: any) => c.value),
         backgroundColor: String(theme.current.value.colors.accent),
         borderRadius: 4
@@ -113,3 +115,14 @@ onUnmounted(() => {
 
 <style scoped>
 </style>
+
+<i18n lang="yaml">
+en:
+  currentPeriod: Current period
+  noRequest: 0 requests
+  requestsTooltip: "{nb} requests totalling {bytes} | {nb} request totalling {bytes} | {nb} requests totalling {bytes}"
+fr:
+  currentPeriod: Période en cours
+  noRequest: 0 requête
+  requestsTooltip: "{nb} requête cumulant {bytes} | {nb} requête cumulant {bytes} | {nb} requêtes cumulant {bytes}"
+</i18n>

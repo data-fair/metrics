@@ -75,7 +75,7 @@
             color="primary"
             variant="elevated"
           >
-            Exporter
+            {{ t('export') }}
           </v-btn>
         </div>
       </div>
@@ -162,21 +162,21 @@
 
       <v-row density="compact">
         <chart-categories
-          title="Téléchargements / jeu de données"
+          :title="t('chartTitles.downloadsByDataset')"
           category="resource"
           :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles', ...adminFilter }"
           :periods="periods"
           @update:agg="(v: any) => aggResultDataFiles = v"
         />
         <chart-categories
-          title="Appels API / jeu de données"
+          :title="t('chartTitles.apiCallsByDataset')"
           category="resource"
           :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI', ...adminFilter }"
           :periods="periods"
           @update:agg="(v: any) => aggResultDataAPI = v"
         />
         <chart-categories
-          title="Ouvertures de visualisations"
+          :title="t('chartTitles.applicationOpenings')"
           category="resource"
           :filter="{ statusClass: 'ok', operationTrack: 'openApplication', ...adminFilter }"
           :periods="periods"
@@ -204,7 +204,7 @@
           :items="datasetItems"
           variant="outlined"
           density="compact"
-          label="Jeu de données"
+          :label="t('dataset')"
           max-width="400"
           class="mr-4 my-2"
           hide-details
@@ -234,7 +234,7 @@
           :items="refererDomainItems"
           variant="outlined"
           density="compact"
-          label="Site d'origine"
+          :label="t('refererDomain')"
           max-width="400"
           class="mr-4 my-2"
           hide-details
@@ -262,7 +262,7 @@
           :items="userClassItems"
           variant="outlined"
           density="compact"
-          label="Catégorie d'utilisateur"
+          :label="t('userClass')"
           max-width="400"
           class="mr-4 my-2"
           hide-details
@@ -304,36 +304,36 @@
 
       <v-row density="compact">
         <chart-date-histo
-          title="Historique téléchargements"
+          :title="t('chartTitles.downloadsHistory')"
           :filter="{ ...baseFilter, operationTrack: 'readDataFiles' }"
           :periods="periods"
         />
         <chart-date-histo
-          title="Historique appels API"
+          :title="t('chartTitles.apiCallsHistory')"
           :filter="{ ...baseFilter, operationTrack: 'readDataAPI' }"
           :periods="periods"
         />
         <chart-categories
-          title="Requêtes / site d'origine"
+          :title="t('chartTitles.requestsByRefererDomain')"
           category="refererDomain"
           :filter="baseFilter"
           :periods="periods"
         />
         <chart-categories
-          title="Requêtes / catégorie d'utilisateur"
+          :title="t('chartTitles.requestsByUserClass')"
           category="userClass"
           :filter="baseFilter"
           :periods="periods"
         />
         <chart-categories
-          title="Requêtes / visualisation"
+          :title="t('chartTitles.requestsByApplication')"
           category="refererApp"
           :filter="baseFilter"
           :periods="periods"
           :labels="appLabels"
         />
         <chart-categories
-          title="Requêtes / consommateurs"
+          :title="t('chartTitles.requestsByRefererCategory')"
           category="refererCategory"
           :filter="baseFilter"
           :periods="periods"
@@ -347,8 +347,10 @@
 <script setup lang="ts">
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { fetchOwnerNames, ownerKey, type OwnerRef } from '~/utils/owners'
+import { useI18n } from 'vue-i18n'
 
 const session = useSession()
+const { t, te, locale } = useI18n()
 
 const periods = ref<any>(null)
 const aggResultDataFiles = ref<any>(null)
@@ -364,21 +366,13 @@ const userClassAgg = ref<any>(null)
 const refererDomainLoading = ref(false)
 const userClassLoading = ref(false)
 
-const userClassLabels: Record<string, string> = {
-  anonymous: 'Anonyme',
-  owner: 'Propriétaire',
-  external: 'Utilisateur externe',
-  ownerAPIKey: "Propriétaire (clé d'API)",
-  externalAPIKey: "Utilisateur externe (clé d'API)"
-}
-
-const refererCategoryLabels: Record<string, string> = {
-  backoffice: 'Back-office',
-  embed: 'Vues embarquées',
-  app: 'Applications',
-  mcp: 'MCP',
-  other: 'Autre'
-}
+const refererCategoryLabels = computed<Record<string, string>>(() => ({
+  backoffice: t('refererCategories.backoffice'),
+  embed: t('refererCategories.embed'),
+  app: t('refererCategories.app'),
+  mcp: t('refererCategories.mcp'),
+  other: t('refererCategories.other')
+}))
 
 const datasetItems = computed(() => {
   if (!aggResultDataAPI.value) return []
@@ -391,8 +385,8 @@ const refererDomainItems = computed(() => {
   return refererDomainAgg.value.series.map((serie: any) => {
     const value = serie.key.refererDomain
     let title = value
-    if (value === 'none') title = 'Inconnu'
-    if (value === null || value === undefined) title = 'Aucune'
+    if (value === 'none') title = t('unknown')
+    if (value === null || value === undefined) title = t('none')
     return { title, value }
   })
 })
@@ -401,7 +395,7 @@ const userClassItems = computed(() => {
   if (!userClassAgg.value) return []
   return userClassAgg.value.series.map((serie: any) => {
     const value = serie.key.userClass
-    return { title: userClassLabels[value] || value, value }
+    return { title: te(`userClasses.${value}`) ? t(`userClasses.${value}`) : value, value }
   })
 })
 
@@ -618,17 +612,18 @@ const simpleMetrics = computed(() => {
         const current = simpleMetricsSeries.value[operationType].current
         if (!current) continue
         const simpleMetric: any = { loading: false }
-        if (metricType === 'nbRequests') simpleMetric.value = current.nbRequests.toLocaleString()
-        else simpleMetric.value = formatBytes(current.bytes)
+        if (metricType === 'nbRequests') simpleMetric.value = current.nbRequests.toLocaleString(locale.value)
+        else simpleMetric.value = formatBytes(current.bytes, locale.value)
 
-        if (operationType === 'dataAPI') simpleMetric.title = `appel${current.nbRequests > 1 ? 's' : ''} d'API`
-        else simpleMetric.title = 'fichiers téléchargés'
+        if (operationType === 'dataAPI') simpleMetric.title = t('apiCalls', current.nbRequests)
+        else simpleMetric.title = t('downloadedFiles', current.nbRequests)
 
-        simpleMetric.subtitle = '0 sur période précédente'
+        simpleMetric.subtitle = t('onPreviousPeriod', { value: (0).toLocaleString(locale.value) })
         const previous = simpleMetricsSeries.value[operationType].previous
         if (previous) {
-          simpleMetric.subtitle = metricType === 'nbRequests' ? previous.nbRequests.toLocaleString() : formatBytes(previous.bytes)
-          simpleMetric.subtitle += ' sur période précédente'
+          simpleMetric.subtitle = t('onPreviousPeriod', {
+            value: metricType === 'nbRequests' ? previous.nbRequests.toLocaleString(locale.value) : formatBytes(previous.bytes, locale.value)
+          })
           // Determine trend
           if (metricType === 'nbRequests') {
             if (current.nbRequests > previous.nbRequests) simpleMetric.trend = 'up'
@@ -709,3 +704,70 @@ watch([periods, baseFilter], async () => {
   max-width: 748px;
 }
 </style>
+
+<i18n lang="yaml">
+en:
+  export: Export
+  dataset: Dataset
+  refererDomain: Origin site
+  userClass: User category
+  unknown: Unknown
+  none: None
+  apiCalls: API calls | API call | API calls
+  downloadedFiles: downloaded files | downloaded file | downloaded files
+  onPreviousPeriod: "{value} over the previous period"
+  chartTitles:
+    downloadsByDataset: Downloads / dataset
+    apiCallsByDataset: API calls / dataset
+    applicationOpenings: Application openings
+    downloadsHistory: Downloads history
+    apiCallsHistory: API calls history
+    requestsByRefererDomain: Requests / origin site
+    requestsByUserClass: Requests / user category
+    requestsByApplication: Requests / application
+    requestsByRefererCategory: Requests / consumers
+  userClasses:
+    anonymous: Anonymous
+    owner: Owner
+    external: External user
+    ownerAPIKey: Owner (API key)
+    externalAPIKey: External user (API key)
+  refererCategories:
+    backoffice: Back-office
+    embed: Embedded views
+    app: Applications
+    mcp: MCP
+    other: Other
+fr:
+  export: Exporter
+  dataset: Jeu de données
+  refererDomain: Site d'origine
+  userClass: Catégorie d'utilisateur
+  unknown: Inconnu
+  none: Aucune
+  apiCalls: appel d'API | appel d'API | appels d'API
+  downloadedFiles: fichier téléchargé | fichier téléchargé | fichiers téléchargés
+  onPreviousPeriod: "{value} sur la période précédente"
+  chartTitles:
+    downloadsByDataset: Téléchargements / jeu de données
+    apiCallsByDataset: Appels API / jeu de données
+    applicationOpenings: Ouvertures de visualisations
+    downloadsHistory: Historique téléchargements
+    apiCallsHistory: Historique appels API
+    requestsByRefererDomain: Requêtes / site d'origine
+    requestsByUserClass: Requêtes / catégorie d'utilisateur
+    requestsByApplication: Requêtes / visualisation
+    requestsByRefererCategory: Requêtes / consommateurs
+  userClasses:
+    anonymous: Anonyme
+    owner: Propriétaire
+    external: Utilisateur externe
+    ownerAPIKey: Propriétaire (clé d'API)
+    externalAPIKey: Utilisateur externe (clé d'API)
+  refererCategories:
+    backoffice: Back-office
+    embed: Vues embarquées
+    app: Applications
+    mcp: MCP
+    other: Autre
+</i18n>
