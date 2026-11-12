@@ -18,7 +18,7 @@
           variant="flat"
           style="position: absolute; right:0; top: 0;"
           :icon="mdiImageSizeSelectSmall"
-          :title="large ? 'Réduire' : 'Agrandir'"
+          :title="large ? t('collapse') : t('expand')"
           @click="toggle"
         />
       </v-card-title>
@@ -38,6 +38,8 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 defineProps<{
   title: string
   aspectRatio?: number
@@ -47,6 +49,8 @@ defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
+
+const { t } = useI18n()
 
 const large = ref(false)
 const hover = ref(false)
@@ -59,3 +63,12 @@ const toggle = () => {
 
 <style scoped>
 </style>
+
+<i18n lang="yaml">
+en:
+  collapse: Collapse
+  expand: Expand
+fr:
+  collapse: Réduire
+  expand: Agrandir
+</i18n>

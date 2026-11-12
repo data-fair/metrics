@@ -6,7 +6,7 @@
         class="legend-item-square"
         rounded
       />
-      <span>Période sélectionnée</span>
+      <span>{{ t('selectedPeriod') }}</span>
     </div>
     <div class="legend-item text-body-small">
       <v-sheet
@@ -14,10 +14,16 @@
         class="legend-item-square"
         rounded
       />
-      <span>Période précédente</span>
+      <span>{{ t('previousPeriod') }}</span>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+</script>
 
 <style scoped>
 .legend .legend-item-square {
@@ -31,3 +37,12 @@
   line-height: 20px;
 }
 </style>
+
+<i18n lang="yaml">
+en:
+  selectedPeriod: Selected period
+  previousPeriod: Previous period
+fr:
+  selectedPeriod: Période sélectionnée
+  previousPeriod: Période précédente
+</i18n>

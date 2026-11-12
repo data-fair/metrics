@@ -18,13 +18,14 @@ import App from './App.vue'
   dFrameContent(router)
   const reactiveSearchParams = createReactiveSearchParams(router)
   const session = await createSession({ directoryUrl: $sitePath + '/simple-directory' })
-  const localeDayjs = createLocaleDayjs(session.state.lang)
+  const localeDayjs = createLocaleDayjs(session.lang.value)
   const uiNotif = createUiNotif()
   const vuetify = createVuetify({
     ...vuetifySessionOptions(session, $cspNonce),
     icons: { defaultSet: 'mdi', aliases, sets: { mdi, } }
   })
-  const i18n = createI18n({ locale: session.state.lang })
+  // a change of language reloads the page (lib-vue session), the locale is never reassigned
+  const i18n = createI18n({ legacy: false, locale: session.lang.value, fallbackLocale: 'en' })
 
   createApp(App)
     .use(router)
