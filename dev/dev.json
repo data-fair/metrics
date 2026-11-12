@@ -7,7 +7,8 @@
     "SD_PORT",
     "DF_PORT",
     "ES_PORT",
-    "MONGO_PORT"
+    "MONGO_PORT",
+    "MAILDEV_SMTP_PORT"
   ],
   "panes": {
     "api": {

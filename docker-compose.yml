@@ -43,6 +43,11 @@ services:
       - AUTHRATELIMIT_ATTEMPTS=200
       - AUTHRATELIMIT_DURATION=1
       - MANAGE_DEPARTMENTS=true
+      # host network: sd's default SMTP localhost:1025 would reach another env's maildev; nothing listens
+      # on this one (metrics has no mail flow of its own)
+      - MAILS_TRANSPORT={"host":"localhost","port":${MAILDEV_SMTP_PORT},"ignoreTLS":true}
+      # per recipient, stored in mongo: repeated test runs would stop the mails silently
+      - MAILSRATELIMIT_POINTS=100000
       # the test non-human identity of dev/resources/users.json (scope tests)
       - MANAGE_NHIS=true
       - NHIS_ALLOW_INSECURE_ISSUERS=true
@@ -90,8 +95,8 @@ services:
       - WORKER_BASE_CONCURRENCY=1
       # tile cache capped collection, 2 GB by default
       - CACHE_MONGO_SIZE=200
-      # the audience page of the back-office embeds this service
-      - EXTRA_NAV_ITEMS=[{"id":"metrics","iframe":"/metrics/embed/home","basePath":"/metrics","icon":"mdi-chart-bar","title":"Audience","subtitle":"Téléchargements, API"}]
+      # this repo's integration: the audience page of the back-office, the API document merged by data-fair
+      - PRIVATE_METRICS_URL=http://localhost:${DEV_API_PORT}
     volumes:
       # the image declares an anonymous /data: datasets files would vanish on recreate while mongo keeps them
       - data-fair-data:/data
