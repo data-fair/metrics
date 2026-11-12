@@ -347,6 +347,7 @@
 <script setup lang="ts">
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { fetchOwnerNames, ownerKey, type OwnerRef } from '~/utils/owners'
+import { refererCategoryLabels } from '~/utils/labels'
 
 const session = useSession()
 
@@ -370,14 +371,6 @@ const userClassLabels: Record<string, string> = {
   external: 'Utilisateur externe',
   ownerAPIKey: "Propriétaire (clé d'API)",
   externalAPIKey: "Utilisateur externe (clé d'API)"
-}
-
-const refererCategoryLabels: Record<string, string> = {
-  backoffice: 'Back-office',
-  embed: 'Vues embarquées',
-  app: 'Applications',
-  mcp: 'MCP',
-  other: 'Autre'
 }
 
 const datasetItems = computed(() => {
