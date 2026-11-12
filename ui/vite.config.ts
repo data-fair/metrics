@@ -20,10 +20,15 @@ const envPort = (name: string) => {
 // https://vitejs.dev/config/
 export default defineConfig(({ command, isPreview }) => ({
   base: '/metrics',
-  optimizeDeps: { include: ['debug'] },
+  optimizeDeps: {
+    // no discovery: a dependency found while browsing reloads the page, which breaks cold runs;
+    // ESM dependencies are served as is, only the commonjs ones must be listed here
+    noDiscovery: true,
+    include: ['debug']
+  },
   resolve: {
     alias: {
-      '~': path.resolve(__dirname, 'src/')
+      '~': path.resolve(import.meta.dirname, 'src/')
     },
   },
   html: {
@@ -31,8 +36,9 @@ export default defineConfig(({ command, isPreview }) => ({
   },
   plugins: [
     VueRouter({
-      dts: './dts/route-map.d.ts',
-      exclude: process.env.NODE_ENV === 'development' ? [] : ['src/pages/dev.vue']
+      dts: './dts/typed-router.d.ts',
+      // by the vite command, not NODE_ENV that a build can inherit by mistake
+      exclude: command === 'build' ? ['src/pages/dev.vue', 'src/pages/dev/**'] : []
     }),
     Vue(),
     VueI18nPlugin(),

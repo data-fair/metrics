@@ -11,5 +11,6 @@ assertValid(apiConfig, { lang: 'en', name: 'config', internal: true })
 
 export default apiConfig as ApiConfig
 
-export type UiConfig = {}
-export const uiConfig: UiConfig = {}
+// the fields exposed to the browser, listed one by one (none yet)
+export const uiConfig = {}
+export type UiConfig = typeof uiConfig
