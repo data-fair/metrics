@@ -114,8 +114,6 @@ export function pushLogLine (line: LogLine) {
   const date = new Date()
   const day = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
 
-  // @test:spy("parsedLine", [day, line])
-
   // process/extract info from log line
   const operationId = line[13].match(idPropRegexp)?.[1]
   const operationTrack = line[13].match(trackPropRegexp)?.[1]
@@ -194,14 +192,12 @@ export function pushLogLine (line: LogLine) {
     }
     const bulk = getBulk()
     bulk?.execute().then(() => {
-      // @test:spy("sentBulkMaxSize", bulk.batches.length)
     })
   } else if (!timeout) {
     timeout = setTimeout(async () => {
       timeout = null
       const bulk = getBulk()
       bulk?.execute().then(() => {
-        // @test:spy("sentBulkDelay", bulk.batches.length)
       })
     }, config.maxDelayMS)
   }

@@ -1,19 +1,23 @@
 import { describe, it, before, after, beforeEach } from 'node:test'
 import { strict as assert } from 'node:assert'
-import * as testSpies from '@data-fair/lib-node/test-spies.js'
 import mongo from '@data-fair/lib-node/mongo.js'
-import { axiosAuth, clean, startApiServer, stopApiServer, startDaemonServer, stopDaemonServer } from './utils/index.ts'
+import { axiosAuth, clean, connectDevEnv, disconnectDevEnv } from './utils/index.ts'
 
-testSpies.registerModuleHooks()
+// the daemon pane writes its bulk at most 1 s after a log line (daemon/config/development.mjs maxDelayMS)
+const waitForMetric = async (datasetId: string) => {
+  for (let i = 0; i < 50; i++) {
+    const doc = await mongo.db.collection('daily-api-metrics').findOne({ 'resource.id': datasetId })
+    if (doc) return doc
+    await new Promise(resolve => setTimeout(resolve, 200))
+  }
+  throw new Error('no metric written within 10s: is the daemon pane running? "npx --no df-dev logs daemon"')
+}
 
 const adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
 
 describe('daily api metrics', () => {
-  before(startApiServer)
-  after(stopApiServer)
-
-  before(startDaemonServer)
-  after(stopDaemonServer)
+  before(connectDevEnv)
+  after(disconnectDevEnv)
 
   beforeEach(clean)
 
@@ -23,17 +27,14 @@ describe('daily api metrics', () => {
       title: 'd1',
       schema: [{ key: 'prop1', type: 'string' }]
     })).data
-    const [rawLine, [day, parsedLine]] = await Promise.all([
-      testSpies.waitFor('rawLine'),
-      testSpies.waitFor<[string, string]>('parsedLine'),
-      adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
-    ])
-    assert.ok(rawLine)
-    assert.equal(day.length, 10)
-    assert.ok(Array.isArray(parsedLine))
-    assert.equal(parsedLine[0], process.env.DEV_HOST)
-    const bulk1 = await testSpies.waitFor('sentBulkDelay')
-    assert.equal(bulk1, 1)
+    await adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
+    const doc = await waitForMetric(dataset.id)
+    assert.equal(doc.day.length, 10)
+    assert.equal(doc.owner.type, 'user')
+    assert.equal(doc.owner.id, 'superadmin')
+    assert.equal(doc.operationTrack, 'readDataAPI')
+    assert.equal(doc.statusClass, 'ok')
+    assert.equal(doc.nbRequests, 1)
   })
 
   describe('referer category classification', () => {
@@ -53,12 +54,9 @@ describe('daily api metrics', () => {
           title: 'd1',
           schema: [{ key: 'prop1', type: 'string' }]
         })).data
-        await Promise.all([
-          testSpies.waitFor('sentBulkDelay'),
-          adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`, referer ? { headers: { Referer: referer } } : {})
-        ])
-        const doc = await mongo.db.collection('daily-api-metrics').findOne({ 'resource.id': dataset.id })
-        assert.equal(doc?.refererCategory, expected)
+        await adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`, referer ? { headers: { Referer: referer } } : {})
+        const doc = await waitForMetric(dataset.id)
+        assert.equal(doc.refererCategory, expected)
       })
     }
   })

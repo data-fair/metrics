@@ -6,7 +6,7 @@ import { describe, it, before, after, beforeEach } from 'node:test'
 import { strict as assert } from 'node:assert'
 import { decodeJwt, decodeProtectedHeader } from 'jose'
 import mongo from '@data-fair/lib-node/mongo.js'
-import { axios, clean, startApiServer, stopApiServer } from './utils/index.ts'
+import { axios, clean, connectDevEnv, disconnectDevEnv } from './utils/index.ts'
 import { nhiSession } from './utils/nhi.ts'
 import { scopedOperations, exportScopesMessage } from '../api/src/scopes.ts'
 
@@ -50,8 +50,8 @@ const dataFairScopeAware = (await axios().get('/data-fair/api/v1/scopes.json', {
 const bearerSkip = decodeJwt((await nhiSession('metrics:read')).accessToken).aud ? false : 'needs a simple-directory issuing access token audiences (SD_IMAGE)'
 
 describe('scope-restricted sessions', () => {
-  before(startApiServer)
-  after(stopApiServer)
+  before(connectDevEnv)
+  after(disconnectDevEnv)
   beforeEach(async () => {
     await clean()
     await mongo.db.collection('daily-api-metrics').insertMany([

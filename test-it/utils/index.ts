@@ -1,5 +1,4 @@
 import type { AxiosAuthOptions } from '@data-fair/lib-node/axios-auth.js'
-import childProcess from 'node:child_process'
 import { axiosBuilder } from '@data-fair/lib-node/axios.js'
 import { privateHttpAgent } from '@data-fair/lib-node/http-agents.js'
 import { axiosAuth as _axiosAuth } from '@data-fair/lib-node/axios-auth.js'
@@ -28,27 +27,17 @@ export const clean = async () => {
   }
 }
 
-process.env.SUPPRESS_NO_CONFIG_WARNING = '1'
-
-export const startApiServer = async () => {
-  process.env.NODE_CONFIG_DIR = './api/config/'
-  const apiServer = await import('../../api/src/server.ts')
-  await apiServer.start()
+/**
+ * The dev environment is the test environment: the tests call the api pane through nginx, the access logs reach the
+ * daemon pane, and the fixtures are written in the database of the dev processes (metrics-development).
+ */
+export const connectDevEnv = async () => {
+  const apiUrl = `http://localhost:${process.env.DEV_API_PORT}/metrics/api/api-docs.json`
+  const ready = await fetch(apiUrl, { signal: AbortSignal.timeout(2000) }).then(res => res.ok, () => false)
+  if (!ready) throw new Error(`the api pane does not answer on ${apiUrl}: start the dev environment (npm run dev-zellij), check it with "npx --no df-dev logs api" / "npx --no df-dev restart api"`)
+  await mongo.connect(`mongodb://localhost:${process.env.MONGO_PORT}/metrics-development`)
 }
 
-export const stopApiServer = async () => {
-  const apiServer = await import('../../api/src/server.ts')
-  await apiServer.stop()
-}
-
-export const startDaemonServer = async () => {
-  process.env.NODE_CONFIG_DIR = './daemon/config/'
-  const daemonServer = await import('../../daemon/src/server.ts')
-  await daemonServer.start()
-  childProcess.execSync('docker compose exec nginx nginx -s reload')
-}
-
-export const stopDaemonServer = async () => {
-  const daemonServer = await import('../../daemon/src/server.ts')
-  await daemonServer.stop()
+export const disconnectDevEnv = async () => {
+  await mongo.client.close()
 }

@@ -7,7 +7,7 @@
 import { describe, it, before, after } from 'node:test'
 import { strict as assert } from 'node:assert'
 import mongo from '@data-fair/lib-node/mongo.js'
-import { axiosAuth, clean, startApiServer, stopApiServer } from './utils/index.ts'
+import { axiosAuth, clean, connectDevEnv, disconnectDevEnv } from './utils/index.ts'
 
 const adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
 const orgAx = await axiosAuth({ email: 'admin1@test.com', org: 'orga1' })
@@ -64,11 +64,11 @@ const agg = async (query: Record<string, string | string[]>, ax = adminAx) => {
 const totals = (result: any) => result.series.map((s: any) => [s.key, s.nbRequests])
 
 describe('aggregation of daily metrics', () => {
-  before(startApiServer)
+  before(connectDevEnv)
   before(clean)
   before(async () => { await mongo.db.collection('daily-api-metrics').insertMany(fixtures.map(toDoc)) })
   after(clean)
-  after(stopApiServer)
+  after(disconnectDevEnv)
 
   describe('series format (default)', () => {
     it('splits by day by default, filling every day of the period', async () => {

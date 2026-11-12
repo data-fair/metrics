@@ -20,7 +20,8 @@ through `df-dev` (package `@data-fair/lib-dev`, always `npx --no`):
   (the watchers restart on half-installed modules).
 - The ports of this checkout are in `.env` (`dev/dev.json` "ports"), the dev page is
   `http://$DEV_HOST:$NGINX_PORT/metrics/dev`.
-- The tests start their own API on `DEV_API_PORT`: they need the `api` pane stopped.
+- The tests (`npm run test`) run against the `api` and `daemon` panes and empty the `daily-api-metrics` collection
+  of the development database.
 
 ## Logging
 

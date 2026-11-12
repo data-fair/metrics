@@ -7,5 +7,7 @@ export default {
   },
   observer: {
     active: false
-  }
+  },
+  // the tests wait for the metrics of their requests (production: 10 s)
+  maxDelayMS: 1000
 }

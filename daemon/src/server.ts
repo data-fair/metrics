@@ -24,7 +24,6 @@ import { pushLogLine, getBulk } from './service.ts'
 const logLineRegexp = /.*? df: (.*)/
 
 export const parseLogLine = (logLine: string) => {
-  // @test:spy("rawLine", logLine)
   const match = logLine.match(logLineRegexp)
   if (!match) throw new Error('regexp did not match')
   return JSON.parse(match[1]) as LogLine

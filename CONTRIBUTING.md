@@ -50,7 +50,7 @@ docker build --progress=plain --target=daemon -t data-fair/metrics/daemon:dev .
 
 ## Running the tests
 
-The tests need the containers of the dev environment, and start their own API on `DEV_API_PORT`: stop the `api` pane first (Ctrl+C in the pane), restart it after.
+The dev environment is the test environment: the tests run against the `api` and `daemon` panes of the running zellij session, through nginx, and write their fixtures in the development database (they empty its `daily-api-metrics` collection). The pre-push hook (`dev/pre-push.sh`) runs the type check and the tests, the CI the whole `npm run quality`.
 
 Run the tests:
 

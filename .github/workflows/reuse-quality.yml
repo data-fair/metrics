@@ -27,9 +27,33 @@ jobs:
     - name: Start dev dependencies
       run: docker compose --profile '*' up -d --wait
 
+    # the API imports the generated types and reads ui/dist at startup
+    - name: Build types and UI
+      run: npm run build-types && npm -w ui run build
+
+    # the dev environment is the test environment: the commands of the api and daemon panes of .zellij.kdl,
+    # each writing dev/logs/<pane>.log (uploaded on failure)
+    - name: Start dev API and daemon
+      run: |
+        set -a && . ./.env && set +a
+        mkdir -p dev/logs
+        (cd api && NODE_ENV=development node index.ts > ../dev/logs/api.log 2>&1 &)
+        (cd daemon && umask 0 && NODE_ENV=development node index.ts > ../dev/logs/daemon.log 2>&1 &)
+        if ! timeout 60 bash -c "until curl -sf http://localhost:$DEV_API_PORT/metrics/api/api-docs.json >/dev/null; do sleep 1; done"; then
+          tail -n 100 dev/logs/api.log
+          exit 1
+        fi
+
     - name: Run quality checks
       run: npm run quality
 
     - name: Containers logs
       if: failure()
       run: docker compose --profile '*' logs
+
+    - name: Upload process logs
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: dev-logs
+        path: dev/logs/
