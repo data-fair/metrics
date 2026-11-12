@@ -162,7 +162,7 @@ const metricDefs = computed<MetricDef[]>(() => {
   }
   return [
     { title: 'ouvertures', filter: { ...resourceFilter.value, operationTrack: 'openApplication' }, metric: 'nbRequests' },
-    { title: "appels d'API via la visualisation", filter: { ...viaAppFilter.value, operationTrack: 'readDataAPI' }, metric: 'nbRequests' },
+    { title: "appels d'API générés", filter: { ...viaAppFilter.value, operationTrack: 'readDataAPI' }, metric: 'nbRequests' },
     { title: 'volume de données chargé', filter: viaAppFilter.value, metric: 'bytes' }
   ]
 })
