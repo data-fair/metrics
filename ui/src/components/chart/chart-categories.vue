@@ -13,6 +13,7 @@
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useDisplay, useTheme } from 'vuetify'
 import { useI18n } from 'vue-i18n'
+import { ownerKey } from '~/utils/owners'
 
 const props = withDefaults(defineProps<{
   title: string
@@ -38,6 +39,7 @@ const getLabel = (serie: any, category: string, labels: Record<string, string> |
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (category === 'userClass') return te(`userClasses.${serie.key.userClass}`) ? t(`userClasses.${serie.key.userClass}`) : serie.key.userClass
+  if (category === 'owner') return labels?.[ownerKey(serie.key.owner)] ?? serie.key.owner.id
   if (serie.key[category] === 'none') return t('unknown')
   if (serie.key[category] === null || serie.key[category] === undefined) return t('none')
   if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
@@ -145,7 +147,11 @@ const fetchPeriod = async (period: { start: string, end: string }) => {
   }
 }
 
-const serieKey = (serie: any) => props.category === 'resource' ? serie.key.resource.id : serie.key[props.category]
+const serieKey = (serie: any) => {
+  if (props.category === 'resource') return serie.key.resource.id
+  if (props.category === 'owner') return ownerKey(serie.key.owner)
+  return serie.key[props.category]
+}
 
 // a response to an older filter or period, slower than the current one, is dropped
 let fetchId = 0
