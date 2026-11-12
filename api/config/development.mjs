@@ -6,5 +6,9 @@ export default {
   privateDirectoryUrl: `http://localhost:${process.env.SD_PORT}`,
   mongo: {
     url: `mongodb://localhost:${process.env.MONGO_PORT}/metrics-development`
+  },
+  // the observer listens on a fixed port (9090), the APIs of two worktrees would collide on it
+  observer: {
+    active: false
   }
 }
