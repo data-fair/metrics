@@ -8,12 +8,12 @@
     "test-only": "node --env-file-if-exists=.env --test-force-exit --test-only --test-concurrency=1 --test test-it/*.ts",
     "lint": "eslint . && npm -w ui run lint",
     "lint-fix": "eslint --fix . && npm -w ui run lint-fix",
-    "check-types": "tsc",
+    "check-types": "tsc && npm -w ui run check-types",
     "stop-dev-deps": "docker compose --profile '*' stop",
     "dev-zellij": "df-dev zellij",
     "build-types": "df-build-types ./",
     "prepare": "husky || true",
-    "quality": "npm run lint && npm run build-types && npm run check-types && npm -w ui run build && npm run test && npm audit --omit=dev --audit-level=critical"
+    "quality": "npm run lint && npm run build-types && npm -w ui run build && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
   },
   "imports": {
     "#api/types": "./api/types/index.ts"
@@ -26,20 +26,22 @@
     "daemon"
   ],
   "engines": {
-    "node": "v24"
+    "node": ">=24.22.1"
   },
   "dependencies": {
-    "@data-fair/lib-node": "^3.0.0",
-    "@data-fair/lib-types-builder": "^1.11.6"
+    "@data-fair/lib-types-builder": "^1.14.6"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.3",
     "@data-fair/lib-dev": "^0.1.2",
+    "@data-fair/lib-node": "^3.0.0",
     "@data-fair/lib-utils": "^1.10.1",
     "@data-fair/openapi-mcp": "^0.10.0",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.6",
-    "commitlint": "^21.2.3",
+    "@types/node": "^24.19.2",
+    "dotenv": "^17.4.2",
     "eslint": "^10.14.0",
     "eslint-plugin-vue": "^10.4.0",
     "eslint-plugin-vuetify": "^2.7.2",
