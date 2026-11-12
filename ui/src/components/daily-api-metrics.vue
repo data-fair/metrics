@@ -6,7 +6,7 @@
           v-model="metric"
           :items="metricItems"
           :return-object="false"
-          label="Métrique"
+          :label="t('metric')"
         />
       </v-col>
       <v-col>
@@ -14,7 +14,7 @@
           v-model="split"
           :items="splitItems"
           :return-object="false"
-          label="Groupe par"
+          :label="t('groupBy')"
         />
       </v-col>
       <v-col>
@@ -22,7 +22,7 @@
           v-model="filters.statusClass"
           :items="statusClasses"
           :return-object="false"
-          label="Statut de la réponse"
+          :label="t('responseStatus')"
         />
       </v-col>
       <v-col>
@@ -30,7 +30,7 @@
           v-model="filters.userClass"
           :items="userClasses"
           :return-object="false"
-          label="Type d'utilisateur"
+          :label="t('userType')"
         />
       </v-col>
     </v-row>
@@ -49,7 +49,7 @@ import { useI18n } from 'vue-i18n'
 import { useDisplay } from 'vuetify'
 
 const { dayjs } = useLocaleDayjs()
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 const display = useDisplay()
 
 const filters = reactive({ statusClass: 'ok', userClass: null as string | null })
@@ -60,32 +60,20 @@ const data = useFetch('daily-api-metrics/_agg', { query: { split, ...filters } }
 
 let chartInstance: InstanceType<typeof chart.Chart> | null = null
 
-const statusClasses = [
-  { value: 'ok', title: 'ok' },
-  { value: 'redirect', title: 'redirection (ok mais sans corps de réponse)' },
-  { value: 'clientError', title: "erreur de l'appelant" },
-  { value: 'serverError', title: 'erreur du serveur' }
-]
+const statusClasses = computed(() => ['ok', 'redirect', 'clientError', 'serverError']
+  .map(value => ({ value, title: t(`statusClasses.${value}`) })))
 
-const userClasses = [
-  { value: null, title: 'tous' },
-  { value: 'anonymous', title: 'anonyme' },
-  { value: 'owner', title: 'Propriétaire' },
-  { value: 'external', title: 'utilisateur externe' },
-  { value: 'ownerAPIKey', title: "Propriétaire (clé d'API)" },
-  { value: 'externalAPIKey', title: "utilisateur externe (clé d'API)" }
-]
+const userClasses = computed(() => [
+  { value: null, title: t('userClasses.all') },
+  ...['anonymous', 'owner', 'external', 'ownerAPIKey', 'externalAPIKey']
+    .map(value => ({ value, title: t(`userClasses.${value}`) }))
+])
 
-const splitItems = [
-  { value: 'resource', title: 'Jeu de données' },
-  { value: 'refererDomain', title: "Domaine d'origine" },
-  { value: 'operationTrack', title: 'Type de requête' }
-]
+const splitItems = computed(() => ['resource', 'refererDomain', 'operationTrack']
+  .map(value => ({ value, title: t(`splits.${value}`) })))
 
-const metricItems = [
-  { value: 'nbRequests', title: 'Nombre de requêtes' },
-  { value: 'bytes', title: 'Volume de données' }
-]
+const metricItems = computed(() => ['nbRequests', 'bytes']
+  .map(value => ({ value, title: t(`metrics.${value}`) })))
 
 const chartConfig = computed(() => {
   if (!data.value) return null
@@ -100,11 +88,7 @@ const chartConfig = computed(() => {
           label: {
             resource: (key: any) => decodeURIComponent(key.resource.title),
             refererDomain: (key: any) => key.refererDomain,
-            operationTrack: (key: any) => ({
-              readDataAPI: 'API de données',
-              readDataFiles: 'Téléchargement de fichiers de données',
-              openApplication: "Ouverture d'une visualisation"
-            } as Record<string, string>)[key.operationTrack]
+            operationTrack: (key: any) => t(`operationTracks.${key.operationTrack}`)
           }[split.value as 'resource' | 'refererDomain' | 'operationTrack']?.(serie.key),
           data: data.value.days.map((day: string) => serie.days[day] ? serie.days[day][metric.value] : 0),
           backgroundColor: ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02', '#a6761d', '#666666'][i]
@@ -151,3 +135,62 @@ onUnmounted(() => {
 
 <style scoped>
 </style>
+
+<i18n lang="yaml">
+en:
+  metric: Metric
+  groupBy: Group by
+  responseStatus: Response status
+  userType: User type
+  statusClasses:
+    ok: OK
+    redirect: Redirect (OK but without a response body)
+    clientError: Caller error
+    serverError: Server error
+  userClasses:
+    all: All
+    anonymous: Anonymous
+    owner: Owner
+    external: External user
+    ownerAPIKey: Owner (API key)
+    externalAPIKey: External user (API key)
+  splits:
+    resource: Dataset
+    refererDomain: Origin domain
+    operationTrack: Request type
+  metrics:
+    nbRequests: Number of requests
+    bytes: Data volume
+  operationTracks:
+    readDataAPI: Data API
+    readDataFiles: Data files download
+    openApplication: Application opening
+fr:
+  metric: Métrique
+  groupBy: Grouper par
+  responseStatus: Statut de la réponse
+  userType: Type d'utilisateur
+  statusClasses:
+    ok: OK
+    redirect: Redirection (OK mais sans corps de réponse)
+    clientError: Erreur de l'appelant
+    serverError: Erreur du serveur
+  userClasses:
+    all: Tous
+    anonymous: Anonyme
+    owner: Propriétaire
+    external: Utilisateur externe
+    ownerAPIKey: Propriétaire (clé d'API)
+    externalAPIKey: Utilisateur externe (clé d'API)
+  splits:
+    resource: Jeu de données
+    refererDomain: Domaine d'origine
+    operationTrack: Type de requête
+  metrics:
+    nbRequests: Nombre de requêtes
+    bytes: Volume de données
+  operationTracks:
+    readDataAPI: API de données
+    readDataFiles: Téléchargement de fichiers de données
+    openApplication: Ouverture d'une visualisation
+</i18n>
