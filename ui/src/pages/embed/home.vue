@@ -3,46 +3,182 @@
     <v-toolbar
       class="mb-4"
       variant="tonal"
+      height="auto"
       rounded
     >
-      <v-icon
-        :icon="mdiCalendarRange"
-        class="mx-4"
-        color="primary"
-        size="x-large"
-      />
-      <filter-period @update:model-value="(v: any) => periods = v" />
-      <v-spacer />
-      <v-btn
-        :prepend-icon="mdiTableArrowDown"
-        :href="exportUrl"
-        class="mx-4"
-        color="primary"
-        variant="elevated"
-      >
-        {{ t('export') }}
-      </v-btn>
+      <!-- two rows when the super admin view is on: the owner filter under the period fields, as wide as them -->
+      <div class="d-flex align-start flex-wrap w-100">
+        <div class="d-flex flex-column">
+          <div class="toolbar-row">
+            <v-icon
+              :icon="mdiCalendarRange"
+              class="mx-4"
+              color="primary"
+              size="x-large"
+            />
+          </div>
+          <div
+            v-if="adminMode && showAll"
+            class="toolbar-row"
+          >
+            <v-icon
+              :icon="mdiShieldAccount"
+              class="mx-4"
+              color="admin"
+              size="x-large"
+            />
+          </div>
+        </div>
+        <div class="d-flex flex-column period-fields">
+          <div class="toolbar-row">
+            <filter-period @update:model-value="(v: any) => periods = v" />
+          </div>
+          <div
+            v-if="adminMode && showAll"
+            class="toolbar-row"
+          >
+            <v-autocomplete
+              v-model="owners"
+              :loading="ownerLoading"
+              :items="ownerItems"
+              variant="outlined"
+              density="compact"
+              :label="t('owner')"
+              color="admin"
+              class="mr-4"
+              hide-details
+              clearable
+              multiple
+              chips
+              closable-chips
+            />
+          </div>
+        </div>
+        <div class="toolbar-row flex-shrink-0">
+          <chart-legend />
+        </div>
+        <div class="toolbar-row ml-auto flex-shrink-0">
+          <!-- super admin: the metrics of every account, optionally restricted to some owners -->
+          <v-switch
+            v-if="adminMode"
+            v-model="showAll"
+            color="admin"
+            :label="t('showAllAccounts')"
+            density="compact"
+            class="ml-4 flex-grow-0 flex-shrink-0 text-admin text-no-wrap"
+            hide-details
+          />
+          <v-btn
+            :prepend-icon="mdiTableArrowDown"
+            :href="exportUrl"
+            class="mx-4"
+            color="primary"
+            variant="elevated"
+          >
+            {{ t('export') }}
+          </v-btn>
+        </div>
+      </div>
     </v-toolbar>
     <template v-if="periods">
+      <template v-if="adminMode">
+        <v-row
+          v-if="showAll"
+          class="mb-4"
+          density="compact"
+        >
+          <chart-categories
+            :title="t('chartTitles.apiCallsByOwner')"
+            category="owner"
+            :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI', ...adminFilter }"
+            :periods="periods"
+            :labels="ownerNames"
+          />
+          <chart-categories
+            :title="t('chartTitles.downloadsByOwner')"
+            category="owner"
+            :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles', ...adminFilter }"
+            :periods="periods"
+            :labels="ownerNames"
+          />
+          <chart-categories
+            :title="t('chartTitles.applicationOpeningsByOwner')"
+            category="owner"
+            :filter="{ statusClass: 'ok', operationTrack: 'openApplication', ...adminFilter }"
+            :periods="periods"
+            :labels="ownerNames"
+          />
+        </v-row>
+
+        <!-- super admin: every request whatever its status, its volume and its error rate -->
+        <template v-if="showAll">
+          <v-row density="compact">
+            <v-col
+              v-for="(metric, i) in adminMetrics"
+              :key="i"
+              cols="12"
+              sm="4"
+            >
+              <chart-simple-metric
+                :value="metric.value"
+                :title="metric.title"
+                :subtitle="metric.subtitle"
+                :loading="metric.loading"
+                :trend="metric.trend"
+                :invert-trend="metric.invertTrend"
+              />
+            </v-col>
+          </v-row>
+          <v-row
+            class="mb-4"
+            density="compact"
+          >
+            <chart-categories
+              :title="t('chartTitles.requestsByStatusClass')"
+              category="statusClass"
+              :filter="adminFilter"
+              :periods="periods"
+              :labels="statusClassLabels"
+            />
+            <chart-categories
+              :title="t('chartTitles.bytesByOperationTrack')"
+              category="operationTrack"
+              metric="bytes"
+              :filter="adminFilter"
+              :periods="periods"
+              :labels="operationTrackLabels"
+            />
+            <chart-categories
+              :title="t('chartTitles.bytesByOwner')"
+              category="owner"
+              metric="bytes"
+              :filter="adminFilter"
+              :periods="periods"
+              :labels="ownerNames"
+            />
+          </v-row>
+        </template>
+      </template>
+
       <v-row density="compact">
         <chart-categories
           :title="t('chartTitles.downloadsByDataset')"
           category="resource"
-          :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles' }"
+          :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles', ...adminFilter }"
           :periods="periods"
           @update:agg="(v: any) => aggResultDataFiles = v"
         />
         <chart-categories
           :title="t('chartTitles.apiCallsByDataset')"
           category="resource"
-          :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI' }"
+          :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI', ...adminFilter }"
           :periods="periods"
           @update:agg="(v: any) => aggResultDataAPI = v"
         />
         <chart-categories
           :title="t('chartTitles.applicationOpenings')"
           category="resource"
-          :filter="{ statusClass: 'ok', operationTrack: 'openApplication' }"
+          :filter="{ statusClass: 'ok', operationTrack: 'openApplication', ...adminFilter }"
           :periods="periods"
           @update:agg="(v: any) => aggResultOpenApp = v"
         />
@@ -149,7 +285,7 @@
         </v-autocomplete>
       </v-toolbar>
 
-      <v-row>
+      <v-row density="compact">
         <v-col
           v-for="(metric, i) in simpleMetrics"
           :key="i"
@@ -210,8 +346,10 @@
 
 <script setup lang="ts">
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
+import { fetchOwnerNames, ownerKey, type OwnerRef } from '~/utils/owners'
 import { useI18n } from 'vue-i18n'
 
+const session = useSession()
 const { t, te, locale } = useI18n()
 
 const periods = ref<any>(null)
@@ -261,8 +399,91 @@ const userClassItems = computed(() => {
   })
 })
 
+// super admin view: the metrics of every account, optionally restricted to some owners
+const adminMode = computed(() => !!session.user.value?.adminMode)
+const showAll = useBooleanSearchParam('showAll')
+const owners = useStringsArraySearchParam('owners')
+const ownerAgg = ref<any>(null)
+const ownerLoading = ref(false)
+const ownerNames = ref<Record<string, string>>({})
+
+const adminFilter = computed(() => {
+  if (!adminMode.value || !showAll.value) return {}
+  const filter: Record<string, any> = { showAll: 'true' }
+  if (owners.value.length) filter.owner = owners.value
+  return filter
+})
+
+const ownerItems = computed(() => {
+  if (!ownerAgg.value) return []
+  return ownerAgg.value.series.map((serie: any) => {
+    const value = ownerKey(serie.key.owner)
+    return { title: ownerNames.value[value] ?? serie.key.owner.id, value }
+  })
+})
+
+watch(showAll, (value) => {
+  if (!value) owners.value = []
+})
+
+const statusClassLabels = computed<Record<string, string>>(() => Object.fromEntries(
+  ['info', 'ok', 'redirect', 'clientError', 'serverError'].map(key => [key, t(`statusClasses.${key}`)])
+))
+
+const operationTrackLabels = computed<Record<string, string>>(() => Object.fromEntries(
+  ['readDataAPI', 'readDataFiles', 'openApplication'].map(key => [key, t(`operationTracks.${key}`)])
+))
+
+// totals by status class of the current and previous periods, whatever the status
+const statusClassAgg = ref<{ current: any, previous: any } | null>(null)
+
+watch([periods, adminFilter], async () => {
+  if (!periods.value || !adminFilter.value.showAll) return
+  statusClassAgg.value = null
+  const fetchPeriod = (period: { start: string, end: string }) => $fetch('daily-api-metrics/_agg', {
+    query: { split: 'statusClass', ...adminFilter.value, start: period.start, end: period.end }
+  })
+  try {
+    const [current, previous] = await Promise.all([fetchPeriod(periods.value.current), fetchPeriod(periods.value.previous)])
+    statusClassAgg.value = { current, previous }
+  } catch {
+    statusClassAgg.value = null
+  }
+}, { immediate: true, deep: true })
+
+const getTrend = (current: number, previous: number) => current > previous ? 'up' : current < previous ? 'down' : 'neutral'
+const formatRate = (rate: number) => rate.toLocaleString(locale.value, { style: 'percent', maximumFractionDigits: 2 })
+
+type AdminMetric = { loading?: boolean, value?: string, title?: string, subtitle?: string, trend?: string, invertTrend?: boolean }
+
+const adminMetrics = computed<AdminMetric[]>(() => {
+  if (!statusClassAgg.value) return Array.from({ length: 3 }, () => ({ loading: true }))
+  const { current, previous } = statusClassAgg.value
+  const classCount = (agg: any, statusClass: string) => agg.series.find((s: any) => s.key.statusClass === statusClass)?.nbRequests ?? 0
+  const errorRate = (agg: any) => agg.nbRequests ? (classCount(agg, 'clientError') + classCount(agg, 'serverError')) / agg.nbRequests : 0
+  const currentErrorRate = errorRate(current)
+  const previousErrorRate = errorRate(previous)
+  return [{
+    value: current.nbRequests.toLocaleString(locale.value),
+    title: t('adminMetrics.requests', current.nbRequests),
+    subtitle: t('onPreviousPeriod', { value: previous.nbRequests.toLocaleString(locale.value) }),
+    trend: getTrend(current.nbRequests, previous.nbRequests)
+  }, {
+    value: formatBytes(current.bytes, locale.value),
+    title: t('adminMetrics.bytes'),
+    subtitle: t('onPreviousPeriod', { value: formatBytes(previous.bytes, locale.value) }),
+    trend: getTrend(current.bytes, previous.bytes)
+  }, {
+    value: formatRate(currentErrorRate),
+    title: t('adminMetrics.errorRate'),
+    subtitle: t('onPreviousPeriod', { value: formatRate(previousErrorRate) }),
+    trend: getTrend(currentErrorRate, previousErrorRate),
+    invertTrend: true
+  }]
+})
+
 const baseFilter = computed(() => {
-  const filter: any = { statusClass: 'ok' }
+  const filter: any = { statusClass: 'ok', ...adminFilter.value }
   if (datasets.value.length) filter.resourceId = datasets.value
   if (refererDomains.value.length) filter.refererDomain = refererDomains.value
   if (userClasses.value.length) filter.userClass = userClasses.value
@@ -270,14 +491,14 @@ const baseFilter = computed(() => {
 })
 
 const refererDomainOptionFilter = computed(() => {
-  const filter: any = { statusClass: 'ok' }
+  const filter: any = { statusClass: 'ok', ...adminFilter.value }
   if (datasets.value.length) filter.resourceId = datasets.value
   if (userClasses.value.length) filter.userClass = userClasses.value
   return filter
 })
 
 const userClassOptionFilter = computed(() => {
-  const filter: any = { statusClass: 'ok' }
+  const filter: any = { statusClass: 'ok', ...adminFilter.value }
   if (datasets.value.length) filter.resourceId = datasets.value
   if (refererDomains.value.length) filter.refererDomain = refererDomains.value
   return filter
@@ -436,6 +657,14 @@ const exportUrl = computed(() => {
   return `${$apiPath}/daily-api-metrics/_export?start=${periods.value.current.start}&end=${periods.value.current.end}`
 })
 
+watch([periods, adminMode, showAll], async () => {
+  if (!adminMode.value || !showAll.value) return
+  await fetchOptionAgg('owner', { statusClass: 'ok', showAll: 'true' }, ownerAgg, ownerLoading)
+  const missing = (ownerAgg.value?.series ?? []).map((s: any) => s.key.owner as OwnerRef)
+    .filter((owner: OwnerRef) => !(ownerKey(owner) in ownerNames.value))
+  if (missing.length) ownerNames.value = { ...ownerNames.value, ...await fetchOwnerNames(missing) }
+}, { immediate: true })
+
 watch([periods, refererDomainOptionFilter], async () => {
   await fetchOptionAgg('refererDomain', refererDomainOptionFilter.value, refererDomainAgg, refererDomainLoading)
 }, { immediate: true, deep: true })
@@ -455,7 +684,20 @@ watch([periods, baseFilter], async () => {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+}
+/* the period fields keep their size (select from 200px to 400px, dates 150px each, with their
+   right margins), the owner filter below takes the same width; the basis is the minimum so the
+   column grows in the free space instead of pushing the rest of the bar to the next line */
+.period-fields {
+  flex: 1 1 548px;
+  max-width: 748px;
+}
+</style>
 
 <i18n lang="yaml">
 en:
@@ -478,6 +720,28 @@ en:
     requestsByUserClass: Requests / user category
     requestsByApplication: Requests / application
     requestsByRefererCategory: Requests / consumers
+    apiCallsByOwner: API calls / owner
+    downloadsByOwner: Downloads / owner
+    applicationOpeningsByOwner: Application openings / owner
+    requestsByStatusClass: Requests / status class
+    bytesByOperationTrack: Volume / operation type
+    bytesByOwner: Volume / owner
+  owner: Owner
+  showAllAccounts: Show every account
+  adminMetrics:
+    requests: requests (any status) | request (any status) | requests (any status)
+    bytes: data volume served
+    errorRate: of errors (4xx and 5xx)
+  statusClasses:
+    info: Information (1xx)
+    ok: Success (2xx)
+    redirect: Redirect (3xx)
+    clientError: Client error (4xx)
+    serverError: Server error (5xx)
+  operationTracks:
+    readDataAPI: API calls
+    readDataFiles: Downloads
+    openApplication: Applications
   userClasses:
     anonymous: Anonymous
     owner: Owner
@@ -510,6 +774,28 @@ fr:
     requestsByUserClass: Requêtes / catégorie d'utilisateur
     requestsByApplication: Requêtes / visualisation
     requestsByRefererCategory: Requêtes / consommateurs
+    apiCallsByOwner: Appels API / propriétaire
+    downloadsByOwner: Téléchargements / propriétaire
+    applicationOpeningsByOwner: Ouvertures de visualisations / propriétaire
+    requestsByStatusClass: Requêtes / classe de statut
+    bytesByOperationTrack: Volume / type d'opération
+    bytesByOwner: Volume / propriétaire
+  owner: Propriétaire
+  showAllAccounts: Voir tous les comptes
+  adminMetrics:
+    requests: requête (tous statuts) | requête (tous statuts) | requêtes (tous statuts)
+    bytes: volume de données servi
+    errorRate: d'erreurs (4xx et 5xx)
+  statusClasses:
+    info: Information (1xx)
+    ok: Succès (2xx)
+    redirect: Redirection (3xx)
+    clientError: Erreur client (4xx)
+    serverError: Erreur serveur (5xx)
+  operationTracks:
+    readDataAPI: Appels d'API
+    readDataFiles: Téléchargements
+    openApplication: Visualisations
   userClasses:
     anonymous: Anonyme
     owner: Propriétaire

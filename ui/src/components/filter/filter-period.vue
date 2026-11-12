@@ -5,7 +5,8 @@
     :label="t('period')"
     variant="outlined"
     density="compact"
-    class="mr-4"
+    class="mr-4 flex-grow-1"
+    min-width="200"
     max-width="400"
     hide-details
     @update:model-value="setPeriod"
@@ -20,7 +21,6 @@
     :label="t('end')"
     @update:model-value="emitPeriod"
   />
-  <chart-legend />
 </template>
 
 <script setup lang="ts">

@@ -55,6 +55,7 @@ export default defineConfig(({ command, isPreview }) => ({
             'mdiCalendarRange',
             'mdiDatabase',
             'mdiImageSizeSelectSmall',
+            'mdiShieldAccount',
             'mdiTableArrowDown',
             'mdiTrendingDown',
             'mdiTrendingNeutral',

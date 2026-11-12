@@ -40,7 +40,16 @@
             "resource": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/resourceDef"},
             "refererDomain": {"type": "string"},
             "refererCategory": {"type": "string"},
-            "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"}
+            "userClass": {"$ref": "https://github.com/data-fair/metrics/daily-api-metric#/$defs/userClass"},
+            "owner": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "id"],
+              "properties": {
+                "type": {"type": "string", "enum": ["user", "organization"]},
+                "id": {"type": "string"}
+              }
+            }
           }
         },
         "nbRequests": {

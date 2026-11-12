@@ -13,6 +13,7 @@
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useDisplay, useTheme } from 'vuetify'
 import { useI18n } from 'vue-i18n'
+import { ownerKey } from '~/utils/owners'
 
 const props = withDefaults(defineProps<{
   title: string
@@ -20,9 +21,12 @@ const props = withDefaults(defineProps<{
   filter: Record<string, any>
   periods: Record<string, any>
   labels?: Record<string, string> | null
+  // the value drawn by the bars, the other one stays in the tooltips
+  metric?: 'nbRequests' | 'bytes'
 }>(), {
   category: 'resource',
-  labels: null
+  labels: null,
+  metric: 'nbRequests'
 })
 
 const emit = defineEmits<{
@@ -38,6 +42,7 @@ const getLabel = (serie: any, category: string, labels: Record<string, string> |
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (category === 'userClass') return te(`userClasses.${serie.key.userClass}`) ? t(`userClasses.${serie.key.userClass}`) : serie.key.userClass
+  if (category === 'owner') return labels?.[ownerKey(serie.key.owner)] ?? serie.key.owner.id
   if (serie.key[category] === 'none') return t('unknown')
   if (serie.key[category] === null || serie.key[category] === undefined) return t('none')
   if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
@@ -50,7 +55,7 @@ const large = ref(false)
 let chartInstance: InstanceType<typeof chart.Chart> | null = null
 
 const canvasId = computed(() => {
-  return `chart-categories-${props.category}-${JSON.stringify(props.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
+  return `chart-categories-${props.category}-${props.metric}-${JSON.stringify(props.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
 })
 
 const aspectRatio = computed(() => display.smAndDown.value ? 1 : 2)
@@ -74,8 +79,8 @@ const chartConfig = computed(() => {
   const categories = limitedSeries
     .map((s: any) => ({
       label: getLabel(s, props.category, props.labels),
-      value: s.nbRequests,
-      previousValue: s.previousNbRequests,
+      value: props.metric === 'bytes' ? s.bytes : s.nbRequests,
+      previousValue: props.metric === 'bytes' ? s.previousBytes : s.previousNbRequests,
       tooltip: t('requestsTooltip', { nb: s.nbRequests.toLocaleString(locale.value), bytes: formatBytes(s.bytes, locale.value) }, s.nbRequests),
       previousTooltip: t('previousRequestsTooltip', { nb: s.previousNbRequests.toLocaleString(locale.value), bytes: formatBytes(s.previousBytes, locale.value) }, s.previousNbRequests)
     }))
@@ -103,7 +108,10 @@ const chartConfig = computed(() => {
         x: {
           beginAtZero: true,
           ticks: {
-            precision: 0
+            precision: 0,
+            callback (value: any) {
+              return props.metric === 'bytes' ? formatBytes(value, locale.value) : Number(value).toLocaleString(locale.value)
+            }
           }
         },
         y: {
@@ -165,7 +173,8 @@ const fetchData = async () => {
   aggResultCurrent.series.forEach((serie: any) => {
     const matchingPreviousSerie = aggResultPrevious.series.find((ps: any) => {
       if (props.category === 'resource') return ps.key.resource.id === serie.key.resource.id
-      else return ps.key[props.category] === serie.key[props.category]
+      if (props.category === 'owner') return ownerKey(ps.key.owner) === ownerKey(serie.key.owner)
+      return ps.key[props.category] === serie.key[props.category]
     })
     if (!matchingPreviousSerie) {
       serie.previousNbRequests = 0

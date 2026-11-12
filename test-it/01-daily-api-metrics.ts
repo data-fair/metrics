@@ -15,18 +15,42 @@ const waitForMetric = async (datasetId: string) => {
 
 const adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
 
+// every dataset adds collections and indexes to the mongo of the dev env, whose open files are limited
+const datasetIds: string[] = []
+const createDataset = async (title: string) => {
+  const dataset = (await adminAx.post('/data-fair/api/v1/datasets', { isRest: true, title, schema: [{ key: 'prop1', type: 'string' }] })).data
+  datasetIds.push(dataset.id)
+  return dataset
+}
+const deleteDatasets = async () => {
+  for (const id of datasetIds.splice(0)) await adminAx.delete(`/data-fair/api/v1/datasets/${id}`)
+}
+
+// after a restart of the daemon pane, nginx still writes to the previous socket: its first log line is
+// lost, then it reconnects. Send requests until one reaches the database, so the tests start on a
+// working pipeline.
+const primeLogPipeline = async () => {
+  const dataset = await createDataset('prime')
+  for (let i = 0; i < 10; i++) {
+    await adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
+    for (let j = 0; j < 10; j++) {
+      if (await mongo.db.collection('daily-api-metrics').findOne({ 'resource.id': dataset.id })) return
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+  }
+  throw new Error('no metric written after 10 requests: is the daemon pane running? "npx --no df-dev logs daemon"')
+}
+
 describe('daily api metrics', () => {
   before(connectDevEnv)
+  before(primeLogPipeline)
+  after(deleteDatasets)
   after(disconnectDevEnv)
 
   beforeEach(clean)
 
   it('daily metrics should be collected by daemon', async () => {
-    const dataset = (await adminAx.post('/data-fair/api/v1/datasets', {
-      isRest: true,
-      title: 'd1',
-      schema: [{ key: 'prop1', type: 'string' }]
-    })).data
+    const dataset = await createDataset('d1')
     await adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`)
     const doc = await waitForMetric(dataset.id)
     assert.equal(doc.day.length, 10)
@@ -49,11 +73,7 @@ describe('daily api metrics', () => {
 
     for (const { referer, expected } of cases) {
       it(`classifies referer "${referer ?? 'none'}" as "${expected}"`, async () => {
-        const dataset = (await adminAx.post('/data-fair/api/v1/datasets', {
-          isRest: true,
-          title: 'd1',
-          schema: [{ key: 'prop1', type: 'string' }]
-        })).data
+        const dataset = await createDataset('d1')
         await adminAx.get(`/data-fair/api/v1/datasets/${dataset.id}/lines`, referer ? { headers: { Referer: referer } } : {})
         const doc = await waitForMetric(dataset.id)
         assert.equal(doc.refererCategory, expected)
