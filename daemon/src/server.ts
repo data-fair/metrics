@@ -5,7 +5,8 @@ import config from '#config'
 // @ts-ignore
 import unixDgram from 'unix-dgram'
 import mongo from '#mongo'
-import { startObserver, stopObserver, internalError } from '@data-fair/lib-node/observer.js'
+import { startObserver, stopObserver } from '@data-fair/lib-node/observer.js'
+import log from '@data-fair/lib-node/log.js'
 import { pushLogLine, getBulk } from './service.ts'
 
 // inspired by https://github.com/vadimdemedes/syslog-parse/blob/master/source/index.ts
@@ -33,8 +34,7 @@ const socket = unixDgram.createSocket('unix_dgram', (data: Buffer) => {
   try {
     pushLogLine(parseLogLine(data.toString()))
   } catch (err) {
-    console.error('Could not parse log line', err, data.toString())
-    internalError('log-parse', 'could not parse log line', err, data.toString())
+    log.error('could not parse log line', { code: 'log-parse', err, line: data.toString() })
   }
 })
 
@@ -42,7 +42,7 @@ export const start = async () => {
   if (config.observer.active) await startObserver()
   await mongo.init()
 
-  console.log(`attempt to bind to socket ${config.socketPath}`)
+  log.info(`attempt to bind to socket ${config.socketPath}`)
   try {
     await unlink(config.socketPath)
   } catch (err) {
@@ -50,7 +50,7 @@ export const start = async () => {
   }
   socket.bind(config.socketPath)
   await chmod(config.socketPath, '662')
-  console.log(`Metrics daemon listening on ${config.socketPath}`)
+  log.info(`Metrics daemon listening on ${config.socketPath}`)
 }
 
 export const stop = async () => {
