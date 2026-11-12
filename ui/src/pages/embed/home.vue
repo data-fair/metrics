@@ -3,33 +3,45 @@
     <v-toolbar
       class="mb-4"
       variant="tonal"
+      height="auto"
       rounded
     >
-      <v-icon
-        :icon="mdiCalendarRange"
-        class="mx-4"
-        color="primary"
-        size="x-large"
-      />
-      <filter-period @update:model-value="(v: any) => periods = v" />
-      <v-spacer />
-      <v-btn
-        :prepend-icon="mdiTableArrowDown"
-        :href="exportUrl"
-        class="mx-4"
-        color="primary"
-        variant="elevated"
-      >
-        Exporter
-      </v-btn>
-    </v-toolbar>
-    <template v-if="periods">
-      <template v-if="adminMode">
-        <v-toolbar
-          class="mb-4"
-          variant="tonal"
-          height="auto"
-          rounded
+      <div class="d-flex flex-column w-100">
+        <div
+          class="d-flex align-center flex-wrap"
+          style="min-height: 64px"
+        >
+          <v-icon
+            :icon="mdiCalendarRange"
+            class="mx-4"
+            color="primary"
+            size="x-large"
+          />
+          <filter-period @update:model-value="(v: any) => periods = v" />
+          <v-spacer />
+          <!-- super admin: the metrics of every account, optionally restricted to some owners -->
+          <v-switch
+            v-if="adminMode"
+            v-model="showAll"
+            color="admin"
+            label="Voir tous les comptes"
+            density="compact"
+            class="ml-4 flex-grow-0 text-admin"
+            hide-details
+          />
+          <v-btn
+            :prepend-icon="mdiTableArrowDown"
+            :href="exportUrl"
+            class="mx-4"
+            color="primary"
+            variant="elevated"
+          >
+            Exporter
+          </v-btn>
+        </div>
+        <div
+          v-if="adminMode && showAll"
+          class="d-flex align-center pb-3"
         >
           <v-icon
             :icon="mdiShieldAccount"
@@ -37,16 +49,7 @@
             color="admin"
             size="x-large"
           />
-          <v-switch
-            v-model="showAll"
-            color="admin"
-            label="Voir tous les comptes"
-            density="compact"
-            class="mr-4 flex-grow-0 text-admin"
-            hide-details
-          />
           <v-autocomplete
-            v-if="showAll"
             v-model="owners"
             :loading="ownerLoading"
             :items="ownerItems"
@@ -55,14 +58,17 @@
             label="Propriétaire"
             color="admin"
             max-width="600"
-            class="mr-4 my-2"
             hide-details
             clearable
             multiple
             chips
             closable-chips
           />
-        </v-toolbar>
+        </div>
+      </div>
+    </v-toolbar>
+    <template v-if="periods">
+      <template v-if="adminMode">
         <v-row
           v-if="showAll"
           class="mb-4"
