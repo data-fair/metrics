@@ -105,6 +105,13 @@
             },
             "description": "Categories of the calling sites."
           },
+          "refererApp": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Ids of the applications whose pages sent the requests."
+          },
           "size": {
             "type": "integer",
             "minimum": 1,

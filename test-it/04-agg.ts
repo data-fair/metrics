@@ -150,6 +150,8 @@ describe('aggregation of daily metrics', () => {
       // legacy records without refererCategory match "other"
       assert.equal(await nb({ refererCategory: 'other' }), 11)
       assert.equal(await nb({ refererCategory: ['other', 'backoffice'] }), 13)
+      assert.equal(await nb({ refererApp: 'carte' }), 5)
+      assert.equal(await nb({ refererApp: ['carte', 'unknown'] }), 5)
       // like the embed home page: several filters together
       assert.equal(await nb({ statusClass: 'ok', operationTrack: 'readDataAPI', resourceId: ['d1'], refererDomain: ['a.fr'] }), 15)
     })

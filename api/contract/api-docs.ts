@@ -121,6 +121,7 @@ export default (locale: ScopeLocale = 'fr') => ({
           arrayParam('resourceId', { type: 'string' }, 'Resource ids.'),
           arrayParam('refererDomain', { type: 'string' }, 'Domains of the calling sites.'),
           arrayParam('refererCategory', defs.refererCategory, 'Categories of the calling sites.'),
+          arrayParam('refererApp', { type: 'string' }, 'Ids of the applications whose pages sent the requests.'),
           { in: 'query', name: 'format', required: false, description: 'series (default) groups values by key with a nested day map, rows returns one flat row per group.', schema: { type: 'string', enum: ['series', 'rows'], default: 'series' } },
           { in: 'query', name: 'size', required: false, description: 'Maximum number of rows when format=rows.', schema: { type: 'integer', minimum: 1, maximum: 10000, default: 1000 } }
         ],

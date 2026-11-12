@@ -45,6 +45,13 @@
         {"type": "array", "items": {"type": "string"}, "minItems": 1}
       ]
     },
+    "refererApp": {
+      "description": "ids of the applications whose pages sent the requests",
+      "oneOf": [
+        {"type": "string"},
+        {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      ]
+    },
     "topicId": {"type": "string"},
     "showAll": {
       "type": "string",

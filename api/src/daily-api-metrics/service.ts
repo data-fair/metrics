@@ -57,6 +57,7 @@ const aggMatch = (account: Account, query: AggQuery) => {
   if (query.resourceType) $match['resource.type'] = query.resourceType
   if (query.resourceId) $match['resource.id'] = Array.isArray(query.resourceId) ? { $in: query.resourceId } : query.resourceId
   if (query.refererDomain) $match.refererDomain = Array.isArray(query.refererDomain) ? { $in: query.refererDomain } : query.refererDomain
+  if (query.refererApp) $match.refererApp = Array.isArray(query.refererApp) ? { $in: query.refererApp } : query.refererApp
   if (query.refererCategory) {
     const refererCategories = Array.isArray(query.refererCategory) ? query.refererCategory : [query.refererCategory]
     // legacy data recorded before refererCategory was introduced has no such field, treat it as 'other'
