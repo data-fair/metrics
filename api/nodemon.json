@@ -1,6 +1,6 @@
 {
   "ignoreRoot": [],
-  "ignore": ["node_modules/", "../dev/", "**/.type/"],
+  "ignore": ["node_modules/", "../dev/"],
   "execMap": {
     "ts": "node"
   }
