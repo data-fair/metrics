@@ -6,19 +6,58 @@
       height="auto"
       rounded
     >
-      <div class="d-flex flex-column w-100">
-        <div
-          class="d-flex align-center flex-wrap"
-          style="min-height: 64px"
-        >
-          <v-icon
-            :icon="mdiCalendarRange"
-            class="mx-4"
-            color="primary"
-            size="x-large"
-          />
-          <filter-period @update:model-value="(v: any) => periods = v" />
-          <v-spacer />
+      <!-- two rows when the super admin view is on: the owner filter under the period fields, as wide as them -->
+      <div class="d-flex align-start flex-wrap w-100">
+        <div class="d-flex flex-column">
+          <div class="toolbar-row">
+            <v-icon
+              :icon="mdiCalendarRange"
+              class="mx-4"
+              color="primary"
+              size="x-large"
+            />
+          </div>
+          <div
+            v-if="adminMode && showAll"
+            class="toolbar-row"
+          >
+            <v-icon
+              :icon="mdiShieldAccount"
+              class="mx-4"
+              color="admin"
+              size="x-large"
+            />
+          </div>
+        </div>
+        <div class="d-flex flex-column period-fields">
+          <div class="toolbar-row">
+            <filter-period @update:model-value="(v: any) => periods = v" />
+          </div>
+          <div
+            v-if="adminMode && showAll"
+            class="toolbar-row"
+          >
+            <v-autocomplete
+              v-model="owners"
+              :loading="ownerLoading"
+              :items="ownerItems"
+              variant="outlined"
+              density="compact"
+              label="Propriétaire"
+              color="admin"
+              class="mr-4"
+              hide-details
+              clearable
+              multiple
+              chips
+              closable-chips
+            />
+          </div>
+        </div>
+        <div class="toolbar-row flex-shrink-0">
+          <chart-legend />
+        </div>
+        <div class="toolbar-row ml-auto flex-shrink-0">
           <!-- super admin: the metrics of every account, optionally restricted to some owners -->
           <v-switch
             v-if="adminMode"
@@ -26,7 +65,7 @@
             color="admin"
             label="Voir tous les comptes"
             density="compact"
-            class="ml-4 flex-grow-0 text-admin"
+            class="ml-4 flex-grow-0 flex-shrink-0 text-admin text-no-wrap"
             hide-details
           />
           <v-btn
@@ -38,32 +77,6 @@
           >
             Exporter
           </v-btn>
-        </div>
-        <div
-          v-if="adminMode && showAll"
-          class="d-flex align-center pb-3"
-        >
-          <v-icon
-            :icon="mdiShieldAccount"
-            class="mx-4"
-            color="admin"
-            size="x-large"
-          />
-          <v-autocomplete
-            v-model="owners"
-            :loading="ownerLoading"
-            :items="ownerItems"
-            variant="outlined"
-            density="compact"
-            label="Propriétaire"
-            color="admin"
-            max-width="600"
-            hide-details
-            clearable
-            multiple
-            chips
-            closable-chips
-          />
         </div>
       </div>
     </v-toolbar>
@@ -223,7 +236,7 @@
         </v-autocomplete>
       </v-toolbar>
 
-      <v-row>
+      <v-row density="compact">
         <v-col
           v-for="(metric, i) in simpleMetrics"
           :key="i"
@@ -571,4 +584,17 @@ watch([periods, baseFilter], async () => {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+}
+/* the period fields keep their size (select from 200px to 400px, dates 150px each, with their
+   right margins), the owner filter below takes the same width; the basis is the minimum so the
+   column grows in the free space instead of pushing the rest of the bar to the next line */
+.period-fields {
+  flex: 1 1 548px;
+  max-width: 748px;
+}
+</style>

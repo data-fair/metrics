@@ -3,7 +3,7 @@
     :model-value="modelValue ? date.parseISO(modelValue) : undefined"
     :label="label"
     prepend-icon=""
-    style="max-width: 150px;"
+    style="flex: 0 0 150px; width: 150px;"
     hide-details
     variant="outlined"
     density="compact"
