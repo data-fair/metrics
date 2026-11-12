@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   socketPath: '',
   mongo: {
     url: 'mongodb://mongo:27017/metrics',

@@ -9,20 +9,27 @@ jobs:
     steps:
     - name: Checkout git repository
       uses: actions/checkout@v5
-    
+
     - uses: actions/setup-node@v5
       with:
         node-version: 24
         cache: 'npm'
-    
+
     - name: Install dependencies
       run: |
         npm ci --no-audit --no-fund --omit=optional
         npm i --no-save @rollup/rollup-linux-x64-gnu
 
+    # the ports, DEV_HOST and SSRF_PUBLIC_IPS of dev/dev.json, read by docker compose and the tests
+    - name: Init env
+      run: ./node_modules/.bin/df-dev init-env
+
+    - name: Start dev dependencies
+      run: docker compose --profile '*' up -d --wait
+
     - name: Run quality checks
       run: npm run quality
 
-    - name: Docker logs in case of failure
+    - name: Containers logs
       if: failure()
-      run: docker compose logs data-fair
+      run: docker compose --profile '*' logs

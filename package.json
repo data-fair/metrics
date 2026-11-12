@@ -4,20 +4,16 @@
   "description": "A service to help monitoring HTTP requests in the data-fair stack.",
   "type": "module",
   "scripts": {
-    "test": "NODE_ENV=test SSRF_PUBLIC_IPS=127.0.0.1,::1 node --test-force-exit --test-concurrency=1 --test --test-reporter=spec test-it/*.ts",
-    "test-only": "NODE_ENV=test SSRF_PUBLIC_IPS=127.0.0.1,::1 node --test-force-exit --test-only --test-concurrency=1 --test test-it/*.ts",
+    "test": "NODE_ENV=test node --env-file-if-exists=.env --test-force-exit --test-concurrency=1 --test --test-reporter=spec test-it/*.ts",
+    "test-only": "NODE_ENV=test node --env-file-if-exists=.env --test-force-exit --test-only --test-concurrency=1 --test test-it/*.ts",
     "lint": "eslint . && npm -w ui run lint",
     "lint-fix": "eslint --fix . && npm -w ui run lint-fix",
     "check-types": "tsc",
-    "dev-deps": "docker compose up -d --wait",
-    "stop-dev-deps": "docker compose stop",
-    "dev-ui": "npm -w ui run dev",
-    "dev-api": "npm -w api run dev",
-    "dev-daemon": "npm -w daemon run dev",
-    "dev-zellij": "export DEV_SHELL=$(basename \"$SHELL\") && zellij --layout .zellij.kdl && rm data/zellij-deps-ready",
+    "stop-dev-deps": "docker compose --profile '*' stop",
+    "dev-zellij": "df-dev zellij",
     "build-types": "df-build-types ./",
     "prepare": "husky || true",
-    "quality": "npm run dev-deps && npm run lint && npm run build-types && npm run check-types && npm -w ui run build && npm run test && npm audit --omit=dev --audit-level=critical"
+    "quality": "npm run lint && npm run build-types && npm run check-types && npm -w ui run build && npm run test && npm audit --omit=dev --audit-level=critical"
   },
   "imports": {
     "#api/types": "./api/types/index.ts"
@@ -38,6 +34,7 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^21.2.3",
+    "@data-fair/lib-dev": "^0.1.2",
     "@data-fair/lib-utils": "^1.10.1",
     "@data-fair/openapi-mcp": "^0.10.0",
     "@types/debug": "^4.1.12",
@@ -49,6 +46,7 @@
     "husky": "^9.1.7",
     "jose": "^6.2.17",
     "neostandard": "^0.14.1",
+    "nodemon": "^3.1.14",
     "pino-pretty": "^13.2.0",
     "tough-cookie": "^5.1.2",
     "typescript": "^5.8.3"

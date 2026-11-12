@@ -10,8 +10,15 @@ import Vuetify from 'vite-plugin-vuetify'
 import microTemplate from '@data-fair/lib-utils/micro-template.js'
 import { autoImports, settingsPath } from '@data-fair/lib-vuetify/vite.js'
 
+// the ports drawn in .env for this checkout (dev/dev.json "ports"), exported by `df-dev zellij`
+const envPort = (name: string) => {
+  const port = Number(process.env[name])
+  if (!Number.isInteger(port) || port <= 0) throw new Error(`missing ${name} env variable, run "npx --no df-dev setup" to create the .env file`)
+  return port
+}
+
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
   base: '/metrics',
   optimizeDeps: { include: ['debug'] },
   resolve: {
@@ -70,5 +77,8 @@ export default defineConfig({
       return { relative: true }
     }
   },
-  server: { hmr: { port: 7200 } }
-})
+  // `vite build` and `vite preview` must not require the dev ports
+  server: command === 'serve' && !isPreview
+    ? { port: envPort('DEV_UI_PORT'), strictPort: true, hmr: { port: envPort('DEV_UI_HMR_PORT') } }
+    : undefined
+}))

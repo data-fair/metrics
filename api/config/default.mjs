@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   port: 8080,
   privateDirectoryUrl: 'http://simple-directory:8080',
   mongo: {

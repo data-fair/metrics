@@ -12,10 +12,10 @@ import mongo from '@data-fair/lib-node/mongo.js'
 import { load, toolSetSnapshot, toolsForScopes } from '@data-fair/openapi-mcp'
 import apiDocs from '../api/contract/api-docs.ts'
 import { readAgentSkill } from '../api/contract/skills.ts'
-import { axios, axiosAuth, clean, startApiServer, stopApiServer } from './utils/index.ts'
+import { axios, axiosAuth, clean, publicUrl, startApiServer, stopApiServer } from './utils/index.ts'
 
 const goldenPath = path.resolve(import.meta.dirname, 'fixtures/agent-surface.json')
-const baseUrl = 'http://localhost:5600/metrics/api'
+const baseUrl = `${publicUrl}/metrics/api`
 
 /** Serves what the API serves at /metrics/api/agents/skills/<name>.md, for the tests that run without it. */
 const skillFetch = (async (input: RequestInfo | URL) => {
@@ -26,7 +26,7 @@ const skillFetch = (async (input: RequestInfo | URL) => {
 }) as typeof fetch
 
 const adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
-const cookie = adminAx.cookieJar.getCookieStringSync('http://localhost:5600')
+const cookie = adminAx.cookieJar.getCookieStringSync(publicUrl)
 
 const metric = (day: string, resourceId: string, operationTrack: string, userClass: string, nbRequests: number) => ({
   owner: { type: 'user', id: 'superadmin', name: 'Super Admin' },
