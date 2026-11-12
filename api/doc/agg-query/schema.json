@@ -46,6 +46,18 @@
       ]
     },
     "topicId": {"type": "string"},
+    "showAll": {
+      "type": "string",
+      "enum": ["true", "false"],
+      "description": "super admin in admin mode only: aggregate the metrics of every account instead of the active one"
+    },
+    "owner": {
+      "description": "with showAll=true only: restrict to some accounts, as type:id or type:id:department",
+      "oneOf": [
+        {"$ref": "#/$defs/ownerKey"},
+        {"type": "array", "items": {"$ref": "#/$defs/ownerKey"}, "minItems": 1}
+      ]
+    },
     "format": {
       "type": "string",
       "enum": ["series", "rows"],
@@ -59,7 +71,10 @@
     },
     "split": {
       "type": "array",
-      "items": { "type": "string", "enum": ["day", "resource", "operationTrack", "statusClass", "userClass", "refererApp", "refererDomain", "refererCategory"] }
+      "items": { "type": "string", "enum": ["day", "resource", "operationTrack", "statusClass", "userClass", "refererApp", "refererDomain", "refererCategory", "owner"] }
     }
+  },
+  "$defs": {
+    "ownerKey": {"type": "string", "pattern": "^(user|organization):[^:]+(:[^:]+)?$"}
   }
-} 
+}

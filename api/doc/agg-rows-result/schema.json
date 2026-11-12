@@ -30,6 +30,8 @@
         "refererDomain": { "type": "string" },
         "refererApp": { "type": "string" },
         "refererCategory": { "type": "string" },
+        "ownerType": { "type": "string" },
+        "ownerId": { "type": "string" },
         "nbRequests": { "type": "integer" },
         "bytes": { "type": "integer" },
         "meanDuration": { "type": "number", "description": "mean response time in seconds" }

@@ -12,6 +12,7 @@ import type { AxiosAuth } from '../../support/index.ts'
 let adminAx: AxiosAuth
 let orgAx: AxiosAuth
 let depAx: AxiosAuth
+let superadminNoAdminModeAx: AxiosAuth
 
 type Fixture = { day: string, resource: [string, string], operationTrack: string, statusClass?: string, userClass: string, refererDomain: string, refererCategory?: string, refererApp?: string, nbRequests: number, duration: number, owner?: Record<string, string> }
 
@@ -69,6 +70,7 @@ test.describe('aggregation of daily metrics', () => {
     adminAx = await axiosAuth({ email: 'test_metrics_superadmin@test.com', adminMode: true })
     orgAx = await axiosAuth({ email: 'test_metrics_admin1@test.com', org: 'test_metrics_orga1' })
     depAx = await axiosAuth({ email: 'test_metrics_admin1@test.com', org: 'test_metrics_orga1', dep: 'dep1' })
+    superadminNoAdminModeAx = await axiosAuth({ email: 'test_metrics_superadmin@test.com' })
   })
 
   test.beforeAll(clean)
@@ -181,13 +183,55 @@ test.describe('aggregation of daily metrics', () => {
         return (await adminAx.get('/metrics/api/daily-api-metrics/_agg?' + params.toString(), { validateStatus: () => true })).status
       }
       assert.equal(await status({ end: '2026-03-03' }), 400)
-      assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', split: 'owner' }), 400)
+      assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', split: 'robot' }), 400)
       assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', userClass: 'robot' }), 400)
       assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', format: 'csv' }), 400)
       assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', format: 'rows', size: '0' }), 400)
       // the maximum the agent document advertises
       assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', format: 'rows', size: '10001' }), 400)
       assert.equal(await status({ start: '2026-03-01', end: '2026-03-03', format: 'rows', size: '10000' }), 200)
+    })
+  })
+
+  test.describe('super admin view (showAll)', () => {
+    test('aggregates the metrics of every account, split by owner', async () => {
+      const result = await agg({ split: 'owner', showAll: 'true' })
+      assert.equal(result.nbRequests, 10198)
+      // the departments of an organization are summed with it
+      assert.deepEqual(totals(result), [
+        [{ owner: { type: 'user', id: 'test_metrics_other' } }, 10000],
+        [{ owner: { type: 'organization', id: 'test_metrics_orga1' } }, 170],
+        [{ owner: { type: 'user', id: 'test_metrics_superadmin' } }, 28]
+      ])
+    })
+
+    test('restricts to the owner filter, an organization including its departments', async () => {
+      const nb = async (owner: string | string[]) => (await agg({ split: 'resource', showAll: 'true', owner })).nbRequests
+      assert.equal(await nb('organization:test_metrics_orga1'), 170)
+      assert.equal(await nb('organization:test_metrics_orga1:dep1'), 50)
+      assert.equal(await nb(['organization:test_metrics_orga1', 'user:test_metrics_other']), 10170)
+    })
+
+    test('splits by owner in the rows format', async () => {
+      const result = await agg({ split: 'owner', showAll: 'true', format: 'rows' })
+      assert.equal(result.count, 3)
+      assert.deepEqual(result.results[1], { ownerType: 'organization', ownerId: 'test_metrics_orga1', nbRequests: 170, bytes: 17000, meanDuration: 1 })
+    })
+
+    test('splits the active account by owner without showAll', async () => {
+      assert.deepEqual(totals(await agg({ split: 'owner' }, depAx)), [[{ owner: { type: 'organization', id: 'test_metrics_orga1' } }, 50]])
+    })
+
+    test('is reserved to super admins in admin mode', async () => {
+      const status = async (query: Record<string, string>, ax = adminAx) => {
+        const params = new URLSearchParams({ start: '2026-03-01', end: '2026-03-03', ...query })
+        return (await ax.get('/metrics/api/daily-api-metrics/_agg?' + params.toString(), { validateStatus: () => true })).status
+      }
+      assert.equal(await status({ showAll: 'true' }, orgAx), 403)
+      assert.equal(await status({ showAll: 'true' }, superadminNoAdminModeAx), 403)
+      assert.equal(await status({ owner: 'organization:test_metrics_orga1' }), 400)
+      assert.equal(await status({ showAll: 'true', owner: 'orga1' }), 400)
+      assert.equal(await status({ showAll: 'false' }), 200)
     })
   })
 
