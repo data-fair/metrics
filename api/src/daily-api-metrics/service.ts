@@ -26,14 +26,28 @@ export const list = async (account: Account) => {
   return results
 }
 
+// the accounts whose metrics are aggregated: the active account, or with showAll (super admin
+// only, checked by the router) every account, optionally restricted to the owner filter
+const ownerMatch = (account: Account, query: AggQuery) => {
+  if (query.showAll !== 'true') {
+    const $match: Record<string, any> = { 'owner.type': account.type, 'owner.id': account.id }
+    if (account.department) $match['owner.department'] = account.department
+    return $match
+  }
+  if (!query.owner) return {}
+  const owners = Array.isArray(query.owner) ? query.owner : [query.owner]
+  return {
+    $or: owners.map(owner => {
+      const [type, id, department] = owner.split(':')
+      const filter: Record<string, string> = { 'owner.type': type, 'owner.id': id }
+      if (department) filter['owner.department'] = department
+      return filter
+    })
+  }
+}
+
 const aggMatch = (account: Account, query: AggQuery) => {
-  const $match: Record<string, any> = {
-    'owner.type': account.type,
-    'owner.id': account.id
-  }
-  if (account.department) {
-    $match['owner.department'] = account.department
-  }
+  const $match: Record<string, any> = ownerMatch(account, query)
 
   if (query.start) $match.day = { $gte: query.start }
   if (query.end) $match.day = { ...$match.day, $lte: query.end }
@@ -73,6 +87,10 @@ export const agg = async (account: Account, query: AggQuery) => {
       $group._id.resourceType = '$resource.type'
       $group._id.resourceId = '$resource.id'
       $group.resource = { $last: '$resource' }
+    } else if (part === 'owner') {
+      // grouped by account, the departments of an organization are summed together
+      $group._id.ownerType = '$owner.type'
+      $group._id.ownerId = '$owner.id'
     } else {
       if (part !== 'day') seriesKey.push(camelCase(part))
       // legacy data recorded before refererCategory was introduced has no such field, group it with 'other'
@@ -106,8 +124,9 @@ export const agg = async (account: Account, query: AggQuery) => {
     }
   }
   for (const item of items) {
-    const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {} as Record<string, string>)
+    const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {} as Record<string, any>)
     if (item.resource) key.resource = item.resource
+    if (split.includes('owner')) key.owner = { type: item.ownerType, id: item.ownerId }
     let serie = result.series.find((s) => equal(s.key, key))
     if (!serie) {
       serie = {
@@ -151,6 +170,9 @@ export const aggRows = async (account: Account, query: AggQuery): Promise<AggRow
       $group._id.resourceType = '$resource.type'
       $group._id.resourceId = '$resource.id'
       $group.resourceTitle = { $last: '$resource.title' }
+    } else if (part === 'owner') {
+      $group._id.ownerType = '$owner.type'
+      $group._id.ownerId = '$owner.id'
     } else {
       // legacy data recorded before refererCategory was introduced has no such field, group it with 'other'
       $group._id[part] = part === 'refererCategory' ? { $ifNull: ['$' + part, 'other'] } : '$' + part

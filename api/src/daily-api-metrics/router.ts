@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { session, reqOrigin, httpError } from '@data-fair/lib-express/index.js'
+import { session, reqOrigin, httpError, assertAdminMode } from '@data-fair/lib-express/index.js'
 import axios from '@data-fair/lib-node/axios.js'
 import * as aggQuery from '#doc/agg-query/index.ts'
 import * as exportQuery from '#doc/export-query/index.ts'
@@ -22,6 +22,8 @@ router.get('/_agg', requireOperationScope('aggDailyApiMetrics'), async (req, res
   const query = { ...req.query } // better not to mutate req.query
   if (typeof query.split === 'string') query.split = query.split.split(',').filter(Boolean)
   aggQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
+  if (query.showAll === 'true') assertAdminMode(reqSession)
+  else if (query.owner) throw httpError(400, 'the owner filter requires showAll=true')
   if (query.format === 'rows') res.json(await aggRows(reqSession.account, query))
   else res.json(await agg(reqSession.account, query))
 })

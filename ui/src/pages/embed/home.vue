@@ -24,25 +24,93 @@
       </v-btn>
     </v-toolbar>
     <template v-if="periods">
+      <template v-if="adminMode">
+        <v-toolbar
+          class="mb-4"
+          variant="tonal"
+          height="auto"
+          rounded
+        >
+          <v-icon
+            :icon="mdiShieldAccount"
+            class="mx-4"
+            color="admin"
+            size="x-large"
+          />
+          <v-switch
+            v-model="showAll"
+            color="admin"
+            label="Voir tous les comptes"
+            density="compact"
+            class="mr-4 flex-grow-0 text-admin"
+            hide-details
+          />
+          <v-autocomplete
+            v-if="showAll"
+            v-model="owners"
+            :loading="ownerLoading"
+            :items="ownerItems"
+            variant="outlined"
+            density="compact"
+            label="Propriétaire"
+            color="admin"
+            max-width="600"
+            class="mr-4 my-2"
+            hide-details
+            clearable
+            multiple
+            chips
+            closable-chips
+          />
+        </v-toolbar>
+        <v-row
+          v-if="showAll"
+          class="mb-4"
+          density="compact"
+        >
+          <chart-categories
+            title="Appels API / propriétaire"
+            category="owner"
+            :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI', ...adminFilter }"
+            :periods="periods"
+            :labels="ownerNames"
+          />
+          <chart-categories
+            title="Téléchargements / propriétaire"
+            category="owner"
+            :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles', ...adminFilter }"
+            :periods="periods"
+            :labels="ownerNames"
+          />
+          <chart-categories
+            title="Ouvertures de visualisations / propriétaire"
+            category="owner"
+            :filter="{ statusClass: 'ok', operationTrack: 'openApplication', ...adminFilter }"
+            :periods="periods"
+            :labels="ownerNames"
+          />
+        </v-row>
+      </template>
+
       <v-row density="compact">
         <chart-categories
           title="Téléchargements / jeu de données"
           category="resource"
-          :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles' }"
+          :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles', ...adminFilter }"
           :periods="periods"
           @update:agg="(v: any) => aggResultDataFiles = v"
         />
         <chart-categories
           title="Appels API / jeu de données"
           category="resource"
-          :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI' }"
+          :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI', ...adminFilter }"
           :periods="periods"
           @update:agg="(v: any) => aggResultDataAPI = v"
         />
         <chart-categories
           title="Ouvertures de visualisations"
           category="resource"
-          :filter="{ statusClass: 'ok', operationTrack: 'openApplication' }"
+          :filter="{ statusClass: 'ok', operationTrack: 'openApplication', ...adminFilter }"
           :periods="periods"
           @update:agg="(v: any) => aggResultOpenApp = v"
         />
@@ -210,6 +278,9 @@
 
 <script setup lang="ts">
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
+import { fetchOwnerNames, ownerKey, type OwnerRef } from '~/utils/owners'
+
+const session = useSession()
 
 const periods = ref<any>(null)
 const aggResultDataFiles = ref<any>(null)
@@ -266,8 +337,35 @@ const userClassItems = computed(() => {
   })
 })
 
+// super admin view: the metrics of every account, optionally restricted to some owners
+const adminMode = computed(() => !!session.user.value?.adminMode)
+const showAll = useBooleanSearchParam('showAll')
+const owners = useStringsArraySearchParam('owners')
+const ownerAgg = ref<any>(null)
+const ownerLoading = ref(false)
+const ownerNames = ref<Record<string, string>>({})
+
+const adminFilter = computed(() => {
+  if (!adminMode.value || !showAll.value) return {}
+  const filter: Record<string, any> = { showAll: 'true' }
+  if (owners.value.length) filter.owner = owners.value
+  return filter
+})
+
+const ownerItems = computed(() => {
+  if (!ownerAgg.value) return []
+  return ownerAgg.value.series.map((serie: any) => {
+    const value = ownerKey(serie.key.owner)
+    return { title: ownerNames.value[value] ?? serie.key.owner.id, value }
+  })
+})
+
+watch(showAll, (value) => {
+  if (!value) owners.value = []
+})
+
 const baseFilter = computed(() => {
-  const filter: any = { statusClass: 'ok' }
+  const filter: any = { statusClass: 'ok', ...adminFilter.value }
   if (datasets.value.length) filter.resourceId = datasets.value
   if (refererDomains.value.length) filter.refererDomain = refererDomains.value
   if (userClasses.value.length) filter.userClass = userClasses.value
@@ -275,14 +373,14 @@ const baseFilter = computed(() => {
 })
 
 const refererDomainOptionFilter = computed(() => {
-  const filter: any = { statusClass: 'ok' }
+  const filter: any = { statusClass: 'ok', ...adminFilter.value }
   if (datasets.value.length) filter.resourceId = datasets.value
   if (userClasses.value.length) filter.userClass = userClasses.value
   return filter
 })
 
 const userClassOptionFilter = computed(() => {
-  const filter: any = { statusClass: 'ok' }
+  const filter: any = { statusClass: 'ok', ...adminFilter.value }
   if (datasets.value.length) filter.resourceId = datasets.value
   if (refererDomains.value.length) filter.refererDomain = refererDomains.value
   return filter
@@ -439,6 +537,14 @@ const exportUrl = computed(() => {
   if (!periods.value) return undefined
   return `${$apiPath}/daily-api-metrics/_export?start=${periods.value.current.start}&end=${periods.value.current.end}`
 })
+
+watch([periods, adminMode, showAll], async () => {
+  if (!adminMode.value || !showAll.value) return
+  await fetchOptionAgg('owner', { statusClass: 'ok', showAll: 'true' }, ownerAgg, ownerLoading)
+  const missing = (ownerAgg.value?.series ?? []).map((s: any) => s.key.owner as OwnerRef)
+    .filter((owner: OwnerRef) => !(ownerKey(owner) in ownerNames.value))
+  if (missing.length) ownerNames.value = { ...ownerNames.value, ...await fetchOwnerNames(missing) }
+}, { immediate: true })
 
 watch([periods, refererDomainOptionFilter], async () => {
   await fetchOptionAgg('refererDomain', refererDomainOptionFilter.value, refererDomainAgg, refererDomainLoading)

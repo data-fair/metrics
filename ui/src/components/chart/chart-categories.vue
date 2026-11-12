@@ -13,6 +13,7 @@
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useDisplay, useTheme } from 'vuetify'
 import { useI18n } from 'vue-i18n'
+import { ownerKey } from '~/utils/owners'
 
 const userClasses: Record<string, string> = {
   anonymous: 'Anonyme',
@@ -26,6 +27,7 @@ const getLabel = (serie: any, category: string, labels: Record<string, string> |
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (category === 'userClass') return userClasses[serie.key.userClass] || serie.key.userClass
+  if (category === 'owner') return labels?.[ownerKey(serie.key.owner)] ?? serie.key.owner.id
   if (serie.key[category] === 'none') return 'Inconnu'
   if (serie.key[category] === null || serie.key[category] === undefined) return 'Aucune'
   if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
@@ -173,7 +175,8 @@ const fetchData = async () => {
   aggResultCurrent.series.forEach((serie: any) => {
     const matchingPreviousSerie = aggResultPrevious.series.find((ps: any) => {
       if (props.category === 'resource') return ps.key.resource.id === serie.key.resource.id
-      else return ps.key[props.category] === serie.key[props.category]
+      if (props.category === 'owner') return ownerKey(ps.key.owner) === ownerKey(serie.key.owner)
+      return ps.key[props.category] === serie.key[props.category]
     })
     if (!matchingPreviousSerie) {
       serie.previousNbRequests = 0
