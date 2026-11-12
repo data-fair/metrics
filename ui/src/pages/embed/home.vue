@@ -109,6 +109,55 @@
             :labels="ownerNames"
           />
         </v-row>
+
+        <!-- super admin: every request whatever its status, its volume and its error rate -->
+        <template v-if="showAll">
+          <v-row density="compact">
+            <v-col
+              v-for="(metric, i) in adminMetrics"
+              :key="i"
+              cols="12"
+              sm="4"
+            >
+              <chart-simple-metric
+                :value="metric.value"
+                :title="metric.title"
+                :subtitle="metric.subtitle"
+                :loading="metric.loading"
+                :trend="metric.trend"
+                :invert-trend="metric.invertTrend"
+              />
+            </v-col>
+          </v-row>
+          <v-row
+            class="mb-4"
+            density="compact"
+          >
+            <chart-categories
+              title="Requêtes / classe de statut"
+              category="statusClass"
+              :filter="adminFilter"
+              :periods="periods"
+              :labels="statusClassLabels"
+            />
+            <chart-categories
+              title="Volume / type d'opération"
+              category="operationTrack"
+              metric="bytes"
+              :filter="adminFilter"
+              :periods="periods"
+              :labels="operationTrackLabels"
+            />
+            <chart-categories
+              title="Volume / propriétaire"
+              category="owner"
+              metric="bytes"
+              :filter="adminFilter"
+              :periods="periods"
+              :labels="ownerNames"
+            />
+          </v-row>
+        </template>
       </template>
 
       <v-row density="compact">
@@ -381,6 +430,68 @@ const ownerItems = computed(() => {
 
 watch(showAll, (value) => {
   if (!value) owners.value = []
+})
+
+const statusClassLabels: Record<string, string> = {
+  info: 'Information (1xx)',
+  ok: 'Succès (2xx)',
+  redirect: 'Redirection (3xx)',
+  clientError: 'Erreur client (4xx)',
+  serverError: 'Erreur serveur (5xx)'
+}
+
+const operationTrackLabels: Record<string, string> = {
+  readDataAPI: "Appels d'API",
+  readDataFiles: 'Téléchargements',
+  openApplication: 'Visualisations'
+}
+
+// totals by status class of the current and previous periods, whatever the status
+const statusClassAgg = ref<{ current: any, previous: any } | null>(null)
+
+watch([periods, adminFilter], async () => {
+  if (!periods.value || !adminFilter.value.showAll) return
+  statusClassAgg.value = null
+  const fetchPeriod = (period: { start: string, end: string }) => $fetch('daily-api-metrics/_agg', {
+    query: { split: 'statusClass', ...adminFilter.value, start: period.start, end: period.end }
+  })
+  try {
+    const [current, previous] = await Promise.all([fetchPeriod(periods.value.current), fetchPeriod(periods.value.previous)])
+    statusClassAgg.value = { current, previous }
+  } catch {
+    statusClassAgg.value = null
+  }
+}, { immediate: true, deep: true })
+
+const getTrend = (current: number, previous: number) => current > previous ? 'up' : current < previous ? 'down' : 'neutral'
+const formatRate = (rate: number) => rate.toLocaleString(undefined, { style: 'percent', maximumFractionDigits: 2 })
+
+type AdminMetric = { loading?: boolean, value?: string, title?: string, subtitle?: string, trend?: string, invertTrend?: boolean }
+
+const adminMetrics = computed<AdminMetric[]>(() => {
+  if (!statusClassAgg.value) return Array.from({ length: 3 }, () => ({ loading: true }))
+  const { current, previous } = statusClassAgg.value
+  const classCount = (agg: any, statusClass: string) => agg.series.find((s: any) => s.key.statusClass === statusClass)?.nbRequests ?? 0
+  const errorRate = (agg: any) => agg.nbRequests ? (classCount(agg, 'clientError') + classCount(agg, 'serverError')) / agg.nbRequests : 0
+  const currentErrorRate = errorRate(current)
+  const previousErrorRate = errorRate(previous)
+  return [{
+    value: current.nbRequests.toLocaleString(),
+    title: `requête${current.nbRequests > 1 ? 's' : ''} (tous statuts)`,
+    subtitle: `${previous.nbRequests.toLocaleString()} sur période précédente`,
+    trend: getTrend(current.nbRequests, previous.nbRequests)
+  }, {
+    value: formatBytes(current.bytes),
+    title: 'volume de données servi',
+    subtitle: `${formatBytes(previous.bytes)} sur période précédente`,
+    trend: getTrend(current.bytes, previous.bytes)
+  }, {
+    value: formatRate(currentErrorRate),
+    title: "d'erreurs (4xx et 5xx)",
+    subtitle: `${formatRate(previousErrorRate)} sur période précédente`,
+    trend: getTrend(currentErrorRate, previousErrorRate),
+    invertTrend: true
+  }]
 })
 
 const baseFilter = computed(() => {

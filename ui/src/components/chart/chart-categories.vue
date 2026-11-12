@@ -40,9 +40,12 @@ const props = withDefaults(defineProps<{
   filter: Record<string, any>
   periods: Record<string, any>
   labels?: Record<string, string> | null
+  // the value drawn by the bars, the other one stays in the tooltips
+  metric?: 'nbRequests' | 'bytes'
 }>(), {
   category: 'resource',
-  labels: null
+  labels: null,
+  metric: 'nbRequests'
 })
 
 const emit = defineEmits<{
@@ -60,7 +63,7 @@ const large = ref(false)
 let chartInstance: InstanceType<typeof chart.Chart> | null = null
 
 const canvasId = computed(() => {
-  return `chart-categories-${props.category}-${JSON.stringify(props.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
+  return `chart-categories-${props.category}-${props.metric}-${JSON.stringify(props.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
 })
 
 const aspectRatio = computed(() => display.smAndDown.value ? 1 : 2)
@@ -84,8 +87,8 @@ const chartConfig = computed(() => {
   const categories = limitedSeries
     .map((s: any) => ({
       label: getLabel(s, props.category, props.labels),
-      value: s.nbRequests,
-      previousValue: s.previousNbRequests,
+      value: props.metric === 'bytes' ? s.bytes : s.nbRequests,
+      previousValue: props.metric === 'bytes' ? s.previousBytes : s.previousNbRequests,
       tooltip: `${s.nbRequests.toLocaleString()} requête(s) cumulant ${formatBytes(s.bytes, locale.value)}`,
       previousTooltip: `${s.previousNbRequests.toLocaleString()} requête(s) cumulant ${formatBytes(s.previousBytes, locale.value)} sur Période précédente`
     }))
@@ -113,7 +116,10 @@ const chartConfig = computed(() => {
         x: {
           beginAtZero: true,
           ticks: {
-            precision: 0
+            precision: 0,
+            callback (value: any) {
+              return props.metric === 'bytes' ? formatBytes(value, locale.value) : Number(value).toLocaleString(locale.value)
+            }
           }
         },
         y: {
