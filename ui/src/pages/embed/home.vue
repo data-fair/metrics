@@ -43,7 +43,7 @@
               :items="ownerItems"
               variant="outlined"
               density="compact"
-              label="Propriétaire"
+              :label="t('owner')"
               color="admin"
               class="mr-4"
               hide-details
@@ -63,7 +63,7 @@
             v-if="adminMode"
             v-model="showAll"
             color="admin"
-            label="Voir tous les comptes"
+            :label="t('showAllAccounts')"
             density="compact"
             class="ml-4 flex-grow-0 flex-shrink-0 text-admin text-no-wrap"
             hide-details
@@ -88,21 +88,21 @@
           density="compact"
         >
           <chart-categories
-            title="Appels API / propriétaire"
+            :title="t('chartTitles.apiCallsByOwner')"
             category="owner"
             :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI', ...adminFilter }"
             :periods="periods"
             :labels="ownerNames"
           />
           <chart-categories
-            title="Téléchargements / propriétaire"
+            :title="t('chartTitles.downloadsByOwner')"
             category="owner"
             :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles', ...adminFilter }"
             :periods="periods"
             :labels="ownerNames"
           />
           <chart-categories
-            title="Ouvertures de visualisations / propriétaire"
+            :title="t('chartTitles.applicationOpeningsByOwner')"
             category="owner"
             :filter="{ statusClass: 'ok', operationTrack: 'openApplication', ...adminFilter }"
             :periods="periods"
@@ -134,14 +134,14 @@
             density="compact"
           >
             <chart-categories
-              title="Requêtes / classe de statut"
+              :title="t('chartTitles.requestsByStatusClass')"
               category="statusClass"
               :filter="adminFilter"
               :periods="periods"
               :labels="statusClassLabels"
             />
             <chart-categories
-              title="Volume / type d'opération"
+              :title="t('chartTitles.bytesByOperationTrack')"
               category="operationTrack"
               metric="bytes"
               :filter="adminFilter"
@@ -149,7 +149,7 @@
               :labels="operationTrackLabels"
             />
             <chart-categories
-              title="Volume / propriétaire"
+              :title="t('chartTitles.bytesByOwner')"
               category="owner"
               metric="bytes"
               :filter="adminFilter"
@@ -426,19 +426,13 @@ watch(showAll, (value) => {
   if (!value) owners.value = []
 })
 
-const statusClassLabels: Record<string, string> = {
-  info: 'Information (1xx)',
-  ok: 'Succès (2xx)',
-  redirect: 'Redirection (3xx)',
-  clientError: 'Erreur client (4xx)',
-  serverError: 'Erreur serveur (5xx)'
-}
+const statusClassLabels = computed<Record<string, string>>(() => Object.fromEntries(
+  ['info', 'ok', 'redirect', 'clientError', 'serverError'].map(key => [key, t(`statusClasses.${key}`)])
+))
 
-const operationTrackLabels: Record<string, string> = {
-  readDataAPI: "Appels d'API",
-  readDataFiles: 'Téléchargements',
-  openApplication: 'Visualisations'
-}
+const operationTrackLabels = computed<Record<string, string>>(() => Object.fromEntries(
+  ['readDataAPI', 'readDataFiles', 'openApplication'].map(key => [key, t(`operationTracks.${key}`)])
+))
 
 // totals by status class of the current and previous periods, whatever the status
 const statusClassAgg = ref<{ current: any, previous: any } | null>(null)
@@ -458,7 +452,7 @@ watch([periods, adminFilter], async () => {
 }, { immediate: true, deep: true })
 
 const getTrend = (current: number, previous: number) => current > previous ? 'up' : current < previous ? 'down' : 'neutral'
-const formatRate = (rate: number) => rate.toLocaleString(undefined, { style: 'percent', maximumFractionDigits: 2 })
+const formatRate = (rate: number) => rate.toLocaleString(locale.value, { style: 'percent', maximumFractionDigits: 2 })
 
 type AdminMetric = { loading?: boolean, value?: string, title?: string, subtitle?: string, trend?: string, invertTrend?: boolean }
 
@@ -470,19 +464,19 @@ const adminMetrics = computed<AdminMetric[]>(() => {
   const currentErrorRate = errorRate(current)
   const previousErrorRate = errorRate(previous)
   return [{
-    value: current.nbRequests.toLocaleString(),
-    title: `requête${current.nbRequests > 1 ? 's' : ''} (tous statuts)`,
-    subtitle: `${previous.nbRequests.toLocaleString()} sur période précédente`,
+    value: current.nbRequests.toLocaleString(locale.value),
+    title: t('adminMetrics.requests', current.nbRequests),
+    subtitle: t('onPreviousPeriod', { value: previous.nbRequests.toLocaleString(locale.value) }),
     trend: getTrend(current.nbRequests, previous.nbRequests)
   }, {
-    value: formatBytes(current.bytes),
-    title: 'volume de données servi',
-    subtitle: `${formatBytes(previous.bytes)} sur période précédente`,
+    value: formatBytes(current.bytes, locale.value),
+    title: t('adminMetrics.bytes'),
+    subtitle: t('onPreviousPeriod', { value: formatBytes(previous.bytes, locale.value) }),
     trend: getTrend(current.bytes, previous.bytes)
   }, {
     value: formatRate(currentErrorRate),
-    title: "d'erreurs (4xx et 5xx)",
-    subtitle: `${formatRate(previousErrorRate)} sur période précédente`,
+    title: t('adminMetrics.errorRate'),
+    subtitle: t('onPreviousPeriod', { value: formatRate(previousErrorRate) }),
     trend: getTrend(currentErrorRate, previousErrorRate),
     invertTrend: true
   }]
@@ -726,6 +720,28 @@ en:
     requestsByUserClass: Requests / user category
     requestsByApplication: Requests / application
     requestsByRefererCategory: Requests / consumers
+    apiCallsByOwner: API calls / owner
+    downloadsByOwner: Downloads / owner
+    applicationOpeningsByOwner: Application openings / owner
+    requestsByStatusClass: Requests / status class
+    bytesByOperationTrack: Volume / operation type
+    bytesByOwner: Volume / owner
+  owner: Owner
+  showAllAccounts: Show every account
+  adminMetrics:
+    requests: requests (any status) | request (any status) | requests (any status)
+    bytes: data volume served
+    errorRate: of errors (4xx and 5xx)
+  statusClasses:
+    info: Information (1xx)
+    ok: Success (2xx)
+    redirect: Redirect (3xx)
+    clientError: Client error (4xx)
+    serverError: Server error (5xx)
+  operationTracks:
+    readDataAPI: API calls
+    readDataFiles: Downloads
+    openApplication: Applications
   userClasses:
     anonymous: Anonymous
     owner: Owner
@@ -758,6 +774,28 @@ fr:
     requestsByUserClass: Requêtes / catégorie d'utilisateur
     requestsByApplication: Requêtes / visualisation
     requestsByRefererCategory: Requêtes / consommateurs
+    apiCallsByOwner: Appels API / propriétaire
+    downloadsByOwner: Téléchargements / propriétaire
+    applicationOpeningsByOwner: Ouvertures de visualisations / propriétaire
+    requestsByStatusClass: Requêtes / classe de statut
+    bytesByOperationTrack: Volume / type d'opération
+    bytesByOwner: Volume / propriétaire
+  owner: Propriétaire
+  showAllAccounts: Voir tous les comptes
+  adminMetrics:
+    requests: requête (tous statuts) | requête (tous statuts) | requêtes (tous statuts)
+    bytes: volume de données servi
+    errorRate: d'erreurs (4xx et 5xx)
+  statusClasses:
+    info: Information (1xx)
+    ok: Succès (2xx)
+    redirect: Redirection (3xx)
+    clientError: Erreur client (4xx)
+    serverError: Erreur serveur (5xx)
+  operationTracks:
+    readDataAPI: Appels d'API
+    readDataFiles: Téléchargements
+    openApplication: Visualisations
   userClasses:
     anonymous: Anonyme
     owner: Propriétaire
