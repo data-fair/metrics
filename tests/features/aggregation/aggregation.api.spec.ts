@@ -215,7 +215,8 @@ test.describe('aggregation of daily metrics', () => {
     test('splits by owner in the rows format', async () => {
       const result = await agg({ split: 'owner', showAll: 'true', format: 'rows' })
       assert.equal(result.count, 3)
-      assert.deepEqual(result.results[1], { ownerType: 'organization', ownerId: 'orga1', nbRequests: 170, bytes: 17000, meanDuration: 1 })
+      // 3 records of duration 1 for 170 requests
+      assert.deepEqual(result.results[1], { ownerType: 'organization', ownerId: 'orga1', nbRequests: 170, bytes: 17000, meanDuration: 3 / 170 })
     })
 
     test('splits the active account by owner without showAll', async () => {
