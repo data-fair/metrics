@@ -21,9 +21,12 @@ const props = withDefaults(defineProps<{
   filter: Record<string, any>
   periods: Record<string, any>
   labels?: Record<string, string> | null
+  // the value drawn by the bars, the other one stays in the tooltips
+  metric?: 'nbRequests' | 'bytes'
 }>(), {
   category: 'resource',
-  labels: null
+  labels: null,
+  metric: 'nbRequests'
 })
 
 const emit = defineEmits<{
@@ -73,8 +76,8 @@ const chartConfig = computed(() => {
   const categories = limitedSeries
     .map((s: any) => ({
       label: getLabel(s, props.category, props.labels),
-      value: s.nbRequests,
-      previousValue: s.previousNbRequests,
+      value: props.metric === 'bytes' ? s.bytes : s.nbRequests,
+      previousValue: props.metric === 'bytes' ? s.previousBytes : s.previousNbRequests,
       tooltip: t('requestsTooltip', { nb: s.nbRequests.toLocaleString(locale.value), bytes: formatBytes(s.bytes, locale.value) }, s.nbRequests),
       previousTooltip: t('previousRequestsTooltip', { nb: s.previousNbRequests.toLocaleString(locale.value), bytes: formatBytes(s.previousBytes, locale.value) }, s.previousNbRequests)
     }))
@@ -102,7 +105,10 @@ const chartConfig = computed(() => {
         x: {
           beginAtZero: true,
           ticks: {
-            precision: 0
+            precision: 0,
+            callback (value: any) {
+              return props.metric === 'bytes' ? formatBytes(value, locale.value) : Number(value).toLocaleString(locale.value)
+            }
           }
         },
         y: {
