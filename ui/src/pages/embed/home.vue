@@ -57,7 +57,7 @@
         <div class="toolbar-row flex-shrink-0">
           <chart-legend />
         </div>
-        <div class="toolbar-row ml-auto flex-shrink-0">
+        <div class="toolbar-row ml-auto mr-4 flex-shrink-0">
           <!-- super admin: the metrics of every account, optionally restricted to some owners -->
           <v-switch
             v-if="adminMode"
@@ -73,7 +73,7 @@
             v-if="!adminFilter.showAll"
             :prepend-icon="mdiTableArrowDown"
             :href="exportUrl"
-            class="mx-4"
+            class="ml-4"
             color="primary"
             variant="elevated"
           >
