@@ -60,7 +60,10 @@ const aspectRatio = computed(() => display.smAndDown.value ? 1 : 2)
 const chartConfig = computed(() => {
   if (!aggResult.value) return null
 
-  const series = [...aggResult.value.series]
+  // the api ranks the series by number of requests, a volume chart keeps the biggest volumes
+  const series = props.metric === 'bytes'
+    ? [...aggResult.value.series].sort((s1: any, s2: any) => s2.bytes - s1.bytes)
+    : [...aggResult.value.series]
   const limitedSeries = series.splice(0, large.value ? 19 : 9)
   if (series.length) {
     limitedSeries.push({
