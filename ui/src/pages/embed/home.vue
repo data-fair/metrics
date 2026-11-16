@@ -68,7 +68,9 @@
             class="ml-4 flex-grow-0 flex-shrink-0 text-admin text-no-wrap"
             hide-details
           />
+          <!-- the export is built for the active account only, it does not follow the super admin view -->
           <v-btn
+            v-if="!adminFilter.showAll"
             :prepend-icon="mdiTableArrowDown"
             :href="exportUrl"
             class="mx-4"
@@ -93,6 +95,7 @@
             :filter="{ statusClass: 'ok', operationTrack: 'readDataAPI', ...adminFilter }"
             :periods="periods"
             :labels="ownerNames"
+            @update:agg="onOwnerAgg"
           />
           <chart-categories
             :title="t('chartTitles.downloadsByOwner')"
@@ -100,6 +103,7 @@
             :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles', ...adminFilter }"
             :periods="periods"
             :labels="ownerNames"
+            @update:agg="onOwnerAgg"
           />
           <chart-categories
             :title="t('chartTitles.applicationOpeningsByOwner')"
@@ -107,6 +111,7 @@
             :filter="{ statusClass: 'ok', operationTrack: 'openApplication', ...adminFilter }"
             :periods="periods"
             :labels="ownerNames"
+            @update:agg="onOwnerAgg"
           />
         </v-row>
 
@@ -139,6 +144,7 @@
               :filter="adminFilter"
               :periods="periods"
               :labels="statusClassLabels"
+              @update:agg="(v: any) => statusClassAgg = v"
             />
             <chart-categories
               :title="t('chartTitles.bytesByOperationTrack')"
@@ -155,6 +161,7 @@
               :filter="adminFilter"
               :periods="periods"
               :labels="ownerNames"
+              @update:agg="onOwnerAgg"
             />
           </v-row>
         </template>
@@ -318,12 +325,14 @@
           category="refererDomain"
           :filter="baseFilter"
           :periods="periods"
+          @update:agg="(v: any) => refererDomainChartAgg = v.current"
         />
         <chart-categories
           :title="t('chartTitles.requestsByUserClass')"
           category="userClass"
           :filter="baseFilter"
           :periods="periods"
+          @update:agg="(v: any) => userClassChartAgg = v.current"
         />
         <chart-categories
           :title="t('chartTitles.requestsByApplication')"
@@ -347,7 +356,7 @@
 <script setup lang="ts">
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useI18n } from 'vue-i18n'
-import { fetchOwnerNames, ownerKey, type OwnerRef } from '~/utils/owners'
+import { fetchOwnerNames, ownerKey, parseOwnerKey } from '~/utils/owners'
 
 const { t, te, locale } = useI18n()
 const session = useSession()
@@ -356,15 +365,23 @@ const periods = ref<any>(null)
 const aggResultDataFiles = ref<any>(null)
 const aggResultDataAPI = ref<any>(null)
 const aggResultOpenApp = ref<any>(null)
-const simpleAggDataFiles = ref<any>(null)
-const simpleAggDataAPI = ref<any>(null)
+const fetchedSimpleAggDataFiles = ref<any>(null)
+const fetchedSimpleAggDataAPI = ref<any>(null)
 const datasets = useStringsArraySearchParam('datasets')
 const refererDomains = useStringsArraySearchParam('refererDomains')
 const userClasses = useStringsArraySearchParam('userClasses')
-const refererDomainAgg = ref<any>(null)
-const userClassAgg = ref<any>(null)
-const refererDomainLoading = ref(false)
-const userClassLoading = ref(false)
+const fetchedRefererDomainAgg = ref<any>(null)
+const fetchedUserClassAgg = ref<any>(null)
+const refererDomainChartAgg = ref<any>(null)
+const userClassChartAgg = ref<any>(null)
+// without a value selected in it, the options of a filter are the series of its chart (same
+// filter, same current period), they are not requested a second time
+const refererDomainAgg = computed(() => refererDomains.value.length ? fetchedRefererDomainAgg.value : refererDomainChartAgg.value)
+const userClassAgg = computed(() => userClasses.value.length ? fetchedUserClassAgg.value : userClassChartAgg.value)
+const fetchedRefererDomainLoading = ref(false)
+const fetchedUserClassLoading = ref(false)
+const refererDomainLoading = computed(() => refererDomains.value.length ? fetchedRefererDomainLoading.value : !refererDomainChartAgg.value)
+const userClassLoading = computed(() => userClasses.value.length ? fetchedUserClassLoading.value : !userClassChartAgg.value)
 
 const refererCategoryLabels = computed<Record<string, string>>(() => ({
   backoffice: t('refererCategories.backoffice'),
@@ -414,13 +431,27 @@ const adminFilter = computed(() => {
   return filter
 })
 
+// the owners of the period, and the selected ones even without metrics on it (a shared url)
 const ownerItems = computed(() => {
-  if (!ownerAgg.value) return []
-  return ownerAgg.value.series.map((serie: any) => {
-    const value = ownerKey(serie.key.owner)
-    return { title: ownerNames.value[value] ?? serie.key.owner.id, value }
+  const values = new Set<string>((ownerAgg.value?.series ?? []).map((serie: any) => ownerKey(serie.key.owner)))
+  for (const value of owners.value) values.add(value)
+  return [...values].map(value => {
+    const owner = parseOwnerKey(value)
+    return { title: ownerNames.value[ownerKey(owner)] ?? owner.id, value }
   })
 })
+
+// every owner displayed somewhere is resolved once, the unresolved ones keep their id as name
+const requestedOwners = new Set<string>()
+const resolveOwnerNames = async (keys: string[]) => {
+  const missing = [...new Set(keys.map(key => ownerKey(parseOwnerKey(key))))].filter(key => !requestedOwners.has(key))
+  if (!missing.length) return
+  for (const key of missing) requestedOwners.add(key)
+  ownerNames.value = { ...ownerNames.value, ...await fetchOwnerNames(missing.map(parseOwnerKey)) }
+}
+const onOwnerAgg = (agg: any) => resolveOwnerNames(
+  [...agg.current.series, ...agg.previous.series].map((serie: any) => ownerKey(serie.key.owner))
+)
 
 watch(showAll, (value) => {
   if (!value) owners.value = []
@@ -434,22 +465,10 @@ const operationTrackLabels = computed<Record<string, string>>(() => Object.fromE
   ['readDataAPI', 'readDataFiles', 'openApplication'].map(key => [key, t(`operationTracks.${key}`)])
 ))
 
-// totals by status class of the current and previous periods, whatever the status
+// totals by status class of the current and previous periods, whatever the status: the
+// aggregation of the requests / status class chart, not requested a second time
 const statusClassAgg = ref<{ current: any, previous: any } | null>(null)
-
-watch([periods, adminFilter], async () => {
-  if (!periods.value || !adminFilter.value.showAll) return
-  statusClassAgg.value = null
-  const fetchPeriod = (period: { start: string, end: string }) => $fetch('daily-api-metrics/_agg', {
-    query: { split: 'statusClass', ...adminFilter.value, start: period.start, end: period.end }
-  })
-  try {
-    const [current, previous] = await Promise.all([fetchPeriod(periods.value.current), fetchPeriod(periods.value.previous)])
-    statusClassAgg.value = { current, previous }
-  } catch {
-    statusClassAgg.value = null
-  }
-}, { immediate: true, deep: true })
+watch([periods, adminFilter], () => { statusClassAgg.value = null }, { deep: true })
 
 const getTrend = (current: number, previous: number) => current > previous ? 'up' : current < previous ? 'down' : 'neutral'
 const formatRate = (rate: number) => rate.toLocaleString(locale.value, { style: 'percent', maximumFractionDigits: 2 })
@@ -504,11 +523,16 @@ const userClassOptionFilter = computed(() => {
   return filter
 })
 
-const fetchOptionAgg = async (split: string, filter: Record<string, any>, target: typeof refererDomainAgg, loading: typeof refererDomainLoading) => {
+// a response to an older filter or period, slower than the current one, is dropped
+const optionFetchIds: Record<string, number> = {}
+
+const fetchOptionAgg = async (split: string, filter: Record<string, any>, target: Ref<any>, loading: Ref<boolean>) => {
   if (!periods.value?.current?.start || !periods.value?.current?.end) return
+  const id = optionFetchIds[split] = (optionFetchIds[split] ?? 0) + 1
   loading.value = true
+  let result = null
   try {
-    target.value = await $fetch('daily-api-metrics/_agg', {
+    result = await $fetch('daily-api-metrics/_agg', {
       query: {
         split,
         ...filter,
@@ -517,10 +541,11 @@ const fetchOptionAgg = async (split: string, filter: Record<string, any>, target
       }
     })
   } catch {
-    target.value = null
-  } finally {
-    loading.value = false
+    result = null
   }
+  if (optionFetchIds[split] !== id) return
+  target.value = result
+  loading.value = false
 }
 
 const fetchSimpleAgg = async (operationTrack: string) => {
@@ -547,6 +572,12 @@ const fetchSimpleAgg = async (operationTrack: string) => {
   ])
   return { current, previous }
 }
+
+// without a referer domain or user class filter, the totals and the dataset sums of the cards are
+// the ones of the downloads and api calls / dataset charts, they are not requested a second time
+const simpleAggFromCharts = computed(() => !refererDomains.value.length && !userClasses.value.length)
+const simpleAggDataFiles = computed(() => simpleAggFromCharts.value ? aggResultDataFiles.value : fetchedSimpleAggDataFiles.value)
+const simpleAggDataAPI = computed(() => simpleAggFromCharts.value ? aggResultDataAPI.value : fetchedSimpleAggDataAPI.value)
 
 const simpleMetricsSeries = computed(() => {
   if (!simpleAggDataFiles.value?.current || !simpleAggDataAPI.value?.current) return null
@@ -660,26 +691,36 @@ const exportUrl = computed(() => {
 watch([periods, adminMode, showAll], async () => {
   if (!adminMode.value || !showAll.value) return
   await fetchOptionAgg('owner', { statusClass: 'ok', showAll: 'true' }, ownerAgg, ownerLoading)
-  const missing = (ownerAgg.value?.series ?? []).map((s: any) => s.key.owner as OwnerRef)
-    .filter((owner: OwnerRef) => !(ownerKey(owner) in ownerNames.value))
-  if (missing.length) ownerNames.value = { ...ownerNames.value, ...await fetchOwnerNames(missing) }
+  await resolveOwnerNames((ownerAgg.value?.series ?? []).map((s: any) => ownerKey(s.key.owner)))
 }, { immediate: true })
 
-watch([periods, refererDomainOptionFilter], async () => {
-  await fetchOptionAgg('refererDomain', refererDomainOptionFilter.value, refererDomainAgg, refererDomainLoading)
+watch([owners, adminMode, showAll], () => {
+  if (adminMode.value && showAll.value) resolveOwnerNames(owners.value)
+}, { immediate: true })
+
+watch([periods, refererDomainOptionFilter, () => refererDomains.value.length > 0], async () => {
+  if (!refererDomains.value.length) return
+  await fetchOptionAgg('refererDomain', refererDomainOptionFilter.value, fetchedRefererDomainAgg, fetchedRefererDomainLoading)
 }, { immediate: true, deep: true })
 
-watch([periods, userClassOptionFilter], async () => {
-  await fetchOptionAgg('userClass', userClassOptionFilter.value, userClassAgg, userClassLoading)
+watch([periods, userClassOptionFilter, () => userClasses.value.length > 0], async () => {
+  if (!userClasses.value.length) return
+  await fetchOptionAgg('userClass', userClassOptionFilter.value, fetchedUserClassAgg, fetchedUserClassLoading)
 }, { immediate: true, deep: true })
 
+let simpleFetchId = 0
 watch([periods, baseFilter], async () => {
+  const id = ++simpleFetchId
+  fetchedSimpleAggDataFiles.value = null
+  fetchedSimpleAggDataAPI.value = null
+  if (simpleAggFromCharts.value) return
   const [dataFiles, dataAPI] = await Promise.all([
     fetchSimpleAgg('readDataFiles'),
     fetchSimpleAgg('readDataAPI')
   ])
-  simpleAggDataFiles.value = dataFiles
-  simpleAggDataAPI.value = dataAPI
+  if (id !== simpleFetchId) return
+  fetchedSimpleAggDataFiles.value = dataFiles
+  fetchedSimpleAggDataAPI.value = dataAPI
 }, { immediate: true, deep: true })
 
 </script>
