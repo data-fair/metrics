@@ -15,29 +15,30 @@ export const axiosOpts = { baseURL: publicUrl, httpAgent: privateHttpAgent }
 
 export const axios = (opts = {}) => axiosBuilder({ ...axiosOpts, ...opts })
 
+export type AxiosAuth = Awaited<ReturnType<typeof _axiosAuth>>
+
 export const axiosAuth = (opts: string | Omit<AxiosAuthOptions, 'directoryUrl' | 'axiosOpts' | 'password'>) => {
   opts = typeof opts === 'string' ? { email: opts } : opts
   const password = opts.email === 'superadmin@test.com' ? 'superpasswd' : 'passwd'
   return _axiosAuth({ ...opts, password, axiosOpts, directoryUrl })
 }
 
-export const clean = async () => {
-  for (const name of ['daily-api-metrics']) {
-    await mongo.db.collection(name).deleteMany({})
-  }
-}
-
 /**
  * The dev environment is the test environment: the tests call the api pane through nginx, the access logs reach the
  * daemon pane, and the fixtures are written in the database of the dev processes (metrics-development).
+ * Connected once per worker, the client is closed when the worker exits.
  */
-export const connectDevEnv = async () => {
-  const apiUrl = `http://localhost:${process.env.DEV_API_PORT}/metrics/api/api-docs.json`
-  const ready = await fetch(apiUrl, { signal: AbortSignal.timeout(2000) }).then(res => res.ok, () => false)
-  if (!ready) throw new Error(`the api pane does not answer on ${apiUrl}: start the dev environment (npm run dev-zellij), check it with "npx --no df-dev logs api" / "npx --no df-dev restart api"`)
-  await mongo.connect(`mongodb://localhost:${process.env.MONGO_PORT}/metrics-development`)
+let connected: Promise<void> | undefined
+export const connectDevDb = () => {
+  connected = connected ?? mongo.connect(`mongodb://localhost:${process.env.MONGO_PORT}/metrics-development`).then(() => {})
+  return connected
 }
 
-export const disconnectDevEnv = async () => {
-  await mongo.client.close()
+export const dailyApiMetrics = async () => {
+  await connectDevDb()
+  return mongo.db.collection('daily-api-metrics')
+}
+
+export const clean = async () => {
+  await (await dailyApiMetrics()).deleteMany({})
 }

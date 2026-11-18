@@ -24,7 +24,7 @@ services:
   #####
 
   simple-directory:
-    # SD_IMAGE: a local build of simple-directory, for the scope tests (test-it/05-scopes.ts)
+    # SD_IMAGE: a local build of simple-directory, for the scope tests (tests/features/scopes/scopes.api.spec.ts)
     image: ${SD_IMAGE:-ghcr.io/data-fair/simple-directory:master}
     network_mode: host
     depends_on:
@@ -61,7 +61,7 @@ services:
       retries: 60
 
   data-fair:
-    # DF_IMAGE: a scope-aware data-fair build, for the export tests of test-it/05-scopes.ts
+    # DF_IMAGE: a scope-aware data-fair build, for the export tests of tests/features/scopes/scopes.api.spec.ts
     image: ${DF_IMAGE:-ghcr.io/data-fair/data-fair:master}
     # it can start before its dependencies answer
     restart: on-failure:10

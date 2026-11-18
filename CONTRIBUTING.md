@@ -50,21 +50,28 @@ docker build --progress=plain --target=daemon -t data-fair/metrics/daemon:dev .
 
 ## Running the tests
 
-The dev environment is the test environment: the tests run against the `api` and `daemon` panes of the running zellij session, through nginx, and write their fixtures in the development database (they empty its `daily-api-metrics` collection). The pre-push hook (`dev/pre-push.sh`) runs the type check and the tests, the CI the whole `npm run quality`.
+The tests run with [Playwright](https://playwright.dev/), in `tests/features/<feature>/<name>.<unit|api|e2e>.spec.ts`:
 
-Run the tests:
+- `unit`: pure functions (the daemon's parsing of a log line, the scopes, the agent surface), no server;
+- `api`: the `api` and `daemon` panes of the running zellij session, through nginx;
+- `e2e`: the UI in chromium (`npx playwright install chromium` once), logged in by `tests/fixtures/login.ts`.
+
+The dev environment is the test environment: the api and e2e tests write their fixtures in the development database
+(they empty its `daily-api-metrics` collection). The pre-push hook (`dev/pre-push.sh`) runs the type check, the unit
+tests, the `@smoke` set and the api/e2e spec files the push changes; the CI the whole `npm run quality`.
 
 ```sh
-npm run test
+npm run test            # everything
+npm run test-unit       # no dev env needed
+npm run test-api
+npm run test-e2e
+npx playwright test tests/features/aggregation   # one feature
 ```
 
-To run a specific test, you can mark it with `it.only` or `describe.only` in the test file, then run the tests with:
+On a failure, `npx playwright show-trace test-results/<test>/trace.zip` shows the trace, with the api and daemon
+pane logs attached.
 
-```sh
-npm run test-only test-it/file-name.ts
-```
-
-The scope tests (`test-it/05-scopes.ts`) get scope-restricted sessions from the test non-human identity of `dev/resources/users.json` with `nhiSession(scope)` (`test-it/utils/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Add these variables to the git-ignored `.env` file, docker compose reads it:
+The scope tests (`tests/features/scopes/scopes.api.spec.ts`) get scope-restricted sessions from the test non-human identity of `dev/resources/users.json` with `nhiSession(scope)` (`tests/support/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Add these variables to the git-ignored `.env` file, docker compose reads it:
 
 ```
 DF_IMAGE=ghcr.io/data-fair/data-fair:feat-autonomous-agents

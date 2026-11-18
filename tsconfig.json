@@ -15,5 +15,5 @@
       "#shared/*": ["./shared/*"]
     }
   },
-  "exclude": ["node_modules", ".type", "ui", "dev", "data", "test-it"]
+  "exclude": ["node_modules", ".type", "ui", "dev", "data", "test-results", "playwright-report"]
 }
