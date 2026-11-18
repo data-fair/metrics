@@ -1,13 +1,12 @@
-import type { LogLine, User as UserRef } from './types.ts'
-import type { User } from '@data-fair/lib-express/session.js'
+import type { LogLine } from './types.ts'
+import type { PatchKey } from './operations.ts'
 
 import { Counter, Histogram, Gauge } from 'prom-client'
 import { servicePromRegistry } from '@data-fair/lib-node/observer.js'
 import mongo from '#mongo'
-import { getUserFromApiKey } from './user-from-api-key.ts'
-import equal from 'fast-deep-equal'
 import config from '#config'
 import debug from 'debug'
+import { lineMetric } from './operations.ts'
 
 const debugPatches = debug('patches')
 
@@ -34,182 +33,61 @@ new Gauge({
   }
 })
 
-const getStatusClass = (status: number) => {
-  if (status < 200) return 'info'
-  else if (status < 300) return 'ok'
-  else if (status < 400) return 'redirect'
-  else if (status < 500) return 'clientError'
-  else return 'serverError'
-}
+type Patch = { patchKey: PatchKey, $set: Record<string, any>, $inc: { nbRequests: number, bytes: number, duration: number } }
 
-const getUser = (line: LogLine) => {
-  // identified user from the session cookie
-  if (line[6] && line[6].length >= 2) {
-    const user = JSON.parse(Buffer.from(line[6].split('.')[1], 'base64url').toString()) as User
-    const userRef: UserRef = { id: user.id }
-    if (line[7]) userRef.organization = user.organizations.find((o) => o.id === line[7])
-    return userRef
-  }
-  // identified account from a self-describing api key (calls by api key carry no session cookie)
-  if (line[8]) return getUserFromApiKey(line[8])
-  return null
-}
-
-const getUserClass = (line: LogLine, user: UserRef | null, ownerType: string, ownerId: string) => {
-  let userClass = ''
-  if (!user) userClass = 'anonymous'
-  else if (ownerType === 'user' && user.id === ownerId) userClass = 'owner'
-  else if (ownerType === 'organization' && user.organization?.id === ownerId) userClass = 'owner'
-  else userClass = 'external'
-
-  if (user && line[8]) userClass += 'APIKey'
-  return userClass
-}
-
-type RefererCategory = 'backoffice' | 'embed' | 'app' | 'mcp' | 'other'
-
-// classifies internal traffic by path; a referer whose host doesn't match our
-// own host can't be trusted to be internal, no matter what its path looks like
-const getRefererCategory = (url: URL, host: string): RefererCategory => {
-  if (url.hostname !== host) return 'other'
-  if (url.pathname.startsWith('/mcp')) return 'mcp'
-  if (url.pathname.startsWith('/data-fair/embed')) return 'embed'
-  if (url.pathname.startsWith('/data-fair/app/')) return 'app'
-  if (url.pathname.startsWith('/data-fair/')) return 'backoffice'
-  return 'other'
-}
-
-const getRefererInfo = (line: LogLine): [string, string | undefined, RefererCategory] => {
-  if (line[1]) {
-    try {
-      const url = new URL(line[1])
-      let refererDomain = url.hostname
-      let refererApp
-      // referer given in query params is used to track original referer in the case of embedded pages
-      // data-fair automatically adds this param to embed views and apps
-      const searchParamReferer = url.searchParams.get('referer')
-      if (searchParamReferer) refererDomain = searchParamReferer
-      if (url.pathname.startsWith('/data-fair/app/')) refererApp = /** @type {string} */(url.pathname.replace('/data-fair/app/', '').split('/').shift())
-      const refererCategory = getRefererCategory(url, line[0])
-      return [refererDomain, refererApp, refererCategory]
-    } catch (err) {
-      return [line[1], undefined, 'other']
-    }
-  } else {
-    return ['none', undefined, 'other']
-  }
-}
-
-// cf https://stackoverflow.com/a/14350155
-// using regexp is faster and prevents lots of object affectations, garbage collecting, etc
-const idPropRegexp = /"id":"((\\"|[^"])*)"/
-const depPropRegexp = /"department":"((\\"|[^"])*)"/
-const typePropRegexp = /"type":"((\\"|[^"])*)"/
-const trackPropRegexp = /"track":"((\\"|[^"])*)"/
-
-const patches: [Record<string, string>, any][] = []
+// the pending upserts, by the serialized filter: the key of a line metric always lists its fields in the same order
+const patches = new Map<string, Patch>()
 let timeout: ReturnType<typeof setTimeout> | null = null
 
+const flush = () => {
+  const bulk = getBulk()
+  if (!bulk) return
+  bulk.execute().then(() => {})
+}
+
 export function pushLogLine (line: LogLine) {
-  const date = new Date()
-  const day = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-
-  // process/extract info from log line
-  const operationId = line[13].match(idPropRegexp)?.[1]
-  const operationTrack = line[13].match(trackPropRegexp)?.[1]
-  const ownerType = line[5].match(typePropRegexp)?.[1]
-  const ownerId = line[5].match(idPropRegexp)?.[1]
-  const resourceType = line[12].match(typePropRegexp)?.[1]
-  const resourceId = line[12].match(idPropRegexp)?.[1]
-  if (!operationId || !operationTrack || !ownerType || !ownerId || !resourceType || !resourceId) return
-  const ownerDep = line[1].match(depPropRegexp)?.[1]
-  const statusClass = getStatusClass(line[4])
-  const user = getUser(line)
-  const userClass = getUserClass(line, user, ownerType, ownerId)
-  const [refererDomain, refererApp, refererCategory] = getRefererInfo(line)
-
-  let bytesSent = line[3]
-  if (line[14] && line[14] !== '-') {
-    const gzipRatio = Number(line[14])
-    if (!isNaN(gzipRatio)) bytesSent *= gzipRatio
-  }
+  const metric = lineMetric(line)
+  if (!metric) return
 
   // increment prometheus metrics
-  requestsHistogram.labels(line[11], operationId, statusClass, line[0]).observe(line[2])
-  requestsBytesCounter.labels(line[11], operationId, statusClass, line[0]).inc(bytesSent)
+  requestsHistogram.labels(line[11], metric.operationId, metric.statusClass, line[0]).observe(metric.duration)
+  requestsBytesCounter.labels(line[11], metric.operationId, metric.statusClass, line[0]).inc(metric.bytes)
 
-  // manage mongo patches
-  const patchKey: Record<string, string> = {
-    'owner.type': ownerType,
-    'owner.id': ownerId,
-    day,
-    'resource.type': resourceType,
-    'resource.id': resourceId,
-    operationTrack,
-    statusClass,
-    userClass,
-    refererDomain,
-    refererCategory
-  }
-  if (refererApp) patchKey.refererApp = refererApp
-  if (ownerDep) patchKey['owner.department'] = ownerDep
-
-  const existingPatch = patches.find(p => equal(p[0], patchKey))
+  const key = JSON.stringify(metric.patchKey)
+  const existingPatch = patches.get(key)
   if (existingPatch) {
-    existingPatch[1].$inc.nbRequests += 1
-    existingPatch[1].$inc.bytes += bytesSent
-    existingPatch[1].$inc.duration += line[2]
+    existingPatch.$inc.nbRequests += metric.nbRequests
+    existingPatch.$inc.bytes += metric.bytes
+    existingPatch.$inc.duration += metric.duration
   } else {
-    const resource = JSON.parse(line[12])
-    if (resource.title) resource.title = decodeURIComponent(resource.title)
-
-    const set: Record<string, any> = {
-      owner: JSON.parse(line[5]),
-      day,
-      resource,
-      operationTrack,
-      statusClass,
-      userClass,
-      refererDomain,
-      refererCategory
-    }
-    if (refererApp) set.refererApp = refererApp
-
-    patches.push([patchKey, {
-      $set: set,
-      $inc: {
-        nbRequests: 1,
-        bytes: bytesSent,
-        duration: line[2]
-      }
-    }])
+    patches.set(key, {
+      patchKey: metric.patchKey,
+      $set: metric.set(),
+      $inc: { nbRequests: metric.nbRequests, bytes: metric.bytes, duration: metric.duration }
+    })
   }
 
-  if (patches.length >= config.maxBulkSize) {
+  if (patches.size >= config.maxBulkSize) {
     if (timeout) {
       clearTimeout(timeout)
       timeout = null
     }
-    const bulk = getBulk()
-    bulk?.execute().then(() => {
-    })
+    flush()
   } else if (!timeout) {
-    timeout = setTimeout(async () => {
+    timeout = setTimeout(() => {
       timeout = null
-      const bulk = getBulk()
-      bulk?.execute().then(() => {
-      })
+      flush()
     }, config.maxDelayMS)
   }
 }
 
 export function getBulk () {
-  if (!patches.length) return null
-  debugPatches('send bulk patches', patches.length)
+  if (!patches.size) return null
+  debugPatches('send bulk patches', patches.size)
   const bulk = mongo.db.collection('daily-api-metrics').initializeUnorderedBulkOp()
-  for (const [patchKey, patch] of patches) {
-    bulk.find(patchKey).upsert().updateOne(patch)
+  for (const { patchKey, $set, $inc } of patches.values()) {
+    bulk.find(patchKey).upsert().updateOne({ $set, $inc })
   }
-  patches.length = 0
+  patches.clear()
   return bulk
 }

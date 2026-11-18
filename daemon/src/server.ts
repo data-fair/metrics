@@ -1,5 +1,3 @@
-import type { LogLine } from './types.ts'
-
 import { unlink, chmod } from 'node:fs/promises'
 import config from '#config'
 // @ts-ignore
@@ -8,26 +6,7 @@ import mongo from '#mongo'
 import { startObserver, stopObserver } from '@data-fair/lib-node/observer.js'
 import log from '@data-fair/lib-node/log.js'
 import { pushLogLine, getBulk } from './service.ts'
-
-// inspired by https://github.com/vadimdemedes/syslog-parse/blob/master/source/index.ts
-// but lighter and only capturing the message we need
-/* const logLineRegexp = new RegExp([
-  '(?:<[0-9]+>)?', // optional priority (not captured)
-  '(?:[a-zA-Z]{3})\\s+', // month (not captured),
-  '(?:[0-9]{1,2})\\s+', // day (not captured)
-  '(?:[0-9]{2}):', // hours (not captured)
-  '(?:[0-9]{2}):', // minutes (not captured)
-  '(?:[0-9]{2})\\s+', // seconds (not captured)
-  '(?:.*?):', // host, process, pid (not captured)
-  '(.*)' // message
-].join('')) */
-const logLineRegexp = /.*? df: (.*)/
-
-export const parseLogLine = (logLine: string) => {
-  const match = logLine.match(logLineRegexp)
-  if (!match) throw new Error('regexp did not match')
-  return JSON.parse(match[1]) as LogLine
-}
+import { parseLogLine } from './operations.ts'
 
 const socket = unixDgram.createSocket('unix_dgram', (data: Buffer) => {
   try {
