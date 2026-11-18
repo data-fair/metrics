@@ -5,7 +5,7 @@
     :aspect-ratio="aspectRatio"
     :loading="loading"
   >
-    <canvas :id="canvasId" />
+    <canvas ref="canvas" />
   </layout-resizable-card>
 </template>
 
@@ -47,11 +47,8 @@ const getLabel = (serie: any, category: string, labels: Record<string, string> |
 const aggResult = ref<any>(null)
 const loading = ref(false)
 const large = ref(false)
+const canvas = useTemplateRef<HTMLCanvasElement>('canvas')
 let chartInstance: InstanceType<typeof chart.Chart> | null = null
-
-const canvasId = computed(() => {
-  return `chart-categories-${props.category}-${JSON.stringify(props.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
-})
 
 const aspectRatio = computed(() => display.smAndDown.value ? 1 : 2)
 
@@ -148,12 +145,19 @@ const fetchPeriod = async (period: { start: string, end: string }) => {
   }
 }
 
+const serieKey = (serie: any) => props.category === 'resource' ? serie.key.resource.id : serie.key[props.category]
+
+// a response to an older filter or period, slower than the current one, is dropped
+let fetchId = 0
+
 const fetchData = async () => {
+  const id = ++fetchId
   loading.value = true
   const [aggResultCurrent, aggResultPrevious] = await Promise.all([
     fetchPeriod(props.periods.current),
     fetchPeriod(props.periods.previous)
   ])
+  if (id !== fetchId) return
   if (!aggResultCurrent || !aggResultPrevious) {
     loading.value = false
     return
@@ -162,11 +166,9 @@ const fetchData = async () => {
     current: JSON.parse(JSON.stringify(aggResultCurrent)),
     previous: JSON.parse(JSON.stringify(aggResultPrevious))
   })
+  const previousSeries = new Map(aggResultPrevious.series.map((ps: any) => [serieKey(ps), ps]))
   aggResultCurrent.series.forEach((serie: any) => {
-    const matchingPreviousSerie = aggResultPrevious.series.find((ps: any) => {
-      if (props.category === 'resource') return ps.key.resource.id === serie.key.resource.id
-      else return ps.key[props.category] === serie.key[props.category]
-    })
+    const matchingPreviousSerie: any = previousSeries.get(serieKey(serie))
     if (!matchingPreviousSerie) {
       serie.previousNbRequests = 0
       serie.previousBytes = 0
@@ -196,9 +198,8 @@ watch(() => props.filter, (oldValue, newValue) => {
 onMounted(async () => {
   await fetchData()
   if (chartInstance) chartInstance.destroy()
-  const canvas = document.getElementById(canvasId.value) as HTMLCanvasElement
-  if (canvas && chartConfig.value) {
-    chartInstance = new chart.Chart(canvas, chartConfig.value as any)
+  if (canvas.value && chartConfig.value) {
+    chartInstance = new chart.Chart(canvas.value, chartConfig.value as any)
   }
 })
 
