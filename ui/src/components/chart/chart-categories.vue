@@ -19,10 +19,8 @@ const props = withDefaults(defineProps<{
   category?: string
   filter: Record<string, any>
   periods: Record<string, any>
-  labels?: Record<string, string> | null
 }>(), {
-  category: 'resource',
-  labels: null
+  category: 'resource'
 })
 
 const emit = defineEmits<{
@@ -34,14 +32,28 @@ const display = useDisplay()
 const theme = useTheme()
 const { t, te, locale } = useI18n()
 
-const getLabel = (serie: any, category: string, labels: Record<string, string> | null) => {
+// the referer applications are only known by their ids, their titles come from their own metrics
+const appTitles = ref<Record<string, string>>({})
+const fetchAppTitles = async (series: any[]) => {
+  const ids = [...new Set(series.map(serie => serie.key.refererApp))].filter(id => id && !(id in appTitles.value))
+  if (!ids.length) return
+  const result: any = await $fetch('daily-api-metrics/_agg', {
+    query: { split: 'resource', resourceType: 'applications', resourceId: ids, start: props.periods.previous.start, end: props.periods.current.end }
+  })
+  const titles: Record<string, string> = {}
+  for (const serie of result.series) titles[serie.key.resource.id] = safeDecodeUriComponent(serie.key.resource.title)
+  appTitles.value = { ...appTitles.value, ...titles }
+}
+
+const getLabel = (serie: any, category: string) => {
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
-  if (category === 'userClass') return te(`userClasses.${serie.key.userClass}`) ? t(`userClasses.${serie.key.userClass}`) : serie.key.userClass
-  if (serie.key[category] === 'none') return t('unknown')
-  if (serie.key[category] === null || serie.key[category] === undefined) return t('none')
-  if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
-  return serie.key[category]
+  const value = serie.key[category]
+  if (value === 'none') return t('unknown')
+  if (value === null || value === undefined) return t('none')
+  if ((category === 'userClass' || category === 'refererCategory') && te(`${category}.${value}`)) return t(`${category}.${value}`)
+  if (category === 'refererApp' && appTitles.value[value]) return appTitles.value[value]
+  return value
 }
 
 const aggResult = ref<any>(null)
@@ -70,7 +82,7 @@ const chartConfig = computed(() => {
 
   const categories = limitedSeries
     .map((s: any) => ({
-      label: getLabel(s, props.category, props.labels),
+      label: getLabel(s, props.category),
       value: s.nbRequests,
       previousValue: s.previousNbRequests,
       tooltip: t('requestsTooltip', { nb: s.nbRequests.toLocaleString(locale.value), bytes: formatBytes(s.bytes, locale.value) }, s.nbRequests),
@@ -179,6 +191,7 @@ const fetchData = async () => {
   })
   aggResult.value = aggResultCurrent
   loading.value = false
+  if (props.category === 'refererApp') fetchAppTitles([...aggResultCurrent.series, ...aggResultPrevious.series]).catch(() => {})
 }
 
 watch(chartConfig, () => {
@@ -221,12 +234,18 @@ en:
   requestsTooltip: "{nb} requests totalling {bytes} | {nb} request totalling {bytes} | {nb} requests totalling {bytes}"
   previousRequestsTooltip: "{nb} requests totalling {bytes} over the previous period | {nb} request totalling {bytes} over the previous period | {nb} requests totalling {bytes} over the previous period"
   fetchError: Error while fetching the metrics
-  userClasses:
+  userClass:
     anonymous: Anonymous
     owner: Owner
     external: External user
     ownerAPIKey: Owner (API key)
     externalAPIKey: External user (API key)
+  refererCategory:
+    backoffice: Back-office
+    embed: Embedded views
+    app: Applications
+    mcp: MCP
+    other: Other
 fr:
   currentPeriod: Période en cours
   previousPeriod: Période précédente
@@ -236,10 +255,16 @@ fr:
   requestsTooltip: "{nb} requête cumulant {bytes} | {nb} requête cumulant {bytes} | {nb} requêtes cumulant {bytes}"
   previousRequestsTooltip: "{nb} requête cumulant {bytes} sur la période précédente | {nb} requête cumulant {bytes} sur la période précédente | {nb} requêtes cumulant {bytes} sur la période précédente"
   fetchError: Erreur pendant la récupération des métriques
-  userClasses:
+  userClass:
     anonymous: Anonyme
     owner: Propriétaire
     external: Utilisateur externe
     ownerAPIKey: Propriétaire (clé d'API)
     externalAPIKey: Utilisateur externe (clé d'API)
+  refererCategory:
+    backoffice: Back-office
+    embed: Vues embarquées
+    app: Applications
+    mcp: MCP
+    other: Autre
 </i18n>

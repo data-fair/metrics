@@ -1,18 +1,6 @@
 <template>
   <v-container data-iframe-height>
-    <v-toolbar
-      class="mb-4"
-      variant="tonal"
-      rounded
-    >
-      <v-icon
-        :icon="mdiCalendarRange"
-        class="mx-4"
-        color="primary"
-        size="x-large"
-      />
-      <filter-period @update:model-value="(v: any) => periods = v" />
-      <v-spacer />
+    <filter-period-bar v-model="periods">
       <v-btn
         :prepend-icon="mdiTableArrowDown"
         :href="exportUrl"
@@ -22,7 +10,7 @@
       >
         {{ t('export') }}
       </v-btn>
-    </v-toolbar>
+    </filter-period-bar>
     <template v-if="periods">
       <v-row density="compact">
         <chart-categories
@@ -30,7 +18,6 @@
           category="resource"
           :filter="{ statusClass: 'ok', operationTrack: 'readDataFiles' }"
           :periods="periods"
-          @update:agg="(v: any) => aggResultDataFiles = v"
         />
         <chart-categories
           :title="t('chartTitles.apiCallsByDataset')"
@@ -44,7 +31,6 @@
           category="resource"
           :filter="{ statusClass: 'ok', operationTrack: 'openApplication' }"
           :periods="periods"
-          @update:agg="(v: any) => aggResultOpenApp = v"
         />
       </v-row>
 
@@ -149,77 +135,21 @@
         </v-autocomplete>
       </v-toolbar>
 
-      <v-row>
-        <v-col
-          v-for="(metric, i) in simpleMetrics"
-          :key="i"
-          cols="12"
-          sm="4"
-        >
-          <chart-simple-metric
-            :value="metric.value"
-            :title="metric.title"
-            :subtitle="metric.subtitle"
-            :loading="metric.loading"
-            :trend="metric.trend"
-          />
-        </v-col>
-      </v-row>
-
-      <v-row density="compact">
-        <chart-date-histo
-          :title="t('chartTitles.downloadsHistory')"
-          :filter="{ ...baseFilter, operationTrack: 'readDataFiles' }"
-          :periods="periods"
-        />
-        <chart-date-histo
-          :title="t('chartTitles.apiCallsHistory')"
-          :filter="{ ...baseFilter, operationTrack: 'readDataAPI' }"
-          :periods="periods"
-        />
-        <chart-categories
-          :title="t('chartTitles.requestsByRefererDomain')"
-          category="refererDomain"
-          :filter="baseFilter"
-          :periods="periods"
-        />
-        <chart-categories
-          :title="t('chartTitles.requestsByUserClass')"
-          category="userClass"
-          :filter="baseFilter"
-          :periods="periods"
-        />
-        <chart-categories
-          :title="t('chartTitles.requestsByApplication')"
-          category="refererApp"
-          :filter="baseFilter"
-          :periods="periods"
-          :labels="appLabels"
-        />
-        <chart-categories
-          :title="t('chartTitles.requestsByRefererCategory')"
-          category="refererCategory"
-          :filter="baseFilter"
-          :periods="periods"
-          :labels="refererCategoryLabels"
-        />
-      </v-row>
+      <audience-datasets
+        :filter="baseFilter"
+        :periods="periods"
+      />
     </template>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useI18n } from 'vue-i18n'
 
-const { t, te, locale } = useI18n()
+const { t, te } = useI18n()
 
 const periods = ref<any>(null)
-const aggResultDataFiles = ref<any>(null)
 const aggResultDataAPI = ref<any>(null)
-const aggResultOpenApp = ref<any>(null)
-const simpleAggDataFiles = ref<any>(null)
-const simpleAggDataAPI = ref<any>(null)
 const datasets = useStringsArraySearchParam('datasets')
 const refererDomains = useStringsArraySearchParam('refererDomains')
 const userClasses = useStringsArraySearchParam('userClasses')
@@ -227,14 +157,6 @@ const refererDomainAgg = ref<any>(null)
 const userClassAgg = ref<any>(null)
 const refererDomainLoading = ref(false)
 const userClassLoading = ref(false)
-
-const refererCategoryLabels = computed<Record<string, string>>(() => ({
-  backoffice: t('refererCategories.backoffice'),
-  embed: t('refererCategories.embed'),
-  app: t('refererCategories.app'),
-  mcp: t('refererCategories.mcp'),
-  other: t('refererCategories.other')
-}))
 
 const datasetItems = computed(() => {
   if (!aggResultDataAPI.value) return []
@@ -302,135 +224,6 @@ const fetchOptionAgg = async (split: string, filter: Record<string, any>, target
   }
 }
 
-const fetchSimpleAgg = async (operationTrack: string) => {
-  if (!periods.value?.current?.start || !periods.value?.current?.end) return { current: null, previous: null }
-  const [current, previous] = await Promise.all([
-    $fetch('daily-api-metrics/_agg', {
-      query: {
-        split: 'resource',
-        ...baseFilter.value,
-        operationTrack,
-        start: periods.value.current.start,
-        end: periods.value.current.end
-      }
-    }),
-    $fetch('daily-api-metrics/_agg', {
-      query: {
-        split: 'resource',
-        ...baseFilter.value,
-        operationTrack,
-        start: periods.value.previous.start,
-        end: periods.value.previous.end
-      }
-    })
-  ])
-  return { current, previous }
-}
-
-const simpleMetricsSeries = computed(() => {
-  if (!simpleAggDataFiles.value?.current || !simpleAggDataAPI.value?.current) return null
-
-  if (datasets.value.length) {
-    const sumSeries = (series: any[], ids: string[]) => ids.reduce((acc, id) => {
-      const match = series.find((s: any) => s.key.resource.id === id)
-      if (!match) return acc
-      acc.nbRequests += match.nbRequests || 0
-      acc.bytes += match.bytes || 0
-      return acc
-    }, { nbRequests: 0, bytes: 0 })
-
-    const dataFiles = {
-      previous: sumSeries(simpleAggDataFiles.value.previous.series, datasets.value),
-      current: sumSeries(simpleAggDataFiles.value.current.series, datasets.value)
-    }
-    const dataAPI = {
-      previous: sumSeries(simpleAggDataAPI.value.previous.series, datasets.value),
-      current: sumSeries(simpleAggDataAPI.value.current.series, datasets.value)
-    }
-
-    return { dataFiles, dataAPI }
-  }
-
-  return {
-    dataFiles: {
-      current: {
-        nbRequests: simpleAggDataFiles.value.current.nbRequests,
-        bytes: simpleAggDataFiles.value.current.bytes
-      },
-      previous: {
-        nbRequests: simpleAggDataFiles.value.previous.nbRequests,
-        bytes: simpleAggDataFiles.value.previous.bytes
-      }
-    },
-    dataAPI: {
-      current: {
-        nbRequests: simpleAggDataAPI.value.current.nbRequests,
-        bytes: simpleAggDataAPI.value.current.bytes
-      },
-      previous: {
-        nbRequests: simpleAggDataAPI.value.previous.nbRequests,
-        bytes: simpleAggDataAPI.value.previous.bytes
-      }
-    }
-  }
-})
-
-const simpleMetrics = computed(() => {
-  if (!simpleMetricsSeries.value) return
-  const simpleMetrics: any[] = []
-  for (const operationType of ['dataFiles', 'dataAPI'] as const) {
-    for (const metricType of ['nbRequests', 'bytes']) {
-      if (operationType === 'dataAPI' && metricType === 'bytes') continue
-      if (operationType in simpleMetricsSeries.value) {
-        const current = simpleMetricsSeries.value[operationType].current
-        if (!current) continue
-        const simpleMetric: any = { loading: false }
-        if (metricType === 'nbRequests') simpleMetric.value = current.nbRequests.toLocaleString(locale.value)
-        else simpleMetric.value = formatBytes(current.bytes, locale.value)
-
-        if (operationType === 'dataAPI') simpleMetric.title = t('apiCalls', current.nbRequests)
-        else simpleMetric.title = t('downloadedFiles', current.nbRequests)
-
-        simpleMetric.subtitle = t('onPreviousPeriod', { value: (0).toLocaleString(locale.value) })
-        const previous = simpleMetricsSeries.value[operationType].previous
-        if (previous) {
-          simpleMetric.subtitle = t('onPreviousPeriod', {
-            value: metricType === 'nbRequests' ? previous.nbRequests.toLocaleString(locale.value) : formatBytes(previous.bytes, locale.value)
-          })
-          // Determine trend
-          if (metricType === 'nbRequests') {
-            if (current.nbRequests > previous.nbRequests) simpleMetric.trend = 'up'
-            else if (current.nbRequests < previous.nbRequests) simpleMetric.trend = 'down'
-            else simpleMetric.trend = 'neutral'
-          } else {
-            if (current.bytes > previous.bytes) simpleMetric.trend = 'up'
-            else if (current.bytes < previous.bytes) simpleMetric.trend = 'down'
-            else simpleMetric.trend = 'neutral'
-          }
-        }
-        simpleMetrics.push(simpleMetric)
-      } else {
-        simpleMetrics.push({ loading: true })
-      }
-    }
-  }
-  return simpleMetrics
-})
-
-const appLabels = computed(() => {
-  if (!aggResultOpenApp.value) return
-  const labels: any = {}
-  aggResultOpenApp.value.previous.series.filter((item: any) => item.key.resource)
-    .forEach((item: any) => {
-      labels[item.key.resource.id] = item.key.resource.title
-    })
-  aggResultOpenApp.value.current.series.filter((item: any) => item.key.resource)
-    .forEach((item: any) => {
-      labels[item.key.resource.id] = item.key.resource.title
-    })
-  return labels
-})
-
 const exportUrl = computed(() => {
   if (!periods.value) return undefined
   return `${$apiPath}/daily-api-metrics/_export?start=${periods.value.current.start}&end=${periods.value.current.end}`
@@ -444,14 +237,6 @@ watch([periods, userClassOptionFilter], async () => {
   await fetchOptionAgg('userClass', userClassOptionFilter.value, userClassAgg, userClassLoading)
 }, { immediate: true, deep: true })
 
-watch([periods, baseFilter], async () => {
-  const [dataFiles, dataAPI] = await Promise.all([
-    fetchSimpleAgg('readDataFiles'),
-    fetchSimpleAgg('readDataAPI')
-  ])
-  simpleAggDataFiles.value = dataFiles
-  simpleAggDataAPI.value = dataAPI
-}, { immediate: true, deep: true })
 
 </script>
 
@@ -465,31 +250,16 @@ en:
   userClass: User category
   unknown: Unknown
   none: None
-  apiCalls: API calls | API call | API calls
-  downloadedFiles: downloaded files | downloaded file | downloaded files
-  onPreviousPeriod: "{value} over the previous period"
   chartTitles:
     downloadsByDataset: Downloads / dataset
     apiCallsByDataset: API calls / dataset
     applicationOpenings: Application openings
-    downloadsHistory: Downloads history
-    apiCallsHistory: API calls history
-    requestsByRefererDomain: Requests / origin site
-    requestsByUserClass: Requests / user category
-    requestsByApplication: Requests / application
-    requestsByRefererCategory: Requests / consumers
   userClasses:
     anonymous: Anonymous
     owner: Owner
     external: External user
     ownerAPIKey: Owner (API key)
     externalAPIKey: External user (API key)
-  refererCategories:
-    backoffice: Back-office
-    embed: Embedded views
-    app: Applications
-    mcp: MCP
-    other: Other
 fr:
   export: Exporter
   dataset: Jeu de données
@@ -497,29 +267,14 @@ fr:
   userClass: Catégorie d'utilisateur
   unknown: Inconnu
   none: Aucune
-  apiCalls: appel d'API | appel d'API | appels d'API
-  downloadedFiles: fichier téléchargé | fichier téléchargé | fichiers téléchargés
-  onPreviousPeriod: "{value} sur la période précédente"
   chartTitles:
     downloadsByDataset: Téléchargements / jeu de données
     apiCallsByDataset: Appels API / jeu de données
     applicationOpenings: Ouvertures de visualisations
-    downloadsHistory: Historique téléchargements
-    apiCallsHistory: Historique appels API
-    requestsByRefererDomain: Requêtes / site d'origine
-    requestsByUserClass: Requêtes / catégorie d'utilisateur
-    requestsByApplication: Requêtes / visualisation
-    requestsByRefererCategory: Requêtes / consommateurs
   userClasses:
     anonymous: Anonyme
     owner: Propriétaire
     external: Utilisateur externe
     ownerAPIKey: Propriétaire (clé d'API)
     externalAPIKey: Utilisateur externe (clé d'API)
-  refererCategories:
-    backoffice: Back-office
-    embed: Vues embarquées
-    app: Applications
-    mcp: MCP
-    other: Autre
 </i18n>
