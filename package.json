@@ -29,7 +29,7 @@
     "daemon"
   ],
   "engines": {
-    "node": ">=24.22.1"
+    "node": ">=24.22.3"
   },
   "dependencies": {
     "@data-fair/lib-types-builder": "^1.14.6"
