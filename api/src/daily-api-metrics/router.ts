@@ -1,5 +1,7 @@
 import { Router } from 'express'
+import type { Request } from 'express'
 import { session, reqOrigin, httpError } from '@data-fair/lib-express/index.js'
+import { assertAccountRole } from '@data-fair/lib-common-types/session/index.js'
 import axios from '@data-fair/lib-node/axios.js'
 import * as aggQuery from '#doc/agg-query/index.ts'
 import * as exportQuery from '#doc/export-query/index.ts'
@@ -11,14 +13,23 @@ import { requireOperationScope, exportScopesMessage } from '../scopes.ts'
 const router = Router()
 export default router
 
-router.get('', requireOperationScope('listDailyApiMetrics'), async (req, res) => {
+// the audience lists the resources of the account with their titles: like data-fair's listing of the
+// resources of an organization, it is reserved to its admins and contributors (a personal account is
+// its own admin, a super admin in admin mode too)
+const reqAudienceSession = async (req: Request) => {
   const reqSession = await session.reqAuthenticated(req)
+  assertAccountRole(reqSession, reqSession.account, ['admin', 'contrib'])
+  return reqSession
+}
+
+router.get('', requireOperationScope('listDailyApiMetrics'), async (req, res) => {
+  const reqSession = await reqAudienceSession(req)
   const results = await list(reqSession.account)
   res.json({ count: results.length, results })
 })
 
 router.get('/_agg', requireOperationScope('aggDailyApiMetrics'), async (req, res) => {
-  const reqSession = await session.reqAuthenticated(req)
+  const reqSession = await reqAudienceSession(req)
   const query = { ...req.query } // better not to mutate req.query
   if (typeof query.split === 'string') query.split = query.split.split(',').filter(Boolean)
   aggQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
@@ -27,7 +38,7 @@ router.get('/_agg', requireOperationScope('aggDailyApiMetrics'), async (req, res
 })
 
 router.get('/_export', requireOperationScope('exportDailyApiMetrics'), async (req, res) => {
-  const reqSession = await session.reqAuthenticated(req)
+  const reqSession = await reqAudienceSession(req)
   const query = { ...req.query } // better not to mutate req.query
   exportQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
 

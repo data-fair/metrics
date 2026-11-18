@@ -18,6 +18,27 @@ jobs:
     - name: Install dependencies
       run: npm ci --no-audit --no-fund
 
+    # only the browser binaries are cached, keyed on the installed playwright version;
+    # the system packages they need are installed on every run
+    - name: Read the playwright version
+      id: playwright
+      run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+    - name: Cache playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+    - name: Install playwright browser
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: npx playwright install --with-deps chromium
+
+    - name: Install playwright system dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
+
     # the ports, DEV_HOST and SSRF_PUBLIC_IPS of dev/dev.json, read by docker compose and the tests
     - name: Init env
       run: ./node_modules/.bin/df-dev init-env
@@ -29,16 +50,17 @@ jobs:
     - name: Build types and UI
       run: npm run build-types && npm -w ui run build
 
-    # the dev environment is the test environment: the commands of the api and daemon panes of .zellij.kdl,
-    # each writing dev/logs/<pane>.log (uploaded on failure)
-    - name: Start dev API and daemon
+    # the dev environment is the test environment: the commands of the ui, api and daemon panes of .zellij.kdl,
+    # without nodemon, each writing dev/logs/<pane>.log (uploaded on failure)
+    - name: Start dev UI, API and daemon
       run: |
         set -a && . ./.env && set +a
         mkdir -p dev/logs
+        (cd ui && NODE_CONFIG_DIR=../api/config/ NODE_ENV=development ../node_modules/.bin/vite --port $DEV_UI_PORT > ../dev/logs/ui.log 2>&1 &)
         (cd api && NODE_ENV=development node index.ts > ../dev/logs/api.log 2>&1 &)
         (cd daemon && umask 0 && NODE_ENV=development node index.ts > ../dev/logs/daemon.log 2>&1 &)
-        if ! timeout 60 bash -c "until curl -sf http://localhost:$DEV_API_PORT/metrics/api/api-docs.json >/dev/null; do sleep 1; done"; then
-          tail -n 100 dev/logs/api.log
+        if ! timeout 60 bash -c "until curl -sf http://localhost:$DEV_API_PORT/metrics/api/api-docs.json >/dev/null && curl -sf http://localhost:$DEV_UI_PORT/metrics/ >/dev/null; do sleep 1; done"; then
+          tail -n 100 dev/logs/*.log
           exit 1
         fi
 
@@ -49,9 +71,11 @@ jobs:
       if: failure()
       run: docker compose --profile '*' logs
 
-    - name: Upload process logs
+    - name: Upload process logs and test results
       if: failure()
       uses: actions/upload-artifact@v7
       with:
         name: dev-logs
-        path: dev/logs/
+        path: |
+          dev/logs/
+          test-results/

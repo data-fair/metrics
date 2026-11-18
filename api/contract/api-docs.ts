@@ -11,7 +11,7 @@
  * every scope it accepts as its own security alternative (standard OpenAPI: the scopes of one
  * requirement are all needed).
  *
- * The agent-facing surface these produce is pinned by test-it/fixtures/agent-surface.json.
+ * The agent-facing surface these produce is pinned by tests/resources/agent-surface.json.
  */
 import type { AgentRoot, AgentOperation } from '@data-fair/openapi-mcp'
 import { oauth2SecurityScheme, oauth2Alternatives, type ScopeLocale } from '@data-fair/lib-common-types/scopes.js'

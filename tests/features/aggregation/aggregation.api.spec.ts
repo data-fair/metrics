@@ -4,14 +4,14 @@
  * "series" format is what the charts and the embed home page read; the "rows" format is what
  * agents read and must stay consistent with it.
  */
-import { describe, it, before, after } from 'node:test'
+import { test } from '@playwright/test'
 import { strict as assert } from 'node:assert'
-import mongo from '@data-fair/lib-node/mongo.js'
-import { axiosAuth, clean, connectDevEnv, disconnectDevEnv } from './utils/index.ts'
+import { axiosAuth, clean, dailyApiMetrics } from '../../support/index.ts'
+import type { AxiosAuth } from '../../support/index.ts'
 
-const adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
-const orgAx = await axiosAuth({ email: 'admin1@test.com', org: 'orga1' })
-const depAx = await axiosAuth({ email: 'admin1@test.com', org: 'orga1', dep: 'dep1' })
+let adminAx: AxiosAuth
+let orgAx: AxiosAuth
+let depAx: AxiosAuth
 
 type Fixture = { day: string, resource: [string, string], operationTrack: string, statusClass?: string, userClass: string, refererDomain: string, refererCategory?: string, refererApp?: string, nbRequests: number, duration: number, owner?: Record<string, string> }
 
@@ -63,15 +63,20 @@ const agg = async (query: Record<string, string | string[]>, ax = adminAx) => {
 
 const totals = (result: any) => result.series.map((s: any) => [s.key, s.nbRequests])
 
-describe('aggregation of daily metrics', () => {
-  before(connectDevEnv)
-  before(clean)
-  before(async () => { await mongo.db.collection('daily-api-metrics').insertMany(fixtures.map(toDoc)) })
-  after(clean)
-  after(disconnectDevEnv)
+test.describe('aggregation of daily metrics', () => {
+  // logged in once per worker, after the state setup checked the dev env
+  test.beforeAll(async () => {
+    adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
+    orgAx = await axiosAuth({ email: 'admin1@test.com', org: 'orga1' })
+    depAx = await axiosAuth({ email: 'admin1@test.com', org: 'orga1', dep: 'dep1' })
+  })
 
-  describe('series format (default)', () => {
-    it('splits by day by default, filling every day of the period', async () => {
+  test.beforeAll(clean)
+  test.beforeAll(async () => { await (await dailyApiMetrics()).insertMany(fixtures.map(toDoc)) })
+  test.afterAll(clean)
+
+  test.describe('series format (default)', () => {
+    test('splits by day by default, filling every day of the period @smoke', async () => {
       const result = await agg({ start: '2026-02-28' })
       assert.equal(result.nbRequests, 28)
       assert.equal(result.bytes, 2800)
@@ -86,7 +91,7 @@ describe('aggregation of daily metrics', () => {
       assert.equal(days['2026-03-03'].nbRequests, 12)
     })
 
-    it('splits by resource, sorted by number of requests, without days', async () => {
+    test('splits by resource, sorted by number of requests, without days', async () => {
       const result = await agg({ split: 'resource' })
       assert.equal(result.days, undefined)
       assert.deepEqual(totals(result), [
@@ -97,7 +102,7 @@ describe('aggregation of daily metrics', () => {
       assert.equal(result.series[0].days, undefined)
     })
 
-    it('splits by day and a dimension, with a day map per serie', async () => {
+    test('splits by day and a dimension, with a day map per serie', async () => {
       const result = await agg({ split: 'day,userClass' })
       assert.deepEqual(result.days, ['2026-03-01', '2026-03-02', '2026-03-03'])
       assert.deepEqual(totals(result), [[{ userClass: 'anonymous' }, 22], [{ userClass: 'external' }, 4], [{ userClass: 'owner' }, 2]])
@@ -105,14 +110,14 @@ describe('aggregation of daily metrics', () => {
       assert.equal(result.series[0].days['2026-03-03'].nbRequests, 12)
     })
 
-    it('splits by every dimension', async () => {
+    test('splits by every dimension', async () => {
       assert.deepEqual(totals(await agg({ split: 'operationTrack' })), [[{ operationTrack: 'readDataAPI' }, 19], [{ operationTrack: 'openApplication' }, 7], [{ operationTrack: 'readDataFiles' }, 2]])
       assert.deepEqual(totals(await agg({ split: 'statusClass' })), [[{ statusClass: 'ok' }, 24], [{ statusClass: 'clientError' }, 4]])
       assert.deepEqual(totals(await agg({ split: 'refererDomain' })), [[{ refererDomain: 'a.fr' }, 22], [{ refererDomain: 'b.fr' }, 4], [{ refererDomain: 'localhost' }, 2]])
       assert.deepEqual(totals(await agg({ split: 'userClass,operationTrack' }))[0], [{ userClass: 'anonymous', operationTrack: 'readDataAPI' }, 15])
     })
 
-    it('groups legacy records without refererCategory with "other"', async () => {
+    test('groups legacy records without refererCategory with "other"', async () => {
       assert.deepEqual(totals(await agg({ split: 'refererCategory' })), [
         [{ refererCategory: 'other' }, 11],
         [{ refererCategory: 'embed' }, 10],
@@ -121,20 +126,20 @@ describe('aggregation of daily metrics', () => {
       ])
     })
 
-    it('keeps only requests with a referer application when splitting by refererApp', async () => {
+    test('keeps only requests with a referer application when splitting by refererApp', async () => {
       const result = await agg({ split: 'refererApp' })
       assert.equal(result.nbRequests, 5)
       assert.deepEqual(totals(result), [[{ refererApp: 'carte' }, 5]])
     })
 
-    it('returns the totals of the period with an empty split', async () => {
+    test('returns the totals of the period with an empty split', async () => {
       const result = await agg({ split: '' })
       assert.equal(result.nbRequests, 28)
       assert.equal(result.days, undefined)
       assert.deepEqual(totals(result), [[{}, 28]])
     })
 
-    it('filters by each dimension, with single values and repeated keys', async () => {
+    test('filters by each dimension, with single values and repeated keys', async () => {
       const nb = async (query: Record<string, string | string[]>) => (await agg({ split: 'resource', ...query })).nbRequests
       assert.equal(await nb({ statusClass: 'ok' }), 24)
       assert.equal(await nb({ operationTrack: 'readDataAPI' }), 19)
@@ -153,7 +158,7 @@ describe('aggregation of daily metrics', () => {
       assert.equal(await nb({ statusClass: 'ok', operationTrack: 'readDataAPI', resourceId: ['d1'], refererDomain: ['a.fr'] }), 15)
     })
 
-    it('only aggregates the metrics of the active account, including its departments', async () => {
+    test('only aggregates the metrics of the active account, including its departments', async () => {
       const result = await agg({ split: 'resource' }, orgAx)
       assert.deepEqual(totals(result), [
         [{ resource: { type: 'datasets', id: 'd1', title: 'Title d1' } }, 100],
@@ -162,7 +167,7 @@ describe('aggregation of daily metrics', () => {
       ])
     })
 
-    it('only aggregates the metrics of the active department', async () => {
+    test('only aggregates the metrics of the active department', async () => {
       for (const format of ['series', 'rows']) {
         const result = await agg({ split: 'resource', format }, depAx)
         assert.equal(result.nbRequests, 50, format)
@@ -170,7 +175,7 @@ describe('aggregation of daily metrics', () => {
       assert.deepEqual(totals(await agg({ split: 'resource' }, depAx)), [[{ resource: { type: 'datasets', id: 'd5', title: 'Title d5' } }, 50]])
     })
 
-    it('rejects invalid queries', async () => {
+    test('rejects invalid queries', async () => {
       const status = async (query: Record<string, string>) => {
         const params = new URLSearchParams(query)
         return (await adminAx.get('/metrics/api/daily-api-metrics/_agg?' + params.toString(), { validateStatus: () => true })).status
@@ -186,8 +191,8 @@ describe('aggregation of daily metrics', () => {
     })
   })
 
-  describe('rows format', () => {
-    it('returns flat rows with the totals and the number of groups', async () => {
+  test.describe('rows format', () => {
+    test('returns flat rows with the totals and the number of groups', async () => {
       const result = await agg({ split: 'day,resource', format: 'rows' })
       assert.equal(result.nbRequests, 28)
       assert.equal(result.bytes, 2800)
@@ -201,7 +206,7 @@ describe('aggregation of daily metrics', () => {
       assert.deepEqual(result.results[0], { day: '2026-03-01', resourceType: 'datasets', resourceId: 'd1', resourceTitle: 'Title d1', nbRequests: 12, bytes: 1200, meanDuration: 0.25 })
     })
 
-    it('truncates to size but keeps the totals of every group', async () => {
+    test('truncates to size but keeps the totals of every group', async () => {
       const result = await agg({ split: 'resource', format: 'rows', size: '1' })
       assert.equal(result.count, 3)
       assert.equal(result.nbRequests, 28)
@@ -209,7 +214,7 @@ describe('aggregation of daily metrics', () => {
     })
 
     for (const split of ['resource', 'userClass', 'operationTrack', 'statusClass', 'refererDomain', 'refererCategory', 'refererApp', '']) {
-      it(`gives the same groups as the series format when splitting by "${split}"`, async () => {
+      test(`gives the same groups as the series format when splitting by "${split}"`, async () => {
         const filters = { statusClass: 'ok', userClass: ['anonymous', 'owner'] }
         const series = await agg({ split, ...filters })
         const rows = await agg({ split, ...filters, format: 'rows' })
