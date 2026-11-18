@@ -108,7 +108,7 @@ export const lineMetric = (line: LogLine, date = new Date()): LineMetric | null 
   const resourceType = line[12].match(typePropRegexp)?.[1]
   const resourceId = line[12].match(idPropRegexp)?.[1]
   if (!operationId || !operationTrack || !ownerType || !ownerId || !resourceType || !resourceId) return null
-  const ownerDep = line[1].match(depPropRegexp)?.[1]
+  const ownerDep = line[5].match(depPropRegexp)?.[1]
   const statusClass = getStatusClass(line[4])
   const userClass = getUserClass(line, getUser(line), ownerType, ownerId)
   const [refererDomain, refererApp, refererCategory] = getRefererInfo(line)
