@@ -4,7 +4,7 @@
     :aspect-ratio="aspectRatio"
     :loading="loading"
   >
-    <canvas :id="canvasId" />
+    <canvas ref="canvas" />
   </layout-resizable-card>
 </template>
 
@@ -26,11 +26,8 @@ const { t, locale } = useI18n()
 
 const aggResult = ref<any>(null)
 const loading = ref(false)
+const canvas = useTemplateRef<HTMLCanvasElement>('canvas')
 let chartInstance: InstanceType<typeof chart.Chart> | null = null
-
-const canvasId = computed(() => {
-  return `chart-date-histo-${JSON.stringify(props.filter).replace(/[{}"]/g, '').replace(/[,:]/g, '-')}`
-})
 
 const aspectRatio = computed(() => display.smAndDown.value ? 1 : 2)
 
@@ -76,11 +73,17 @@ const chartConfig = computed(() => {
   }
 })
 
+// a response to an older filter or period, slower than the current one, is dropped
+let fetchId = 0
+
 const fetchData = async () => {
+  const id = ++fetchId
   loading.value = true
-  aggResult.value = await $fetch('daily-api-metrics/_agg', {
+  const result = await $fetch('daily-api-metrics/_agg', {
     query: { split: 'day', ...props.filter, start: props.periods.current.start, end: props.periods.current.end }
   })
+  if (id !== fetchId) return
+  aggResult.value = result
   loading.value = false
 }
 
@@ -102,9 +105,8 @@ watch(() => props.filter, (oldValue, newValue) => {
 onMounted(async () => {
   await fetchData()
   if (chartInstance) chartInstance.destroy()
-  const canvas = document.getElementById(canvasId.value) as HTMLCanvasElement
-  if (canvas && chartConfig.value) {
-    chartInstance = new chart.Chart(canvas, chartConfig.value as any)
+  if (canvas.value && chartConfig.value) {
+    chartInstance = new chart.Chart(canvas.value, chartConfig.value as any)
   }
 })
 
