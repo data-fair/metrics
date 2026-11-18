@@ -6,7 +6,6 @@ import { camelCase } from 'camel-case'
 import dayjs from 'dayjs'
 import dayjsUtc from 'dayjs/plugin/utc.js'
 import mongo from '#mongo'
-import equal from 'fast-deep-equal'
 
 dayjs.extend(dayjsUtc)
 
@@ -105,10 +104,13 @@ export const agg = async (account: Account, query: AggQuery) => {
       }
     }
   }
+  // the series by identity of their key, instead of a deep comparison with every series for every item
+  const seriesById = new Map<string, AggResult['series'][number]>()
   for (const item of items) {
     const key = seriesKey.reduce((a, key) => { a[key] = item[key]; return a }, {} as Record<string, string>)
+    const keyId = JSON.stringify([...seriesKey.map(k => item[k]), item.resourceType, item.resourceId])
     if (item.resource) key.resource = item.resource
-    let serie = result.series.find((s) => equal(s.key, key))
+    let serie = seriesById.get(keyId)
     if (!serie) {
       serie = {
         key,
@@ -116,6 +118,7 @@ export const agg = async (account: Account, query: AggQuery) => {
         bytes: 0
       }
       result.series.push(serie)
+      seriesById.set(keyId, serie)
     }
     serie.nbRequests += item.nbRequests
     serie.bytes += item.bytes
