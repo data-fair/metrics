@@ -218,13 +218,11 @@ export const getHistory = async (account: Account, query: { start: string, end: 
         nbFiles: { $sum: '$nbFiles' },
         nbRequestsAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbRequests', 0] } },
         nbRequestsOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbRequests', 0] } },
-        nbRequestsUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbRequests', 0] } },
         nbRequestsExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbRequests', 0] } },
         nbRequestsOwnerAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'ownerAPIKey'] }, '$nbRequests', 0] } },
         nbRequestsExternalAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'externalAPIKey'] }, '$nbRequests', 0] } },
         nbFilesAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbFiles', 0] } },
         nbFilesOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbFiles', 0] } },
-        nbFilesUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbFiles', 0] } },
         nbFilesExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbFiles', 0] } }
       }
     },
@@ -236,13 +234,11 @@ export const getHistory = async (account: Account, query: { start: string, end: 
         nbFiles: 1,
         nbRequestsAnonymous: 1,
         nbRequestsOwner: 1,
-        nbRequestsUser: 1,
         nbRequestsExternal: 1,
         nbRequestsOwnerAPIKey: 1,
         nbRequestsExternalAPIKey: 1,
         nbFilesAnonymous: 1,
         nbFilesOwner: 1,
-        nbFilesUser: 1,
         nbFilesExternal: 1
       }
     },
@@ -289,13 +285,11 @@ export const getDataset = async (account: Account, query: { start: string, end: 
         nbFiles: { $sum: '$nbFiles' },
         nbRequestsAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbRequests', 0] } },
         nbRequestsOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbRequests', 0] } },
-        nbRequestsUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbRequests', 0] } },
         nbRequestsExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbRequests', 0] } },
         nbRequestsOwnerAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'ownerAPIKey'] }, '$nbRequests', 0] } },
         nbRequestsExternalAPIKey: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'externalAPIKey'] }, '$nbRequests', 0] } },
         nbFilesAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbFiles', 0] } },
         nbFilesOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbFiles', 0] } },
-        nbFilesUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbFiles', 0] } },
         nbFilesExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbFiles', 0] } }
       }
     },
@@ -308,13 +302,11 @@ export const getDataset = async (account: Account, query: { start: string, end: 
         nbFiles: 1,
         nbRequestsAnonymous: 1,
         nbRequestsOwner: 1,
-        nbRequestsUser: 1,
         nbRequestsExternal: 1,
         nbRequestsOwnerAPIKey: 1,
         nbRequestsExternalAPIKey: 1,
         nbFilesAnonymous: 1,
         nbFilesOwner: 1,
-        nbFilesUser: 1,
         nbFilesExternal: 1
       }
     },
@@ -367,14 +359,12 @@ export const getOrigin = async (account: Account, query: { start: string, end: s
         nbRequests: apiCond(),
         nbRequestsAnonymous: apiCond('anonymous'),
         nbRequestsOwner: apiCond('owner'),
-        nbRequestsUser: apiCond('user'),
         nbRequestsExternal: apiCond('external'),
         nbRequestsOwnerAPIKey: apiCond('ownerAPIKey'),
         nbRequestsExternalAPIKey: apiCond('externalAPIKey'),
         nbFiles: filesCond(),
         nbFilesAnonymous: filesCond('anonymous'),
         nbFilesOwner: filesCond('owner'),
-        nbFilesUser: filesCond('user'),
         nbFilesExternal: filesCond('external'),
         nbFilesOwnerAPIKey: filesCond('ownerAPIKey'),
         nbFilesExternalAPIKey: filesCond('externalAPIKey')
@@ -387,14 +377,12 @@ export const getOrigin = async (account: Account, query: { start: string, end: s
         nbRequests: 1,
         nbRequestsAnonymous: 1,
         nbRequestsOwner: 1,
-        nbRequestsUser: 1,
         nbRequestsExternal: 1,
         nbRequestsOwnerAPIKey: 1,
         nbRequestsExternalAPIKey: 1,
         nbFiles: 1,
         nbFilesAnonymous: 1,
         nbFilesOwner: 1,
-        nbFilesUser: 1,
         nbFilesExternal: 1,
         nbFilesOwnerAPIKey: 1,
         nbFilesExternalAPIKey: 1
@@ -440,7 +428,6 @@ export const getApp = async (account: Account, query: { start: string, end: stri
         nbRequests: { $sum: '$nbRequests' },
         nbRequestsAnonymous: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'anonymous'] }, '$nbRequests', 0] } },
         nbRequestsOwner: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'owner'] }, '$nbRequests', 0] } },
-        nbRequestsUser: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'user'] }, '$nbRequests', 0] } },
         nbRequestsExternal: { $sum: { $cond: [{ $eq: ['$_id.userClass', 'external'] }, '$nbRequests', 0] } }
       }
     },
@@ -453,7 +440,6 @@ export const getApp = async (account: Account, query: { start: string, end: stri
         nbFiles: 1,
         nbRequestsAnonymous: 1,
         nbRequestsOwner: 1,
-        nbRequestsUser: 1,
         nbRequestsExternal: 1
       }
     },
