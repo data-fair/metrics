@@ -37,7 +37,9 @@ export class MetricsMongo {
             'processing._id': 1
           },
           { unique: true }
-        ]
+        ],
+        // the owner of a resource, for the super admin who reads its audience from another account
+        resource: { 'resource.type': 1, 'resource.id': 1, day: -1 }
       }
     })
   }
