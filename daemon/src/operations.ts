@@ -25,10 +25,17 @@ export const getStatusClass = (status: number) => {
 export const getUser = (line: LogLine): UserRef | null => {
   // identified user from the session cookie
   if (line[6] && line[6].length >= 2) {
-    const user = JSON.parse(Buffer.from(line[6].split('.')[1], 'base64url').toString()) as User
-    const userRef: UserRef = { id: user.id }
-    if (line[7]) userRef.organization = user.organizations.find((o) => o.id === line[7])
-    return userRef
+    const payload = line[6].split('.')[1]
+    if (payload) {
+      try {
+        const user = JSON.parse(Buffer.from(payload, 'base64url').toString()) as User
+        const userRef: UserRef = { id: user.id }
+        if (line[7]) userRef.organization = user.organizations?.find((o) => o.id === line[7])
+        return userRef
+      } catch {
+        // a malformed cookie counts as anonymous
+      }
+    }
   }
   // identified account from a self-describing api key (calls by api key carry no session cookie)
   if (line[8]) return getUserFromApiKey(line[8])
