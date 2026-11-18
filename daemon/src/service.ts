@@ -3,6 +3,7 @@ import type { PatchKey } from './operations.ts'
 
 import { Counter, Histogram, Gauge } from 'prom-client'
 import { servicePromRegistry } from '@data-fair/lib-node/observer.js'
+import log from '@data-fair/lib-node/log.js'
 import mongo from '#mongo'
 import config from '#config'
 import debug from 'debug'
@@ -42,7 +43,9 @@ let timeout: ReturnType<typeof setTimeout> | null = null
 const flush = () => {
   const bulk = getBulk()
   if (!bulk) return
-  bulk.execute().then(() => {})
+  bulk.execute().catch(err => {
+    log.error('could not write the daily metrics', { code: 'bulk-write', err })
+  })
 }
 
 export function pushLogLine (line: LogLine) {
