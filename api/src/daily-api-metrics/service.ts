@@ -25,6 +25,22 @@ export const list = async (account: Account) => {
   return results
 }
 
+// like the traceability of the events service: a super admin reads the audience of a resource of any account
+// without switching to it, the metrics of its current owner (the one of its last metric). The application of a
+// refererApp filter is that resource too, it is the audience of the application's page in data-fair.
+export const aggAccount = async (account: Account, adminMode: unknown, query: AggQuery): Promise<Account> => {
+  if (!adminMode) return account
+  let resource: { type: string, id: string } | undefined
+  if (typeof query.resourceType === 'string' && typeof query.resourceId === 'string') resource = { type: query.resourceType, id: query.resourceId }
+  else if (typeof query.refererApp === 'string') resource = { type: 'applications', id: query.refererApp }
+  if (!resource) return account
+  const metric = await mongo.dailyApiMetrics.findOne(
+    { 'resource.type': resource.type, 'resource.id': resource.id },
+    { projection: { owner: 1 }, sort: { day: -1 } }
+  )
+  return (metric?.owner as Account | undefined) ?? account
+}
+
 const aggMatch = (account: Account, query: AggQuery) => {
   const $match: Record<string, any> = {
     'owner.type': account.type,
@@ -42,6 +58,7 @@ const aggMatch = (account: Account, query: AggQuery) => {
   if (query.resourceType) $match['resource.type'] = query.resourceType
   if (query.resourceId) $match['resource.id'] = Array.isArray(query.resourceId) ? { $in: query.resourceId } : query.resourceId
   if (query.refererDomain) $match.refererDomain = Array.isArray(query.refererDomain) ? { $in: query.refererDomain } : query.refererDomain
+  if (query.refererApp) $match.refererApp = Array.isArray(query.refererApp) ? { $in: query.refererApp } : query.refererApp
   if (query.refererCategory) {
     const refererCategories = Array.isArray(query.refererCategory) ? query.refererCategory : [query.refererCategory]
     // legacy data recorded before refererCategory was introduced has no such field, treat it as 'other'
