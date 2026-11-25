@@ -14,7 +14,7 @@ let adminAx: AxiosAuth
 let cookie: string
 
 const metric = (day: string, resourceId: string, operationTrack: string, userClass: string, nbRequests: number) => ({
-  owner: { type: 'user', id: 'superadmin', name: 'Super Admin' },
+  owner: { type: 'user', id: 'test_metrics_superadmin', name: 'Super Admin' },
   day,
   resource: { type: 'datasets', id: resourceId, title: `Dataset ${resourceId}` },
   operationTrack,
@@ -30,7 +30,7 @@ const metric = (day: string, resourceId: string, operationTrack: string, userCla
 test.describe('agent api docs served by the api', () => {
   // logged in once per worker, after the state setup checked the dev env
   test.beforeAll(async () => {
-    adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
+    adminAx = await axiosAuth({ email: 'test_metrics_superadmin@test.com', adminMode: true })
     cookie = adminAx.cookieJar.getCookieStringSync(publicUrl)
   })
 
@@ -67,7 +67,7 @@ test.describe('agent api docs served by the api', () => {
       metric('2026-01-01', 'd1', 'readDataFiles', 'owner', 2),
       metric('2026-01-02', 'd1', 'readDataAPI', 'external', 5),
       metric('2026-01-02', 'd2', 'readDataAPI', 'anonymous', 30),
-      { ...metric('2026-01-02', 'd3', 'readDataAPI', 'anonymous', 1000), owner: { type: 'user', id: 'other' } }
+      { ...metric('2026-01-02', 'd3', 'readDataAPI', 'anonymous', 1000), owner: { type: 'user', id: 'test_metrics_other' } }
     ])
     const toolSet = await load(apiDocs(), { baseUrl })
     const tool = toolSet.tools[0]

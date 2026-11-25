@@ -44,7 +44,7 @@ const primeLogPipeline = async () => {
 test.describe('daily api metrics', () => {
   // logged in once per worker, after the state setup checked the dev env
   test.beforeAll(async () => {
-    adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
+    adminAx = await axiosAuth({ email: 'test_metrics_superadmin@test.com', adminMode: true })
     await primeLogPipeline()
   })
   test.afterAll(deleteDatasets)
@@ -57,7 +57,7 @@ test.describe('daily api metrics', () => {
     const doc = await waitForMetric(dataset.id)
     assert.equal(doc.day.length, 10)
     assert.equal(doc.owner.type, 'user')
-    assert.equal(doc.owner.id, 'superadmin')
+    assert.equal(doc.owner.id, 'test_metrics_superadmin')
     assert.equal(doc.operationTrack, 'readDataAPI')
     assert.equal(doc.statusClass, 'ok')
     assert.equal(doc.nbRequests, 1)

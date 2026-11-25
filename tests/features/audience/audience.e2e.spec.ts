@@ -6,7 +6,7 @@ import { clean, dailyApiMetrics } from '../../support/index.ts'
 const today = new Date().toISOString().slice(0, 10)
 
 const metric = (resourceId: string, title: string, operationTrack: string, nbRequests: number) => ({
-  owner: { type: 'user', id: 'superadmin', name: 'Super Admin' },
+  owner: { type: 'user', id: 'test_metrics_superadmin', name: 'Super Admin' },
   day: today,
   resource: { type: 'datasets', id: resourceId, title },
   operationTrack,
@@ -28,7 +28,7 @@ test.describe('audience page', () => {
       metric('d1', 'Dataset one', 'readDataAPI', 12),
       metric('d2', 'Dataset two', 'readDataFiles', 3)
     ])
-    await goToWithAuth('/metrics/embed/home', 'superadmin')
+    await goToWithAuth('/metrics/embed/home', 'test_metrics_superadmin')
     await expect(page.getByText('API calls / dataset')).toBeVisible()
     // the key figures: a card with its value over its title
     const keyFigure = (title: string) => page.locator('.v-card').filter({ has: page.getByText(title, { exact: true }) })
@@ -40,7 +40,7 @@ test.describe('audience page', () => {
   })
 
   test('the export link carries the period', async ({ page, goToWithAuth }) => {
-    await goToWithAuth('/metrics/embed/home?start=2026-01-01&end=2026-01-31', 'superadmin')
+    await goToWithAuth('/metrics/embed/home?start=2026-01-01&end=2026-01-31', 'test_metrics_superadmin')
     await expect(page.getByRole('link', { name: 'Export' })).toHaveAttribute('href', /_export\?start=2026-01-01&end=2026-01-31/)
   })
 })

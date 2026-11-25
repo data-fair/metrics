@@ -19,8 +19,8 @@ export type AxiosAuth = Awaited<ReturnType<typeof _axiosAuth>>
 
 export const axiosAuth = (opts: string | Omit<AxiosAuthOptions, 'directoryUrl' | 'axiosOpts' | 'password'>) => {
   opts = typeof opts === 'string' ? { email: opts } : opts
-  const password = opts.email === 'superadmin@test.com' ? 'superpasswd' : 'passwd'
-  return _axiosAuth({ ...opts, password, axiosOpts, directoryUrl })
+  // every test account uses the same password
+  return _axiosAuth({ ...opts, password: 'passwd', axiosOpts, directoryUrl })
 }
 
 /**

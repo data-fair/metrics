@@ -1,38 +1,38 @@
 [  {
-    "id": "superadmin",
+    "id": "test_metrics_superadmin",
     "firstName": "Super",
     "lastName": "Admin",
-    "email": "superadmin@test.com",
+    "email": "test_metrics_superadmin@test.com",
     "password": {
-      "clear": "superpasswd"
+      "clear": "passwd"
     }
   }, {
-    "id": "user1",
-    "email": "user1@test.com",
+    "id": "test_metrics_user1",
+    "email": "test_metrics_user1@test.com",
     "password": {
       "clear": "passwd"
     }
 }, {
-    "id": "admin1",
-    "email": "admin1@test.com",
+    "id": "test_metrics_admin1",
+    "email": "test_metrics_admin1@test.com",
     "password": {
       "clear": "passwd"
     }
 }, {
-    "id": "admin2",
-    "email": "admin2@test.com",
+    "id": "test_metrics_admin2",
+    "email": "test_metrics_admin2@test.com",
     "password": {
       "clear": "passwd"
     }
 }, {
-    "id": "manager1",
-    "email": "manager1@test.com",
+    "id": "test_metrics_manager1",
+    "email": "test_metrics_manager1@test.com",
     "password": {
       "clear": "passwd"
     }
 }, {
-  "id": "orga1_scope_nhi",
-  "email": "orga1_scope_nhi@test.com",
+  "id": "test_metrics_orga1_scope_nhi",
+  "email": "test_metrics_orga1_scope_nhi@test.com",
   "nhi": {
     "provider": {
       "issuer": "https://metrics-tests.example.com",
