@@ -5,10 +5,9 @@ import { readFileSync } from 'node:fs'
  * id (and every email) starts with the prefix, so the suite seeds and cleans them without touching the
  * accounts of other sub-spaces (dev data under another prefix, other suites).
  *
- * Upserted by tests/global-setup.ts through simple-directory's test API (POST /api/test-env/seed) before
- * the spec files are loaded (never for a unit-only run), then cleaned (DELETE /api/test-env?prefix=) and
- * seeded again by tests/state-setup.ts, under the stateful lock. Every user uses the password 'passwd' and
- * the email `<id>@test.com`, which is what the login helpers derive (tests/support/index.ts, tests/fixtures/login.ts).
+ * Cleaned (DELETE /api/test-env?prefix=) then seeded through simple-directory's test API by tests/state-setup.ts,
+ * under the stateful lock. Every user uses the password 'passwd' and the email `<id>@test.com`, which is what the
+ * login helpers derive (tests/support/index.ts, tests/fixtures/login.ts).
  */
 export const prefix = 'test_metrics_'
 
