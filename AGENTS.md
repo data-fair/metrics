@@ -25,8 +25,10 @@ never overwritten. Production names override the development configs: `PORT`, `P
 - Read the logs before restarting: nodemon (api, daemon) and vite (ui) already reload on file changes.
 - Do not start, stop or restart the dev processes or containers of the user: ask.
 - Never `npm ci` / `npm install` while the env runs (the watchers restart on half-installed modules).
-- The tests (`npm run test`, Playwright) run against the api, the daemon and (e2e) the ui, and empty the
-  `daily-api-metrics` collection of the development database; `npm run test-unit` needs no dev env.
+- The tests (`npm run test`, Playwright) run against the api, the daemon and (e2e) the ui, in the prefixed test
+  sub-space `test_metrics_` (accounts seeded in simple-directory by `tests/support/sd-fixtures.ts`).
+  `DELETE /metrics/api/test-env?prefix=` removes only the daily metrics of that prefix's accounts (400 without a
+  valid `test_<suite>_` prefix). `npm run test-unit` needs no dev env.
 
 ## Logging
 

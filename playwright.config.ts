@@ -3,7 +3,7 @@ import 'dotenv/config'
 
 export default defineConfig({
   testDir: './tests',
-  // the api and e2e tests share the state of one dev env (the daily-api-metrics collection)
+  // the api and e2e tests share the state of one dev env (the daily metrics of the test_metrics_ sub-space)
   workers: 1,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -27,7 +27,8 @@ export default defineConfig({
   projects: [
     // no server, no shared state
     { name: 'unit', testMatch: /.*\.unit\.spec\.ts/, fullyParallel: true },
-    { name: 'state-setup', testMatch: /state-setup\.ts/ },
+    { name: 'state-setup', testMatch: /state-setup\.ts/, teardown: 'state-teardown' },
+    { name: 'state-teardown', testMatch: /state-teardown\.ts/ },
     { name: 'api', testMatch: /.*\.api\.spec\.ts/, dependencies: ['state-setup'] },
     {
       // the first hit on a Vite dev route compiles it on demand, which can exceed the per-test timeout

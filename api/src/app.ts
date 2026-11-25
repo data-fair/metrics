@@ -35,6 +35,10 @@ app.get('/api/agents/skills/:file', (req, res) => {
 app.use('/api/daily-api-metrics', dailyApiMetricsRouter)
 app.use('/api/admin', adminRouter)
 
+if (process.env.NODE_ENV === 'development') {
+  app.use('/api/test-env', (await import('./test-env/router.ts')).default)
+}
+
 app.use(await createSpaMiddleware(resolve(import.meta.dirname, '../../ui/dist'), uiConfig, {
   csp: {
     nonce: true,

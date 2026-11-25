@@ -3,6 +3,7 @@ import { axiosBuilder } from '@data-fair/lib-node/axios.js'
 import { privateHttpAgent } from '@data-fair/lib-node/http-agents.js'
 import { axiosAuth as _axiosAuth } from '@data-fair/lib-node/axios-auth.js'
 import mongo from '@data-fair/lib-node/mongo.js'
+import { prefix as testPrefix } from './sd-fixtures.ts'
 
 if (!process.env.NGINX_PORT) throw new Error('missing NGINX_PORT env variable, run "npm run dev-deps" to create the .env file')
 
@@ -40,6 +41,10 @@ export const dailyApiMetrics = async () => {
   return mongo.db.collection('daily-api-metrics')
 }
 
+/**
+ * Remove what the accounts of the test sub-space (test_metrics_, tests/support/sd-fixtures.ts) own here, through the
+ * test API of the dev api: the other sub-spaces sharing the database are left alone.
+ */
 export const clean = async () => {
-  await (await dailyApiMetrics()).deleteMany({})
+  await axios().delete('/metrics/api/test-env', { params: { prefix: testPrefix } })
 }

@@ -71,8 +71,15 @@ The tests run with [Playwright](https://playwright.dev/), in `tests/features/<fe
 - `api`: the api and the daemon of the running dev environment, through nginx;
 - `e2e`: the UI in chromium (`npx playwright install chromium` once), logged in by `tests/fixtures/login.ts`.
 
-The dev environment is the test environment: the api and e2e tests write their fixtures in the development database
-(they empty its `daily-api-metrics` collection). The pre-push hook (`dev/pre-push.sh`) runs the type check, the unit
+The dev environment is the test environment: the api and e2e tests write their fixtures in the development database,
+in the prefixed test sub-space `test_metrics_`. Their accounts live in simple-directory's mongo storage
+(`tests/support/sd-fixtures.ts`): the state setup cleans and seeds them through simple-directory's test API, under a
+lock that refuses a second api/e2e run (`tests/support/stateful-lock.ts`). `clean()` and the state setup call
+`DELETE /metrics/api/test-env?prefix=test_metrics_`, which removes only the daily metrics of the accounts of that
+prefix (400 without a valid `test_<suite>_` prefix): other sub-spaces sharing the database are left alone. Every
+test account uses the password `passwd`; `test_metrics_superadmin@test.com` is the simple-directory admin. The
+repository ships no dev data: to play around manually, seed accounts of your own through the same test API
+(`POST /api/test-env/seed` of simple-directory), under another prefix than `test_metrics_`. The pre-push hook (`dev/pre-push.sh`) runs the type check, the unit
 tests, the `@smoke` set and the api/e2e spec files the push changes; the CI the whole `npm run quality`.
 
 ```sh
@@ -86,7 +93,7 @@ npx playwright test tests/features/aggregation   # one feature
 On a failure, `npx playwright show-trace test-results/<test>/trace.zip` shows the trace, with the last lines of the
 api and daemon logs attached.
 
-The scope tests (`tests/features/scopes/scopes.api.spec.ts`) get scope-restricted sessions from the test non-human identity of `dev/resources/users.json` with `nhiSession(scope)` (`tests/support/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Add these variables to the git-ignored `.env` file, docker compose reads it:
+The scope tests (`tests/features/scopes/scopes.api.spec.ts`) get scope-restricted sessions from the test non-human identity `test_metrics_orga1_scope_nhi` (`tests/support/sd-fixtures.ts`) with `nhiSession(scope)` (`tests/support/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Add these variables to the git-ignored `.env` file, docker compose reads it:
 
 ```
 DF_IMAGE=ghcr.io/data-fair/data-fair:feat-autonomous-agents

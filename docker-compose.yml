@@ -24,7 +24,9 @@ services:
   #####
 
   simple-directory:
-    # SD_IMAGE: a local build of simple-directory, for the scope tests (tests/features/scopes/scopes.api.spec.ts)
+    # master (>= 8.24): the scoped NHI token exchange and the prefixed test API (POST /api/test-env/seed,
+    # DELETE /api/test-env?prefix=) the tests seed their accounts with — `docker compose pull simple-directory` if
+    # older. SD_IMAGE: a local build of simple-directory
     image: ${SD_IMAGE:-ghcr.io/data-fair/simple-directory:master}
     network_mode: host
     depends_on:
@@ -36,7 +38,14 @@ services:
       - MONGO_URL=mongodb://localhost:${MONGO_PORT}/simple-directory
       - OBSERVER_ACTIVE=false
       - CIPHER_PASSWORD=dev-cipher-password-0123456789abcdef
-      - STORAGE_TYPE=file
+      # accounts in mongo: the test suite seeds and cleans its own sub-space (test_metrics_,
+      # tests/support/sd-fixtures.ts) through the test API; dev accounts can be seeded the same way
+      # under another prefix
+      - STORAGE_TYPE=mongo
+      - ENABLE_TEST_API=1
+      # the test API needs NODE_ENV=development, the configuration stays the image's production one
+      - NODE_ENV=development
+      - NODE_CONFIG_ENV=production
       - ADMINS=["test_metrics_superadmin@test.com"]
       - CONTACT=contact@test.com
       # tests log in through the API many times per minute
@@ -48,12 +57,10 @@ services:
       - MAILS_TRANSPORT={"host":"localhost","port":${MAILDEV_SMTP_PORT},"ignoreTLS":true}
       # per recipient, stored in mongo: repeated test runs would stop the mails silently
       - MAILSRATELIMIT_POINTS=100000
-      # the test non-human identity of dev/resources/users.json (scope tests)
+      # non-human identities (the scope tests, tests/support/sd-fixtures.ts)
       - MANAGE_NHIS=true
+      # dev only: the test NHI issuer is not a real https issuer
       - NHIS_ALLOW_INSECURE_ISSUERS=true
-    volumes:
-      - ./dev/resources/users.json:/app/data/users.json
-      - ./dev/resources/organizations.json:/app/data/organizations.json
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "${SD_PORT}"]
       interval: 2s
