@@ -3,14 +3,14 @@ import { strict as assert } from 'node:assert'
 import { axiosAuth, clean, dailyApiMetrics } from '../../support/index.ts'
 import type { AxiosAuth } from '../../support/index.ts'
 
-// the daemon pane writes its bulk at most 1 s after a log line (daemon/config/development.mjs maxDelayMS)
+// the daemon writes its bulk at most 1 s after a log line (daemon/config/development.mjs maxDelayMS)
 const waitForMetric = async (datasetId: string) => {
   for (let i = 0; i < 50; i++) {
     const doc = await (await dailyApiMetrics()).findOne({ 'resource.id': datasetId })
     if (doc) return doc
     await new Promise(resolve => setTimeout(resolve, 200))
   }
-  throw new Error('no metric written within 10s: is the daemon pane running? "npx --no df-dev logs daemon"')
+  throw new Error('no metric written within 10s: is the daemon running? Read its logs (dev/logs/daemon.log by default)')
 }
 
 let adminAx: AxiosAuth
@@ -26,7 +26,7 @@ const deleteDatasets = async () => {
   for (const id of datasetIds.splice(0)) await adminAx.delete(`/data-fair/api/v1/datasets/${id}`)
 }
 
-// after a restart of the daemon pane, nginx still writes to the previous socket: its first log line is
+// after a restart of the daemon, nginx still writes to the previous socket: its first log line is
 // lost, then it reconnects. Send requests until one reaches the database, so the tests start on a
 // working pipeline.
 const primeLogPipeline = async () => {
@@ -38,7 +38,7 @@ const primeLogPipeline = async () => {
       await new Promise(resolve => setTimeout(resolve, 200))
     }
   }
-  throw new Error('no metric written after 10 requests: is the daemon pane running? "npx --no df-dev logs daemon"')
+  throw new Error('no metric written after 10 requests: is the daemon running? Read its logs (dev/logs/daemon.log by default)')
 }
 
 test.describe('daily api metrics', () => {

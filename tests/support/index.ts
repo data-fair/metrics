@@ -4,7 +4,7 @@ import { privateHttpAgent } from '@data-fair/lib-node/http-agents.js'
 import { axiosAuth as _axiosAuth } from '@data-fair/lib-node/axios-auth.js'
 import mongo from '@data-fair/lib-node/mongo.js'
 
-if (!process.env.NGINX_PORT) throw new Error('missing NGINX_PORT env variable, run "npx --no df-dev setup" to create the .env file')
+if (!process.env.NGINX_PORT) throw new Error('missing NGINX_PORT env variable, run "npm run dev-deps" to create the .env file')
 
 // the session cookies of simple-directory are set on DEV_HOST: every call goes through nginx on that host
 export const publicUrl = `http://${process.env.DEV_HOST}:${process.env.NGINX_PORT}`
@@ -24,13 +24,14 @@ export const axiosAuth = (opts: string | Omit<AxiosAuthOptions, 'directoryUrl' |
 }
 
 /**
- * The dev environment is the test environment: the tests call the api pane through nginx, the access logs reach the
- * daemon pane, and the fixtures are written in the database of the dev processes (metrics-development).
- * Connected once per worker, the client is closed when the worker exits.
+ * The dev environment is the test environment: the tests call the api through nginx, the access logs reach the
+ * daemon, and the fixtures are written in the database of the dev processes (MONGO_URL when it is set, as for the
+ * processes, else metrics-development). Connected once per worker, the client is closed when the worker exits.
  */
 let connected: Promise<void> | undefined
+export const devMongoUrl = () => process.env.MONGO_URL || `mongodb://localhost:${process.env.MONGO_PORT}/metrics-development`
 export const connectDevDb = () => {
-  connected = connected ?? mongo.connect(`mongodb://localhost:${process.env.MONGO_PORT}/metrics-development`).then(() => {})
+  connected = connected ?? mongo.connect(devMongoUrl()).then(() => {})
   return connected
 }
 

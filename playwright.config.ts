@@ -9,7 +9,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   // a flake must not cost a full re-run in CI
   retries: process.env.CI ? 1 : 0,
-  // on a failure: npx playwright show-trace test-results/<test>/trace.zip (api and daemon pane logs attached there)
+  // on a failure: npx playwright show-trace test-results/<test>/trace.zip (the api and daemon logs attached there)
   // the json report keeps the per-test durations of the last run, used to size the smoke set
   reporter: [['dot'], ['json', { outputFile: 'dev/logs/test-timings.json' }]],
   // per test, hooks included: a heavy spec calls test.slow() instead of raising this

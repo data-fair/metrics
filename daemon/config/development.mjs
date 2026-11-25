@@ -1,12 +1,14 @@
 import dotenv from 'dotenv'
 
-// the ports drawn in .env for this checkout (dev/dev.json "ports"), exported by `df-dev zellij`;
-// read here too for a process started outside the session, from the repo root or a workspace
+// .env fills the variables the environment does not set already (dotenv never overrides them), from the repo root
+// or a workspace; the production names (SOCKET_PATH, MONGO_URL, MONGO_OPTIONS, OBSERVER_ACTIVE) override this file
+// (custom-environment-variables.mjs)
 dotenv.config({ path: ['.env', '../.env'], quiet: true })
 
-if (!process.env.MONGO_PORT) throw new Error('missing MONGO_PORT env variable, run "npx --no df-dev setup" to create the .env file')
+if (!process.env.MONGO_PORT) throw new Error('missing MONGO_PORT env variable, run "npm run dev-deps" to create the .env file')
 
 export default {
+  // relative to daemon/, where npm run dev:daemon starts it; nginx's container mounts dev/data at /data
   socketPath: '../dev/data/metrics.log.sock',
   mongo: {
     url: `mongodb://localhost:${process.env.MONGO_PORT}/metrics-development`

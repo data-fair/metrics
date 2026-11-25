@@ -1,6 +1,5 @@
 import { test as base, expect, request, type BrowserContext } from '@playwright/test'
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
+import { processLogs } from '../support/process-logs.ts'
 
 /**
  * The `test` of every e2e spec.
@@ -47,17 +46,10 @@ const sessionCookies = async (user: string) => {
   return session.cookies
 }
 
-const exec = promisify(execFile)
-// the scrollback of a df-dev pane, or nothing when df-dev is not running (CI keeps its own logs)
-const paneLogs = async (pane: string) => {
-  const { stdout } = await exec('./node_modules/.bin/df-dev', ['logs', pane, '-n', '200']).catch(() => ({ stdout: '' }))
-  return stdout
-}
-
 /**
  * - `goToWithAuth(url, user)`: lands on url logged in as user.
  * - `page` override: English, and no session keepalive (see above).
- * - on a failure, the api and daemon pane logs are attached to the report and the trace.
+ * - on a failure, the last lines of the api and daemon logs are attached to the report and the trace.
  */
 export const test = base.extend<{
   goToWithAuth: (url: string, user: string) => Promise<void>,
@@ -84,9 +76,9 @@ export const test = base.extend<{
   diagnostics: [async ({}, use, testInfo) => {
     await use()
     if (testInfo.status === testInfo.expectedStatus) return
-    for (const pane of ['api', 'daemon']) {
-      const logs = await paneLogs(pane)
-      if (logs) await testInfo.attach(`${pane}.log`, { body: logs, contentType: 'text/plain' })
+    for (const name of ['api', 'daemon']) {
+      const logs = processLogs(name)
+      if (logs) await testInfo.attach(`${name}.log`, { body: logs, contentType: 'text/plain' })
     }
   }, { auto: true }]
 })

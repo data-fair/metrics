@@ -39,30 +39,37 @@ jobs:
       if: steps.playwright-cache.outputs.cache-hit == 'true'
       run: npx playwright install-deps chromium
 
-    # the ports, DEV_HOST and SSRF_PUBLIC_IPS of dev/dev.json, read by docker compose and the tests
-    - name: Init env
-      run: ./node_modules/.bin/df-dev init-env
+    - name: Init .env
+      run: cp dev/default.env .env
 
+    # every later step gets the variables of .env, as npm run dev exports them to its processes
+    - name: Export .env to the next steps
+      run: grep -vE '^\s*(#|$)' .env >> "$GITHUB_ENV" # GITHUB_ENV accepts only NAME=value lines, no comments
+
+    # dev-setup builds the types and the UI the API imports and serves at startup
     - name: Start dev dependencies
-      run: docker compose --profile '*' up -d --wait
+      run: npm run dev-deps
 
-    # the API imports the generated types and reads ui/dist at startup
-    - name: Build types and UI
-      run: npm run build-types && npm -w ui run build
-
-    # the dev environment is the test environment: the commands of the ui, api and daemon panes of .zellij.kdl,
-    # without nodemon, each writing dev/logs/<pane>.log (uploaded on failure)
+    # the processes of npm run dev, logs in dev/logs for the upload below
     - name: Start dev UI, API and daemon
       run: |
-        set -a && . ./.env && set +a
         mkdir -p dev/logs
-        (cd ui && NODE_CONFIG_DIR=../api/config/ NODE_ENV=development ../node_modules/.bin/vite --port $DEV_UI_PORT > ../dev/logs/ui.log 2>&1 &)
-        (cd api && NODE_ENV=development node index.ts > ../dev/logs/api.log 2>&1 &)
-        (cd daemon && umask 0 && NODE_ENV=development node index.ts > ../dev/logs/daemon.log 2>&1 &)
-        if ! timeout 60 bash -c "until curl -sf http://localhost:$DEV_API_PORT/metrics/api/api-docs.json >/dev/null && curl -sf http://localhost:$DEV_UI_PORT/metrics/ >/dev/null; do sleep 1; done"; then
-          tail -n 100 dev/logs/*.log
-          exit 1
-        fi
+        npm run dev:ui > dev/logs/ui.log 2>&1 &
+        npm run dev:api > dev/logs/api.log 2>&1 &
+        npm run dev:daemon > dev/logs/daemon.log 2>&1 &
+
+    - name: Wait for the dev API and UI to be ready
+      run: |
+        for i in $(seq 1 30); do
+          if curl -sf "http://localhost:${DEV_API_PORT}/metrics/api/api-docs.json" >/dev/null \
+            && curl -sf "http://localhost:${DEV_UI_PORT}/metrics/" >/dev/null; then
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "dev API or UI did not become ready" >&2
+        tail -n 100 dev/logs/*.log
+        exit 1
 
     - name: Run quality checks
       run: npm run quality

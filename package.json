@@ -4,6 +4,12 @@
   "description": "A service to help monitoring HTTP requests in the data-fair stack.",
   "type": "module",
   "scripts": {
+    "dev": "bash dev/run.sh",
+    "dev-deps": "bash dev/deps.sh",
+    "dev-setup": "bash dev/setup.sh",
+    "dev:api": "cd api && FORCE_COLOR=1 NODE_ENV=development exec ../node_modules/.bin/nodemon -e js,mjs,ts,json index.ts",
+    "dev:ui": "cd ui && FORCE_COLOR=1 NODE_CONFIG_DIR=../api/config/ NODE_ENV=development exec ../node_modules/.bin/vite --port ${DEV_UI_PORT}",
+    "dev:daemon": "cd daemon && umask 0 && FORCE_COLOR=1 NODE_ENV=development exec ../node_modules/.bin/nodemon -e js,mjs,ts,json index.ts",
     "test": "playwright test",
     "test-unit": "playwright test --project unit",
     "test-api": "playwright test --project api",
@@ -13,7 +19,6 @@
     "lint-fix": "eslint --fix . && npm -w ui run lint-fix",
     "check-types": "tsc && npm -w ui run check-types",
     "stop-dev-deps": "docker compose --profile '*' stop",
-    "dev-zellij": "df-dev zellij",
     "build-types": "df-build-types ./",
     "prepare": "husky || true",
     "quality": "npm run lint && npm run build-types && npm -w ui run build && npm run check-types && npm run test && npm audit --omit=dev --audit-level=critical"
@@ -37,7 +42,6 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.3",
-    "@data-fair/lib-dev": "^0.1.2",
     "@data-fair/lib-node": "^3.0.0",
     "@data-fair/lib-utils": "^1.10.1",
     "@data-fair/openapi-mcp": "^0.13.0",

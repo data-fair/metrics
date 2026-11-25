@@ -10,10 +10,10 @@ import Vuetify from 'vite-plugin-vuetify'
 import microTemplate from '@data-fair/lib-utils/micro-template.js'
 import { autoImports, settingsPath } from '@data-fair/lib-vuetify/vite.js'
 
-// the ports drawn in .env for this checkout (dev/dev.json "ports"), exported by `df-dev zellij`
+// dev ports come from the environment (the keys of dev/default.env), checked so a missing variable never becomes NaN
 const envPort = (name: string) => {
   const port = Number(process.env[name])
-  if (!Number.isInteger(port) || port <= 0) throw new Error(`missing ${name} env variable, run "npx --no df-dev setup" to create the .env file`)
+  if (!Number.isInteger(port) || port <= 0) throw new Error(`missing ${name} env variable, export the variables of .env (npm run dev does)`)
   return port
 }
 
