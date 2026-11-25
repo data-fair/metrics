@@ -30,6 +30,8 @@ never overwritten. Production names override the development configs: `PORT`, `P
   `DELETE /metrics/api/test-env?prefix=` removes only the daily metrics of that prefix's accounts (400 without a
   valid `test_<suite>_` prefix). `npm run test-unit` needs no dev env.
 
+Design specs and implementation plans are not kept in this repository; durable architecture docs live in `docs/architecture/`.
+
 ## Logging
 
 Server code logs through `import log from '@data-fair/lib-node/log.js'` (the "Logging" section of the
