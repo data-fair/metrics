@@ -57,9 +57,9 @@ test.describe('scope-restricted sessions', () => {
   test.beforeEach(async () => {
     await clean()
     await (await dailyApiMetrics()).insertMany([
-      metric('orga1', '2026-01-01', 10),
-      metric('orga1', '2026-01-02', 5),
-      metric('orga2', '2026-01-02', 1000)
+      metric('test_metrics_orga1', '2026-01-01', 10),
+      metric('test_metrics_orga1', '2026-01-02', 5),
+      metric('test_metrics_orga2', '2026-01-02', 1000)
     ])
   })
 

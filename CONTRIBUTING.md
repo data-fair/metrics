@@ -6,34 +6,49 @@
 - A recent [Docker](https://docs.docker.com/engine/install/) installation.
 - [Node.js v24+](https://nodejs.org/)
 
-## Install dependencies
+## Quick start
 
 ```sh
 npm ci
-npx --no df-dev setup
+npm run dev
 ```
 
-`df-dev setup` (package `@data-fair/lib-dev`) writes the git-ignored `.env` of this checkout (free ports drawn for every service of `dev/dev.json`, `DEV_HOST`, `SSRF_PUBLIC_IPS`), builds the types and the UI.
+Docker is required: nginx, simple-directory, data-fair, elasticsearch and mongo run in containers; the api, the ui
+and the daemon run in the terminal (Ctrl+C stops them, their logs are in `dev/logs/`). The app is available at
+<http://localhost:6150/metrics/dev>.
 
-## Start the development environment
-
-Requires [zellij](https://zellij.dev/) >= 0.44.
+Then, in another terminal:
 
 ```sh
-npm run dev-zellij
+npm test
 ```
 
-The zellij session of this checkout starts the containers (status pane), then the UI, the API and the daemon (each pane restarts its process on file changes). The dev page is printed in the bottom line, `http://<DEV_HOST>:<NGINX_PORT>/metrics/dev`.
+Pull images at first and then once in a while:
 
-For agents and scripts:
+```sh
+docker compose pull
+```
 
-| Need | Command |
-|---|---|
-| What runs, what is broken | `npx --no df-dev status` |
-| A process's output | `npx --no df-dev logs <pane> -n 100` (`api`, `ui`, `daemon`) |
-| Restart one process | `npx --no df-dev restart <pane>` |
+## Run the development servers
 
-Another branch in its own worktree, with its own ports, containers and session: `npx --no df-worktree <branch>` from this checkout, `npx --no df-worktree-delete <branch>` to remove it.
+The default ports (6150-6158) are in `dev/default.env`, copied to `.env` the first time: `.env` overrides
+`dev/default.env` and is never overwritten. `npm run dev-deps` only starts the containers (extra arguments go to
+docker compose); `npm run dev` accepts the same arguments.
+
+Each dev process has its own npm script and reads its settings from environment variables (every key of
+`dev/default.env`): `npm run dev-setup` (idempotent builds, no container), then `npm run dev:api`,
+`npm run dev:ui` and `npm run dev:daemon`, each in its own terminal with the variables of `.env` exported. The
+production names (`PORT`, `PRIVATE_DIRECTORY_URL`, `MONGO_URL`, `SOCKET_PATH`...) override the development
+configs. `DEV_LOG_DIR` (default `dev/logs`) and `DEV_LOG_PREFIX` set where `npm run dev` writes the logs of the
+processes.
+
+nginx sends the access logs of the requests to data-fair to the daemon through a unix socket, as the production
+ingress does: `dev/data/metrics.log.sock`, mounted at `/data` in the nginx container. The daemon creates it (with
+`umask 0`, nginx runs as another user in its container); nginx drops the lines while it is missing. Listen on it
+to debug: `umask 0 && nc -vkluU dev/data/metrics.log.sock`.
+
+The fixed ports mean one environment per machine: stop the containers of one checkout
+(`npm run stop-dev-deps`) before starting another.
 
 ## Stop the development environment
 
@@ -53,11 +68,18 @@ docker build --progress=plain --target=daemon -t data-fair/metrics/daemon:dev .
 The tests run with [Playwright](https://playwright.dev/), in `tests/features/<feature>/<name>.<unit|api|e2e>.spec.ts`:
 
 - `unit`: pure functions (the daemon's parsing of a log line, the scopes, the agent surface), no server;
-- `api`: the `api` and `daemon` panes of the running zellij session, through nginx;
+- `api`: the api and the daemon of the running dev environment, through nginx;
 - `e2e`: the UI in chromium (`npx playwright install chromium` once), logged in by `tests/fixtures/login.ts`.
 
-The dev environment is the test environment: the api and e2e tests write their fixtures in the development database
-(they empty its `daily-api-metrics` collection). The pre-push hook (`dev/pre-push.sh`) runs the type check, the unit
+The dev environment is the test environment: the api and e2e tests write their fixtures in the development database,
+in the prefixed test sub-space `test_metrics_`. Their accounts live in simple-directory's mongo storage
+(`tests/support/sd-fixtures.ts`): the state setup cleans and seeds them through simple-directory's test API, under a
+lock that refuses a second api/e2e run (`tests/support/stateful-lock.ts`). `clean()` and the state setup call
+`DELETE /metrics/api/test-env?prefix=test_metrics_`, which removes only the daily metrics of the accounts of that
+prefix (400 without a valid `test_<suite>_` prefix): other sub-spaces sharing the database are left alone. Every
+test account uses the password `passwd`; `test_metrics_superadmin@test.com` is the simple-directory admin. The
+repository ships no dev data: to play around manually, seed accounts of your own through the same test API
+(`POST /api/test-env/seed` of simple-directory), under another prefix than `test_metrics_`. The pre-push hook (`dev/pre-push.sh`) runs the type check, the unit
 tests, the `@smoke` set and the api/e2e spec files the push changes; the CI the whole `npm run quality`.
 
 ```sh
@@ -68,10 +90,10 @@ npm run test-e2e
 npx playwright test tests/features/aggregation   # one feature
 ```
 
-On a failure, `npx playwright show-trace test-results/<test>/trace.zip` shows the trace, with the api and daemon
-pane logs attached.
+On a failure, `npx playwright show-trace test-results/<test>/trace.zip` shows the trace, with the last lines of the
+api and daemon logs attached.
 
-The scope tests (`tests/features/scopes/scopes.api.spec.ts`) get scope-restricted sessions from the test non-human identity of `dev/resources/users.json` with `nhiSession(scope)` (`tests/support/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Add these variables to the git-ignored `.env` file, docker compose reads it:
+The scope tests (`tests/features/scopes/scopes.api.spec.ts`) get scope-restricted sessions from the test non-human identity `test_metrics_orga1_scope_nhi` (`tests/support/sd-fixtures.ts`) with `nhiSession(scope)` (`tests/support/nhi.ts`). They need a simple-directory image with the scoped token exchange (`SD_IMAGE` overrides the image of `docker-compose.yml`). The bearer token tests also need a simple-directory issuing access token audiences, and the export tests a scope-aware data-fair (`DF_IMAGE`): they are skipped without them. Add these variables to the git-ignored `.env` file, docker compose reads it:
 
 ```
 DF_IMAGE=ghcr.io/data-fair/data-fair:feat-autonomous-agents

@@ -31,37 +31,37 @@ test.describe('access to the audience', () => {
   test.beforeAll(async () => {
     await clean()
     await (await dailyApiMetrics()).insertMany([
-      metric({ type: 'organization', id: 'orga1', name: 'Orga 1' }),
-      metric({ type: 'user', id: 'user1', name: 'User 1' })
+      metric({ type: 'organization', id: 'test_metrics_orga1', name: 'Orga 1' }),
+      metric({ type: 'user', id: 'test_metrics_user1', name: 'User 1' })
     ])
   })
   test.afterAll(clean)
 
   test('a member with the user role of the organization is refused @smoke', async () => {
-    const ax = await axiosAuth({ email: 'user1@test.com', org: 'orga1' })
+    const ax = await axiosAuth({ email: 'test_metrics_user1@test.com', org: 'test_metrics_orga1' })
     assert.equal(await status(ax, ''), 403)
     assert.equal(await status(ax, '/_agg', { ...period, split: 'resource' }), 403)
     assert.equal(await status(ax, '/_export', period), 403)
   })
 
   test('a member with another role than admin or contrib is refused', async () => {
-    const ax = await axiosAuth({ email: 'manager1@test.com', org: 'orga1' })
+    const ax = await axiosAuth({ email: 'test_metrics_manager1@test.com', org: 'test_metrics_orga1' })
     assert.equal(await status(ax, '/_agg', { ...period, split: 'resource' }), 403)
   })
 
   test('an admin of the organization reads it', async () => {
-    const ax = await axiosAuth({ email: 'admin1@test.com', org: 'orga1' })
+    const ax = await axiosAuth({ email: 'test_metrics_admin1@test.com', org: 'test_metrics_orga1' })
     const res = await ax.get(`${api}/_agg`, { params: { ...period, split: 'resource' } })
     assert.equal(res.data.nbRequests, 10)
   })
 
   test('an admin of a department reads it', async () => {
-    const ax = await axiosAuth({ email: 'admin1@test.com', org: 'orga1', dep: 'dep1' })
+    const ax = await axiosAuth({ email: 'test_metrics_admin1@test.com', org: 'test_metrics_orga1', dep: 'dep1' })
     assert.equal(await status(ax, '/_agg', { ...period, split: 'resource' }), 200)
   })
 
   test('a user reads the audience of their personal account', async () => {
-    const ax = await axiosAuth('user1@test.com')
+    const ax = await axiosAuth('test_metrics_user1@test.com')
     const res = await ax.get(`${api}/_agg`, { params: { ...period, split: 'resource' } })
     assert.equal(res.data.nbRequests, 10)
   })

@@ -15,7 +15,7 @@ let depAx: AxiosAuth
 
 type Fixture = { day: string, resource: [string, string], operationTrack: string, statusClass?: string, userClass: string, refererDomain: string, refererCategory?: string, refererApp?: string, nbRequests: number, duration: number, owner?: Record<string, string> }
 
-const superadmin = { type: 'user', id: 'superadmin', name: 'Super Admin' }
+const superadmin = { type: 'user', id: 'test_metrics_superadmin', name: 'Super Admin' }
 
 const fixtures: Fixture[] = [
   { day: '2026-03-01', resource: ['datasets', 'd1'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 10, duration: 1 },
@@ -27,10 +27,10 @@ const fixtures: Fixture[] = [
   // outside of the queried period
   { day: '2026-03-05', resource: ['datasets', 'd1'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 1000, duration: 1 },
   // other owners
-  { day: '2026-03-02', resource: ['datasets', 'd1'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 100, duration: 1, owner: { type: 'organization', id: 'orga1', name: 'Orga 1' } },
-  { day: '2026-03-02', resource: ['datasets', 'd5'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 50, duration: 1, owner: { type: 'organization', id: 'orga1', name: 'Orga 1', department: 'dep1' } },
-  { day: '2026-03-02', resource: ['datasets', 'd6'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 20, duration: 1, owner: { type: 'organization', id: 'orga1', name: 'Orga 1', department: 'dep2' } },
-  { day: '2026-03-02', resource: ['datasets', 'd9'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 10000, duration: 1, owner: { type: 'user', id: 'other', name: 'Other' } }
+  { day: '2026-03-02', resource: ['datasets', 'd1'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 100, duration: 1, owner: { type: 'organization', id: 'test_metrics_orga1', name: 'Orga 1' } },
+  { day: '2026-03-02', resource: ['datasets', 'd5'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 50, duration: 1, owner: { type: 'organization', id: 'test_metrics_orga1', name: 'Orga 1', department: 'dep1' } },
+  { day: '2026-03-02', resource: ['datasets', 'd6'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 20, duration: 1, owner: { type: 'organization', id: 'test_metrics_orga1', name: 'Orga 1', department: 'dep2' } },
+  { day: '2026-03-02', resource: ['datasets', 'd9'], operationTrack: 'readDataAPI', userClass: 'anonymous', refererDomain: 'a.fr', refererCategory: 'embed', nbRequests: 10000, duration: 1, owner: { type: 'user', id: 'test_metrics_other', name: 'Other' } }
 ]
 
 const toDoc = (f: Fixture) => {
@@ -66,9 +66,9 @@ const totals = (result: any) => result.series.map((s: any) => [s.key, s.nbReques
 test.describe('aggregation of daily metrics', () => {
   // logged in once per worker, after the state setup checked the dev env
   test.beforeAll(async () => {
-    adminAx = await axiosAuth({ email: 'superadmin@test.com', adminMode: true })
-    orgAx = await axiosAuth({ email: 'admin1@test.com', org: 'orga1' })
-    depAx = await axiosAuth({ email: 'admin1@test.com', org: 'orga1', dep: 'dep1' })
+    adminAx = await axiosAuth({ email: 'test_metrics_superadmin@test.com', adminMode: true })
+    orgAx = await axiosAuth({ email: 'test_metrics_admin1@test.com', org: 'test_metrics_orga1' })
+    depAx = await axiosAuth({ email: 'test_metrics_admin1@test.com', org: 'test_metrics_orga1', dep: 'dep1' })
   })
 
   test.beforeAll(clean)
