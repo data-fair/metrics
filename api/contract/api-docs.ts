@@ -21,7 +21,8 @@ import aggRowsResultSchema from '../doc/agg-rows-result/schema.json' with { type
 import aggQuerySchema from '../doc/agg-query/schema.json' with { type: 'json' }
 
 const defs = dailyApiMetricSchema.$defs
-const splitValues = aggQuerySchema.properties.split.items.enum
+// owner only makes sense with showAll, a super admin parameter kept out of the documented surface
+const splitValues = aggQuerySchema.properties.split.items.enum.filter(v => v !== 'owner')
 
 // the schema files are standalone JSON schemas, their local refs are resolved here for the OpenAPI document
 const { $id, $defs: rowsDefs, 'x-exports': _, ...aggRowsResult } = aggRowsResultSchema

@@ -13,6 +13,7 @@
 import formatBytes from '@data-fair/lib-vue/format/bytes.js'
 import { useDisplay, useTheme } from 'vuetify'
 import { useI18n } from 'vue-i18n'
+import { ownerKey } from '~/utils/owners'
 
 const props = withDefaults(defineProps<{
   title: string
@@ -20,9 +21,12 @@ const props = withDefaults(defineProps<{
   filter: Record<string, any>
   periods: Record<string, any>
   labels?: Record<string, string> | null
+  // the value drawn by the bars, the other one stays in the tooltips
+  metric?: 'nbRequests' | 'bytes'
 }>(), {
   category: 'resource',
-  labels: null
+  labels: null,
+  metric: 'nbRequests'
 })
 
 const emit = defineEmits<{
@@ -38,6 +42,7 @@ const getLabel = (serie: any, category: string, labels: Record<string, string> |
   if (serie.label) return serie.label
   if (category === 'resource') return safeDecodeUriComponent(serie.key.resource.title)
   if (category === 'userClass') return te(`userClasses.${serie.key.userClass}`) ? t(`userClasses.${serie.key.userClass}`) : serie.key.userClass
+  if (category === 'owner') return labels?.[ownerKey(serie.key.owner)] ?? serie.key.owner.id
   if (serie.key[category] === 'none') return t('unknown')
   if (serie.key[category] === null || serie.key[category] === undefined) return t('none')
   if (labels && labels[serie.key[category]]) return labels[serie.key[category]]
@@ -55,7 +60,10 @@ const aspectRatio = computed(() => display.smAndDown.value ? 1 : 2)
 const chartConfig = computed(() => {
   if (!aggResult.value) return null
 
-  const series = [...aggResult.value.series]
+  // the api ranks the series by number of requests, a volume chart keeps the biggest volumes
+  const series = props.metric === 'bytes'
+    ? [...aggResult.value.series].sort((s1: any, s2: any) => s2.bytes - s1.bytes)
+    : [...aggResult.value.series]
   const limitedSeries = series.splice(0, large.value ? 19 : 9)
   if (series.length) {
     limitedSeries.push({
@@ -71,8 +79,8 @@ const chartConfig = computed(() => {
   const categories = limitedSeries
     .map((s: any) => ({
       label: getLabel(s, props.category, props.labels),
-      value: s.nbRequests,
-      previousValue: s.previousNbRequests,
+      value: props.metric === 'bytes' ? s.bytes : s.nbRequests,
+      previousValue: props.metric === 'bytes' ? s.previousBytes : s.previousNbRequests,
       tooltip: t('requestsTooltip', { nb: s.nbRequests.toLocaleString(locale.value), bytes: formatBytes(s.bytes, locale.value) }, s.nbRequests),
       previousTooltip: t('previousRequestsTooltip', { nb: s.previousNbRequests.toLocaleString(locale.value), bytes: formatBytes(s.previousBytes, locale.value) }, s.previousNbRequests)
     }))
@@ -100,7 +108,10 @@ const chartConfig = computed(() => {
         x: {
           beginAtZero: true,
           ticks: {
-            precision: 0
+            precision: 0,
+            callback (value: any) {
+              return props.metric === 'bytes' ? formatBytes(value, locale.value) : Number(value).toLocaleString(locale.value)
+            }
           }
         },
         y: {
@@ -145,7 +156,11 @@ const fetchPeriod = async (period: { start: string, end: string }) => {
   }
 }
 
-const serieKey = (serie: any) => props.category === 'resource' ? serie.key.resource.id : serie.key[props.category]
+const serieKey = (serie: any) => {
+  if (props.category === 'resource') return serie.key.resource.id
+  if (props.category === 'owner') return ownerKey(serie.key.owner)
+  return serie.key[props.category]
+}
 
 // a response to an older filter or period, slower than the current one, is dropped
 let fetchId = 0

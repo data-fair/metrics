@@ -7,7 +7,7 @@
     <v-card-title class="text-display-medium py-4">
       {{ value }}
       <v-icon
-        :color="trend === 'up' ? 'success' : trend === 'down' ? 'error' : 'primary'"
+        :color="trend === 'neutral' || !trend ? 'primary' : (trend === 'up') !== !!invertTrend ? 'success' : 'error'"
         :icon="trend === 'up' ? mdiTrendingUp : trend === 'down' ? mdiTrendingDown : mdiTrendingNeutral"
         size="x-small"
         class="ml-1"
@@ -32,6 +32,8 @@ defineProps<{
   title?: string
   subtitle?: string
   trend?: string
+  // an increase is bad news (an error rate for instance)
+  invertTrend?: boolean
 }>()
 </script>
 
