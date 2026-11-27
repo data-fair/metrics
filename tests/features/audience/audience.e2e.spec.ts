@@ -33,10 +33,8 @@ test.describe('audience page', () => {
     // the key figures: a card with its value over its title
     const keyFigure = (title: string) => page.locator('.v-card').filter({ has: page.getByText(title, { exact: true }) })
     await expect(keyFigure('API calls')).toContainText('12')
-    // the number of downloaded files, then their volume
-    await expect(keyFigure('downloaded files')).toHaveCount(2)
-    await expect(keyFigure('downloaded files').first()).toContainText('3')
-    await expect(keyFigure('downloaded files').nth(1)).toContainText(/3 kb/i)
+    await expect(keyFigure('downloaded files')).toContainText('3')
+    await expect(keyFigure('downloaded volume')).toContainText(/3 kb/i)
   })
 
   test('the export link carries the period', async ({ page, goToWithAuth }) => {

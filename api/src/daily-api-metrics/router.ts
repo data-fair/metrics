@@ -7,7 +7,7 @@ import * as aggQuery from '#doc/agg-query/index.ts'
 import * as exportQuery from '#doc/export-query/index.ts'
 import generate from './export.ts'
 
-import { list, agg, aggRows } from './service.ts'
+import { list, agg, aggRows, aggAccount } from './service.ts'
 import { requireOperationScope, exportScopesMessage } from '../scopes.ts'
 
 const router = Router()
@@ -35,8 +35,9 @@ router.get('/_agg', requireOperationScope('aggDailyApiMetrics'), async (req, res
   aggQuery.assertValid(query, { lang: reqSession.lang, name: 'query' })
   if (query.showAll === 'true') assertAdminMode(reqSession)
   else if (query.owner) throw httpError(400, 'the owner filter requires showAll=true')
-  if (query.format === 'rows') res.json(await aggRows(reqSession.account, query))
-  else res.json(await agg(reqSession.account, query))
+  const account = await aggAccount(reqSession.account, reqSession.user.adminMode, query)
+  if (query.format === 'rows') res.json(await aggRows(account, query))
+  else res.json(await agg(account, query))
 })
 
 router.get('/_export', requireOperationScope('exportDailyApiMetrics'), async (req, res) => {

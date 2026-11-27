@@ -156,6 +156,8 @@ test.describe('aggregation of daily metrics', () => {
       // legacy records without refererCategory match "other"
       assert.equal(await nb({ refererCategory: 'other' }), 11)
       assert.equal(await nb({ refererCategory: ['other', 'backoffice'] }), 13)
+      assert.equal(await nb({ refererApp: 'carte' }), 5)
+      assert.equal(await nb({ refererApp: ['carte', 'unknown'] }), 5)
       // like the embed home page: several filters together
       assert.equal(await nb({ statusClass: 'ok', operationTrack: 'readDataAPI', resourceId: ['d1'], refererDomain: ['a.fr'] }), 15)
     })
@@ -167,6 +169,15 @@ test.describe('aggregation of daily metrics', () => {
         [{ resource: { type: 'datasets', id: 'd5', title: 'Title d5' } }, 50],
         [{ resource: { type: 'datasets', id: 'd6', title: 'Title d6' } }, 20]
       ])
+    })
+
+    test('aggregates the metrics of the owner of a resource for a super admin, like the events traceability', async () => {
+      // d5 belongs to a department of orga1, the super admin's active account is its own user
+      assert.equal((await agg({ resourceType: 'datasets', resourceId: 'd5' })).nbRequests, 50)
+      // an admin of another account only reads the metrics of its own
+      assert.equal((await agg({ resourceType: 'datasets', resourceId: 'd9' }, orgAx)).nbRequests, 0)
+      // without a single resource, the active account
+      assert.equal((await agg({ resourceType: 'datasets', resourceId: ['d5', 'd2'] })).nbRequests, 4)
     })
 
     test('only aggregates the metrics of the active department', async () => {
